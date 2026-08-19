@@ -160,7 +160,8 @@
 
   .recent-card{padding:0;margin-bottom:6px;}
   .card-header{padding:16px 22px;border-bottom:1px solid var(--border);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;}
-  .recent-row{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--border);font-size:13px;}
+  .recent-row{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--border);font-size:13px;transition:background .15s;}
+  .recent-row:hover{background:#FAFBFD;}
   .recent-row:last-child{border-bottom:none;}
   .recent-tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;flex:none;}
   .recent-tag.pc{background:var(--accent-soft);color:var(--accent-dark);}
@@ -179,18 +180,24 @@
     border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:#fff;color:var(--text);
     outline:none;transition:border-color .15s, box-shadow .15s;
   }
+  .input:hover,.select:hover,.textarea:hover{border-color:#CBD5E1;}
   .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
   .textarea{resize:vertical;width:100%;font-family:inherit;}
-  .select{min-width:150px;}
+  .select{
+    min-width:150px;appearance:none;-webkit-appearance:none;padding-right:32px;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
   .header-search input{border-color:var(--border);}
 
-  .btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s;}
-  .btn-primary{background:var(--ink);color:#fff;}
+  .btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;}
+  .btn-primary{background:var(--ink);color:#fff;box-shadow:0 1px 2px rgba(11,18,32,.15);}
   .btn-primary:hover{background:var(--ink-3);}
   .btn-secondary{background:#fff;color:var(--text);border-color:var(--border);}
-  .btn-secondary:hover{background:var(--gray-bg);}
+  .btn-secondary:hover{background:var(--gray-bg);border-color:#CBD5E1;}
   .btn-danger{background:var(--red);color:#fff;}
   .btn-danger:hover{background:#B91C1C;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
 
   .table-card{padding:0;}
   .table-wrap{overflow-x:auto;}
@@ -212,6 +219,8 @@
   .truncate-sm{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .cell-sub{font-size:11px;color:var(--text-faint);margin-top:2px;}
   .empty-row{text-align:center;color:var(--text-faint);padding:44px 16px !important;font-size:13px;}
+  .empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .empty-state .empty-ic{width:36px;height:36px;border-radius:10px;background:var(--gray-bg);color:var(--text-faint);display:flex;align-items:center;justify-content:center;}
   .row-actions{display:flex;gap:6px;}
   .icon-btn{background:var(--gray-bg);border:none;border-radius:7px;padding:6px;color:var(--text-muted);display:flex;transition:background .15s,color .15s;}
   .icon-btn:hover{background:var(--accent-dark);color:#fff;}
@@ -220,7 +229,8 @@
   .pagination{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;}
   .pagination .info{font-size:12px;color:var(--text-muted);}
   .pagination .controls{display:flex;gap:6px;align-items:center;}
-  .page-btn{border:1px solid var(--border);background:#fff;border-radius:7px;padding:6px 11px;font-size:12.5px;color:var(--text);}
+  .page-btn{border:1px solid var(--border);background:#fff;border-radius:7px;padding:6px 11px;font-size:12.5px;color:var(--text);transition:background .15s,border-color .15s;}
+  .page-btn:hover:not(:disabled):not(.current){background:var(--gray-bg);border-color:#CBD5E1;}
   .page-btn:disabled{opacity:.4;cursor:not-allowed;}
   .page-btn.current{background:var(--ink);color:#fff;border-color:var(--ink);}
 
@@ -296,6 +306,10 @@
     .pagination{flex-direction:column;align-items:flex-start;}
     .kpi-value{font-size:23px;}
     .clock-chip{display:none;}
+    .recent-row{flex-wrap:wrap;row-gap:4px;}
+    .recent-dept{width:auto;}
+    .recent-problem{width:100%;order:3;white-space:normal;}
+    .recent-date{margin-left:auto;}
   }
 </style>
 </head>
@@ -305,6 +319,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfOeFsru1RpbxQ_oGpFpyEKM6Iv_FQETk",
+    authDomain: "issreport.firebaseapp.com",
+    projectId: "issreport",
+    storageBucket: "issreport.firebasestorage.app",
+    messagingSenderId: "591812103536",
+    appId: "1:591812103536:web:07dbd24b145b439168d3b5",
+    measurementId: "G-EMTQD3G1PS"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useRef } = React;
@@ -366,7 +395,7 @@ const STATUS_STYLES = {
 };
 
 let idCounter = 1000;
-function nextId(prefix){ idCounter += 1; return prefix + '-' + idCounter; }
+function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
 
 const SEED_PC_REPORTS = [
   { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'Mark Villanueva' },
@@ -753,6 +782,7 @@ function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
 
       <div className="card recent-card">
         <div className="card-header">Recent Activity</div>
+        {recent.length === 0 && <div className="recent-row" style={{ justifyContent: 'center', color: 'var(--text-faint)' }}>No activity yet.</div>}
         {recent.map(r => (
           <div className="recent-row" key={r.kind + '-' + r.id}>
             <span className={"recent-tag " + r.kind}>{r.kind === 'pc' ? 'PC' : 'S.AREA'}</span>
@@ -913,7 +943,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan={REPORT_COLUMNS.length + 1} className="empty-row">No reports match your search or filters.</td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan={REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td className="mono">{formatDate(r.dateReported)}</td>
@@ -1110,7 +1140,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan="9" className="empty-row">No PCs match your search or filters.</td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan="9" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td style={{ fontWeight: 600 }}>{r.pcName}</td>
@@ -1278,7 +1308,7 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row">No POS terminals match your search or filters.</td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No POS terminals match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td style={{ fontWeight: 600 }}>{r.ctr}</td>
@@ -1382,6 +1412,86 @@ function Header({ current, onMenu, clock, query, setQuery, searchPlaceholder, sh
 }
 
 /* =========================================================
+   FIRESTORE SYNC HOOK
+   Keeps a collection in sync in real-time across devices.
+   Auto-seeds the collection with demo data on first run only.
+   Exposes a setData(updater) that behaves like React's setState
+   so existing page components (ReportsPage, PcMonitoringPage,
+   PosMonitoringPage) don't need to change at all.
+   ========================================================= */
+function useFirestoreCollection(collectionName, seedData) {
+  const [data, setDataState] = useState(seedData);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
+  const dataRef = useRef(seedData);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
+  useEffect(() => {
+    let unsub = () => {};
+    let cancelled = false;
+
+    // Safety net: never let the UI hang forever, even if Firestore never responds.
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        console.warn('Firestore (' + collectionName + ') took too long to respond. Showing local data instead.');
+        setError('timeout');
+        setReady(true);
+      }
+    }, 10000);
+
+    (async () => {
+      try {
+        const snap = await db.collection(collectionName).get();
+        if (!cancelled && snap.empty) {
+          const batch = db.batch();
+          seedData.forEach(item => batch.set(db.collection(collectionName).doc(item.id), item));
+          await batch.commit();
+        }
+        unsub = db.collection(collectionName).onSnapshot(
+          snapshot => {
+            const rows = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            setDataState(rows);
+            setError(null);
+            setReady(true);
+            clearTimeout(timeout);
+          },
+          err => {
+            console.error('Firestore sync error (' + collectionName + '):', err);
+            setError(err.code || err.message || 'sync-error');
+            setReady(true);
+            clearTimeout(timeout);
+          }
+        );
+      } catch (err) {
+        console.error('Firestore connection error (' + collectionName + '):', err);
+        setError(err.code || err.message || 'connection-error');
+        setReady(true);
+        clearTimeout(timeout);
+      }
+    })();
+
+    return () => { cancelled = true; clearTimeout(timeout); unsub(); };
+  }, [collectionName]);
+
+  function setData(updater) {
+    const prev = dataRef.current;
+    const next = typeof updater === 'function' ? updater(prev) : updater;
+    const nextIds = new Set(next.map(r => r.id));
+    prev.forEach(r => {
+      if (!nextIds.has(r.id)) db.collection(collectionName).doc(r.id).delete().catch(err => console.error('Delete failed:', err));
+    });
+    next.forEach(r => {
+      const old = prev.find(p => p.id === r.id);
+      if (!old || JSON.stringify(old) !== JSON.stringify(r)) {
+        db.collection(collectionName).doc(r.id).set(r).catch(err => console.error('Save failed:', err));
+      }
+    });
+  }
+
+  return [data, setData, ready, error];
+}
+
+/* =========================================================
    APP ROOT
    ========================================================= */
 const PAGES_META = {
@@ -1395,10 +1505,12 @@ const PAGES_META = {
 function App() {
   const [page, setPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pcReports, setPcReports] = useState(SEED_PC_REPORTS);
-  const [saReports, setSaReports] = useState(SEED_SA_REPORTS);
-  const [pcInventory, setPcInventory] = useState(SEED_PC_INVENTORY);
-  const [posInventory, setPosInventory] = useState(SEED_POS_INVENTORY);
+  const [pcReports, setPcReports, pcReportsReady, pcReportsErr] = useFirestoreCollection('pcReports', SEED_PC_REPORTS);
+  const [saReports, setSaReports, saReportsReady, saReportsErr] = useFirestoreCollection('saReports', SEED_SA_REPORTS);
+  const [pcInventory, setPcInventory, pcInventoryReady, pcInventoryErr] = useFirestoreCollection('pcInventory', SEED_PC_INVENTORY);
+  const [posInventory, setPosInventory, posInventoryReady, posInventoryErr] = useFirestoreCollection('posInventory', SEED_POS_INVENTORY);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
 
@@ -1424,8 +1536,22 @@ function App() {
   if (page === 'pcMonitoring') searchProps = { show: true, query: pcInvQuery, setQuery: setPcInvQuery, placeholder: 'Search by PC Name, IP Address, or Department...' };
   if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, CTR, serials...' };
 
+  if (!allReady) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '10px', background: 'var(--canvas)' }}>
+        <div className="status-pill" style={{ color: 'var(--accent-dark)' }}><span className="pulse"></span></div>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12.5px', color: 'var(--text-muted)' }}>Connecting to database...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
+      {connectionError && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300, background: 'var(--red)', color: '#fff', fontSize: '12.5px', textAlign: 'center', padding: '8px 14px' }}>
+          Couldn't fully sync with the database (showing local data instead). Check your Firestore setup — see browser console (F12) for details.
+        </div>
+      )}
       <div className={"overlay" + (sidebarOpen ? " show" : "")} onClick={() => setSidebarOpen(false)}></div>
       <Sidebar active={page} onSelect={(k) => { setPage(k); setSidebarOpen(false); }} open={sidebarOpen} pcCount={pcInventory.length} posCount={posInventory.length} />
       <div className="main">
