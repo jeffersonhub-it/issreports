@@ -381,6 +381,8 @@ const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancell
 const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
 const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
 const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Ubuntu 22.04 LTS"];
+const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","Software Issue","Network Issue","Paper Jam","Other"];
+const GHL_REPORT_STATUSES = ["Pending","Submitted","Received","Resolved","Cancelled"];
 
 const STATUS_STYLES = {
   'Completed': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
@@ -392,6 +394,9 @@ const STATUS_STYLES = {
   'Under Repair': { bg:'var(--orange-bg)', text:'var(--orange-text)', dot:'var(--orange)' },
   'Inactive': { bg:'var(--gray-bg)', text:'var(--gray-text)', dot:'#94A3B8' },
   'Decommissioned': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
+  'Submitted': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
+  'Received': { bg:'var(--violet-bg)', text:'var(--violet-text)', dot:'var(--violet)' },
+  'Resolved': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
 };
 
 let idCounter = 1000;
@@ -457,6 +462,23 @@ const SEED_POS_INVENTORY = [
   { id:'POS-8', ctr:'CTR-08', terminal:'POS-08', monitorSerial:'MON-SN-10028', baseUnitSerial:'BASE-SN-20038', secondDisplaySerial:'DISP2-SN-30048', ghlSerial:'GHL-SN-40058', bir:'BIR-ACCR-000123463', min:'0001234567897', tin:'123-456-789-000', status:'Active' },
   { id:'POS-9', ctr:'CTR-09', terminal:'POS-09', monitorSerial:'MON-SN-10029', baseUnitSerial:'BASE-SN-20039', secondDisplaySerial:'DISP2-SN-30049', ghlSerial:'GHL-SN-40059', bir:'BIR-ACCR-000123464', min:'0001234567898', tin:'123-456-789-000', status:'Replaced' },
   { id:'POS-10', ctr:'CTR-10', terminal:'POS-10', monitorSerial:'MON-SN-10030', baseUnitSerial:'BASE-SN-20040', secondDisplaySerial:'DISP2-SN-30050', ghlSerial:'GHL-SN-40060', bir:'BIR-ACCR-000123465', min:'0001234567899', tin:'123-456-789-000', status:'Active' },
+];
+
+const SEED_GHL_REPORTS = [
+  { id:'GHL-1', dateReported:'2026-08-14', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Resolved' },
+  { id:'GHL-2', dateReported:'2026-08-11', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
+  { id:'GHL-3', dateReported:'2026-08-07', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
+  { id:'GHL-4', dateReported:'2026-07-30', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'2026-08-01', status:'Submitted' },
+  { id:'GHL-5', dateReported:'2026-07-22', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Resolved' },
+  { id:'GHL-6', dateReported:'2026-07-15', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Cancelled' },
+];
+
+const SEED_GHL_TERMINALS = [
+  { id:'GHLT-1', ctr:'CTR-01', terminal:'POS-01', serialNumber:'GHL-SN-40051' },
+  { id:'GHLT-2', ctr:'CTR-02', terminal:'POS-02', serialNumber:'GHL-SN-40052' },
+  { id:'GHLT-3', ctr:'CTR-03', terminal:'POS-03', serialNumber:'GHL-SN-40053' },
+  { id:'GHLT-4', ctr:'CTR-04', terminal:'POS-04', serialNumber:'GHL-SN-40054' },
+  { id:'GHLT-5', ctr:'CTR-05', terminal:'POS-05', serialNumber:'GHL-SN-40055' },
 ];
 
 /* =========================================================
@@ -1347,6 +1369,302 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
 }
 
 /* =========================================================
+   GHL REPORTS
+   ========================================================= */
+const GHL_COLUMNS = [
+  ['dateReported', 'Date Reported'], ['counter', 'Counter'], ['type', 'Type'], ['sn', 'SN'],
+  ['reportCount', 'Report Count'], ['requestNumber', 'Request Number'], ['dateReceived', 'Date Received'], ['status', 'Status'],
+];
+
+function GhlReportFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    dateReported: new Date().toISOString().slice(0, 10), counter: '', type: GHL_TYPES[0], sn: '',
+    reportCount: 1, requestNumber: '', dateReceived: '', status: 'Pending',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.counter.trim() || !form.dateReported) return;
+    onSave({ ...form, reportCount: Number(form.reportCount) || 0, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit GHL Report' : 'Add GHL Report'} onClose={onClose} maxWidth="700px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
+        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. CTR-01" required /></Field>
+        <Field label="Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.type} onChange={e => update('type', e.target.value)}>
+            {GHL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="SN"><input className="input mono" style={{ width: '100%' }} value={form.sn} onChange={e => update('sn', e.target.value)} placeholder="e.g. GHL-SN-40051" /></Field>
+        <Field label="Report Count" required><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.reportCount} onChange={e => update('reportCount', e.target.value)} required /></Field>
+        <Field label="Request Number"><input className="input mono" style={{ width: '100%' }} value={form.requestNumber} onChange={e => update('requestNumber', e.target.value)} placeholder="e.g. REQ-20260814-01" /></Field>
+        <Field label="Date Received"><input type="date" className="input" style={{ width: '100%' }} value={form.dateReceived} onChange={e => update('dateReceived', e.target.value)} /></Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {GHL_REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function TerminalFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : { ctr: '', terminal: '', serialNumber: '' });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.ctr.trim() || !form.terminal.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Terminal' : 'Add Terminal'} onClose={onClose} maxWidth="520px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="CTR" required><input className="input" style={{ width: '100%' }} value={form.ctr} onChange={e => update('ctr', e.target.value)} placeholder="e.g. CTR-01" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-01" required /></Field>
+        <Field label="Serial Number" full><input className="input mono" style={{ width: '100%' }} value={form.serialNumber} onChange={e => update('serialNumber', e.target.value)} placeholder="e.g. GHL-SN-40051" /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Terminal'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function TerminalsList({ data, setData, addToast, onBack }) {
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState('ctr');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      return !q || [r.ctr, r.terminal, r.serialNumber].join(' ').toLowerCase().includes(q);
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Terminal updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('GHLT') }, ...prev]);
+      addToast('Terminal added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Terminal deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <button className="btn btn-secondary" onClick={onBack}><Icon name="chevronUp" size={14} style={{ transform: 'rotate(-90deg)' }} /> Back to Reports</button>
+        <SearchInput value={query} onChange={setQuery} placeholder="Search terminals (CTR, terminal, serial)..." />
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Terminal</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="CTR" sortKey="ctr" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Terminal" sortKey="terminal" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Serial Number" sortKey="serialNumber" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="4" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No terminals match your search.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 600 }}>{r.ctr}</td>
+                  <td>{r.terminal}</td>
+                  <td className="mono">{r.serialNumber}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <TerminalFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete terminal "${confirmState.terminal}" at ${confirmState.ctr}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, query, setQuery }) {
+  const [view, setView] = useState('reports');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('dateReported');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.counter, r.type, r.sn, r.requestNumber, r.status].join(' ').toLowerCase().includes(q);
+      const matchesType = typeFilter === 'All' || r.type === typeFilter;
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesType && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'dateReported' || sortKey === 'dateReceived') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else if (sortKey === 'reportCount') { av = Number(av) || 0; bv = Number(bv) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, typeFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, typeFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('GHL report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('GHL') }, ...prev]);
+      addToast('GHL report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('GHL report deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  if (view === 'terminals') {
+    return <TerminalsList data={terminals} setData={setTerminals} addToast={addToast} onBack={() => setView('reports')} />;
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+          <option value="All">All Types</option>
+          {GHL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {GHL_REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-secondary" onClick={() => setView('terminals')}><Icon name="pos" size={15} /> Terminals</button>
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {GHL_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={GHL_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No GHL reports match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.dateReported)}</td>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
+                  <td>{r.type}</td>
+                  <td className="mono">{r.sn}</td>
+                  <td>{r.reportCount}</td>
+                  <td className="mono">{r.requestNumber}</td>
+                  <td className="mono">{r.dateReceived ? formatDate(r.dateReceived) : '-'}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <GhlReportFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete GHL report for "${confirmState.counter}" dated ${formatDate(confirmState.dateReported)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    SIDEBAR / HEADER
    ========================================================= */
 const NAV_ITEMS = [
@@ -1355,6 +1673,7 @@ const NAV_ITEMS = [
   { key: 'saReports', label: 'Selling Area Reports', icon: 'store' },
   { key: 'pcMonitoring', label: 'PC Monitoring', icon: 'activity' },
   { key: 'posMonitoring', label: 'POS Monitoring', icon: 'pos' },
+  { key: 'ghlReports', label: 'GHL Reports', icon: 'server' },
 ];
 
 function Sidebar({ active, onSelect, open, pcCount, posCount }) {
@@ -1500,6 +1819,7 @@ const PAGES_META = {
   saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for selling floor & POS counter equipment', icon: 'store' },
   pcMonitoring: { title: 'PC Monitoring', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
   posMonitoring: { title: 'POS Monitoring', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
+  ghlReports: { title: 'GHL Reports', subtitle: 'GHL card terminal trouble reports and terminal registry', icon: 'server' },
 };
 
 function App() {
@@ -1509,8 +1829,10 @@ function App() {
   const [saReports, setSaReports, saReportsReady, saReportsErr] = useFirestoreCollection('saReports', SEED_SA_REPORTS);
   const [pcInventory, setPcInventory, pcInventoryReady, pcInventoryErr] = useFirestoreCollection('pcInventory', SEED_PC_INVENTORY);
   const [posInventory, setPosInventory, posInventoryReady, posInventoryErr] = useFirestoreCollection('posInventory', SEED_POS_INVENTORY);
-  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady;
-  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr;
+  const [ghlReports, setGhlReports, ghlReportsReady, ghlReportsErr] = useFirestoreCollection('ghlReports', SEED_GHL_REPORTS);
+  const [ghlTerminals, setGhlTerminals, ghlTerminalsReady, ghlTerminalsErr] = useFirestoreCollection('ghlTerminals', SEED_GHL_TERMINALS);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
 
@@ -1518,6 +1840,7 @@ function App() {
   const [saQuery, setSaQuery] = useState('');
   const [pcInvQuery, setPcInvQuery] = useState('');
   const [posInvQuery, setPosInvQuery] = useState('');
+  const [ghlQuery, setGhlQuery] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 30000);
@@ -1535,6 +1858,7 @@ function App() {
   if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search selling area reports...' };
   if (page === 'pcMonitoring') searchProps = { show: true, query: pcInvQuery, setQuery: setPcInvQuery, placeholder: 'Search by PC Name, IP Address, or Department...' };
   if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, CTR, serials...' };
+  if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
 
   if (!allReady) {
     return (
@@ -1569,6 +1893,7 @@ function App() {
           <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
           <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
           <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+          <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
           <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
         </div>
         <div className="content">
@@ -1584,6 +1909,9 @@ function App() {
           )}
           {page === 'posMonitoring' && (
             <PosMonitoringPage data={posInventory} setData={setPosInventory} addToast={addToast} query={posInvQuery} setQuery={setPosInvQuery} />
+          )}
+          {page === 'ghlReports' && (
+            <GhlReportsPage data={ghlReports} setData={setGhlReports} terminals={ghlTerminals} setTerminals={setGhlTerminals} addToast={addToast} query={ghlQuery} setQuery={setGhlQuery} />
           )}
         </div>
       </div>
