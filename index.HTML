@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ISS Department Monitoring System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220;
+    --ink-2:#151F35;
+    --ink-3:#1E2A44;
+    --ink-border:#26314A;
+    --accent:#2DD4BF;
+    --accent-dark:#0D9488;
+    --accent-soft:#CCFBF1;
+    --accent-2:#3B82F6;
+    --accent-2-dark:#1D4ED8;
+    --accent-2-soft:#DBEAFE;
+    --canvas:#EEF2F7;
+    --surface:#FFFFFF;
+    --border:#E2E8F0;
+    --text:#0F172A;
+    --text-muted:#64748B;
+    --text-faint:#94A3B8;
+    --green:#16A34A;--green-bg:#DCFCE7;--green-text:#166534;
+    --amber:#D97706;--amber-bg:#FEF3C7;--amber-text:#92400E;
+    --blue:#2563EB;--blue-bg:#DBEAFE;--blue-text:#1E40AF;
+    --violet:#7C3AED;--violet-bg:#EDE9FE;--violet-text:#5B21B6;
+    --red:#DC2626;--red-bg:#FEE2E2;--red-text:#991B1B;
+    --orange:#EA580C;--orange-bg:#FFEDD5;--orange-text:#9A3412;
+    --gray-bg:#F1F5F9;--gray-text:#475569;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 6px 16px rgba(15,23,42,.06);
+    --shadow-md:0 4px 10px rgba(15,23,42,.06), 0 10px 24px rgba(15,23,42,.08);
+    --shadow-lg:0 20px 60px rgba(2,6,23,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--canvas);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  button:focus-visible,.nav-item:focus-visible,.icon-btn:focus-visible,.page-btn:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;}
+  a{color:var(--accent-2-dark);}
+
+  /* ---------- layout ---------- */
+  .app-shell{display:flex;min-height:100vh;}
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:39;display:none;}
+  .main{flex:1;display:flex;flex-direction:column;min-height:100vh;margin-left:264px;min-width:0;}
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    width:264px;background:var(--ink);color:#CBD5E1;position:fixed;top:0;left:0;bottom:0;
+    display:flex;flex-direction:column;z-index:40;border-right:1px solid var(--ink-border);
+  }
+  .sidebar-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ink-border);}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:#04120F;font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:15px;flex:none;
+  }
+  .brand-text h2{color:#fff;font-size:15px;line-height:1.2;}
+  .brand-text span{font-size:11px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
+  .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;}
+  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:10px 12px 6px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;border:none;background:transparent;width:100%;
+    color:#B7C2D6;text-align:left;font-size:13.5px;font-weight:500;position:relative;transition:background .15s,color .15s;
+  }
+  .nav-item .nav-ic{display:flex;color:#7C8AA8;transition:color .15s;}
+  .nav-item:hover{background:var(--ink-2);color:#fff;}
+  .nav-item:hover .nav-ic{color:var(--accent);}
+  .nav-item.active{background:var(--ink-3);color:#fff;}
+  .nav-item.active .nav-ic{color:var(--accent);}
+  .nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--accent);}
+  .nav-item-badge{margin-left:auto;font-size:10.5px;font-family:'IBM Plex Mono',monospace;background:var(--ink-2);color:var(--text-faint);padding:2px 7px;border-radius:20px;}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--ink-border);}
+  .status-pill{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8DF0D8;}
+  .status-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(45,212,191,.6);animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,212,191,.55);}70%{box-shadow:0 0 0 7px rgba(45,212,191,0);}100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}}
+  .sidebar-footer .meta{margin-top:6px;font-size:10.5px;color:var(--text-faint);}
+
+  /* ---------- header ---------- */
+  .header{
+    background:var(--surface);border-bottom:1px solid var(--border);padding:14px 26px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;position:sticky;top:0;z-index:20;flex-wrap:wrap;
+  }
+  .header-left{display:flex;align-items:center;gap:14px;min-width:0;}
+  .menu-btn{display:none;background:var(--gray-bg);border:none;border-radius:8px;padding:8px;color:var(--text);}
+  .header-icon{width:38px;height:38px;border-radius:10px;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;}
+  .header-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+  .header h1{font-size:18px;color:var(--text);white-space:nowrap;}
+  .header p{margin:1px 0 0;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .header-search{width:280px;}
+  .clock-chip,.user-chip{
+    display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);background:var(--gray-bg);
+    padding:7px 11px;border-radius:20px;white-space:nowrap;font-family:'IBM Plex Mono',monospace;
+  }
+  .user-chip{font-family:'Inter',sans-serif;font-weight:600;color:var(--text);}
+
+  /* ---------- ticker ---------- */
+  .ticker{
+    background:var(--ink);color:#CBD5E1;padding:7px 26px;display:flex;gap:22px;align-items:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;overflow-x:auto;white-space:nowrap;
+  }
+  .tick-item{display:flex;align-items:center;gap:7px;color:#D6DEEC;}
+  .tick-item .dot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .tick-item.muted{color:var(--text-faint);}
+
+  /* ---------- content ---------- */
+  .content{padding:24px 26px 60px;flex:1;min-width:0;}
+
+  /* ---------- generic components ---------- */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);transition:box-shadow .15s,border-color .15s;}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+  .kpi-card{padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+  .kpi-card:hover{box-shadow:var(--shadow-md);border-color:#D7DEE8;}
+  .kpi-top{display:flex;align-items:center;justify-content:space-between;}
+  .kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .kpi-value{font-family:'Space Grotesk',sans-serif;font-size:27px;font-weight:700;color:var(--text);line-height:1.1;}
+  .kpi-label{font-size:12.5px;color:var(--text-muted);font-weight:500;}
+
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head-bar{height:4px;width:100%;background:var(--accent);}
+  .panel.sa .panel-head-bar{background:var(--accent-2);}
+  .panel-body{padding:20px 22px 22px;}
+  .panel-title-row{display:flex;align-items:center;gap:11px;margin-bottom:2px;}
+  .panel-ic{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;flex:none;}
+  .panel.sa .panel-ic{background:var(--accent-2-soft);color:var(--accent-2-dark);}
+  .panel-title-row h3{font-size:15.5px;}
+  .panel-sub{font-size:12px;color:var(--text-muted);margin:2px 0 16px 43px;}
+
+  .mini-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .mini-kpi{background:var(--gray-bg);border-radius:9px;padding:11px 13px;}
+  .mini-kpi .mv{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .mini-kpi .ml{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .trend-up{color:var(--green);}
+  .trend-down{color:var(--red);}
+  .trend-flat{color:var(--text-muted);}
+
+  .chart-row{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;}
+  .chart-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:10px;font-weight:600;}
+  .chart-col{min-width:0;}
+  .donut-col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .legend{display:flex;flex-direction:column;gap:6px;width:100%;}
+  .legend-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);}
+  .legend-row .sw{width:9px;height:9px;border-radius:2px;flex:none;}
+  .legend-row .lv{margin-left:auto;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace;}
+
+  .recent-card{padding:0;margin-bottom:6px;}
+  .card-header{padding:16px 22px;border-bottom:1px solid var(--border);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;}
+  .recent-row{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--border);font-size:13px;}
+  .recent-row:last-child{border-bottom:none;}
+  .recent-tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;flex:none;}
+  .recent-tag.pc{background:var(--accent-soft);color:var(--accent-dark);}
+  .recent-tag.sa{background:var(--accent-2-soft);color:var(--accent-2-dark);}
+  .recent-dept{font-weight:600;flex:none;width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .recent-problem{color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .recent-date{color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:11.5px;flex:none;}
+
+  /* ---------- toolbar / table ---------- */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);}
+  .toolbar .select{min-width:170px;}
+  .input-wrap{position:relative;display:flex;align-items:center;}
+  .input-wrap .ic-search{position:absolute;left:11px;color:var(--text-faint);pointer-events:none;}
+  .input-wrap input{padding:9px 12px 9px 34px;width:100%;}
+  .input,.select,.textarea{
+    border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:#fff;color:var(--text);
+    outline:none;transition:border-color .15s, box-shadow .15s;
+  }
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .textarea{resize:vertical;width:100%;font-family:inherit;}
+  .select{min-width:150px;}
+  .header-search input{border-color:var(--border);}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s;}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{background:var(--ink-3);}
+  .btn-secondary{background:#fff;color:var(--text);border-color:var(--border);}
+  .btn-secondary:hover{background:var(--gray-bg);}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#B91C1C;}
+
+  .table-card{padding:0;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px;}
+  thead th{
+    text-align:left;padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);
+    cursor:pointer;user-select:none;white-space:nowrap;font-weight:700;position:sticky;top:0;z-index:1;
+  }
+  thead th:hover{color:var(--text);background:#F1F5F9;}
+  thead th:last-child{cursor:default;}
+  thead th:last-child:hover{color:var(--text-muted);background:#F8FAFC;}
+  .th-inner{display:inline-flex;align-items:center;gap:5px;}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text);line-height:1.4;}
+  tbody tr:nth-child(even) td{background:#FBFCFE;}
+  tbody tr:hover td{background:var(--accent-soft);}
+  tbody tr:last-child td{border-bottom:none;}
+  .truncate{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .truncate-sm{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cell-sub{font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .empty-row{text-align:center;color:var(--text-faint);padding:44px 16px !important;font-size:13px;}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{background:var(--gray-bg);border:none;border-radius:7px;padding:6px;color:var(--text-muted);display:flex;transition:background .15s,color .15s;}
+  .icon-btn:hover{background:var(--accent-dark);color:#fff;}
+  .icon-btn.danger:hover{background:var(--red);color:#fff;}
+
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+  .pagination .info{font-size:12px;color:var(--text-muted);}
+  .pagination .controls{display:flex;gap:6px;align-items:center;}
+  .page-btn{border:1px solid var(--border);background:#fff;border-radius:7px;padding:6px 11px;font-size:12.5px;color:var(--text);}
+  .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .page-btn.current{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* ---------- badges ---------- */
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .badge .bdot{width:6px;height:6px;border-radius:50%;flex:none;}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:2;}
+  .modal-head h3{font-size:16.5px;}
+  .modal-close{background:var(--gray-bg);border:none;border-radius:8px;padding:7px;color:var(--text-muted);}
+  .modal-close:hover{background:var(--red-bg);color:var(--red);}
+  .modal-body{padding:20px 22px 22px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .field-full{grid-column:1/-1;}
+  .field label{font-size:12px;font-weight:600;color:var(--text-muted);}
+  .field .req{color:var(--red);margin-left:3px;}
+  .key-field{display:flex;gap:6px;align-items:center;}
+  .key-field .input{flex:1;min-width:0;}
+  .form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;margin-top:6px;padding-top:14px;border-top:1px solid var(--border);}
+  .form-section-label{grid-column:1/-1;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-faint);margin:4px 0 -4px;}
+  .form-section-label:first-child{margin-top:0;}
+
+  /* ---------- confirm dialog ---------- */
+  .confirm-box{max-width:400px;padding:24px;text-align:left;}
+  .confirm-icon{width:44px;height:44px;border-radius:12px;background:var(--red-bg);color:var(--red);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .confirm-box h3{font-size:16px;margin-bottom:8px;}
+  .confirm-box p{font-size:13.5px;color:var(--text-muted);line-height:1.5;margin:0 0 20px;}
+  .confirm-actions{display:flex;justify-content:flex-end;gap:10px;}
+
+  /* ---------- toast ---------- */
+  .toast-wrap{position:fixed;bottom:22px;right:22px;left:22px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:200;pointer-events:none;}
+  .toast{
+    background:var(--ink);color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;
+    box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;min-width:230px;max-width:100%;animation:toastIn .2s ease;border-left:3px solid var(--accent);pointer-events:auto;
+  }
+  .toast.danger{border-left-color:var(--red);}
+  .toast.success{border-left-color:var(--accent);}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1180px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .panel-grid{grid-template-columns:1fr;}
+    .chart-row{grid-template-columns:1fr;}
+  }
+  @media (max-width:960px){
+    .sidebar{transform:translateX(-100%);transition:transform .22s ease;}
+    .sidebar.open{transform:translateX(0);}
+    .overlay.show{display:block;}
+    .main{margin-left:0;}
+    .menu-btn{display:flex;}
+    .header-search{width:200px;}
+  }
+  @media (max-width:640px){
+    .kpi-row{grid-template-columns:1fr;}
+    .mini-kpi-row{grid-template-columns:1fr;}
+    .header-search{display:none;}
+    .content{padding:16px 12px 50px;}
+    .header{padding:12px 14px;}
+    .header-right{gap:8px;width:100%;justify-content:space-between;}
+    .ticker{padding:7px 14px;gap:16px;}
+    .toolbar{padding:10px;}
+    .toolbar .select{flex:1 1 140px;min-width:0;}
+    .form-grid{grid-template-columns:1fr;}
+    .modal-overlay{padding:0;align-items:flex-end;}
+    .modal{border-radius:16px 16px 0 0;max-height:92vh;}
+    .modal-body{padding:16px 16px 18px;}
+    .pagination{flex-direction:column;align-items:flex-start;}
+    .kpi-value{font-size:23px;}
+    .clock-chip{display:none;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+/* =========================================================
+   ICONS
+   ========================================================= */
+function Icon({ name, size = 18, className = '' }) {
+  const c = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", className };
+  switch (name) {
+    case 'dashboard': return <svg {...c}><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>;
+    case 'pc': return <svg {...c}><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>;
+    case 'store': return <svg {...c}><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M9 20v-6h6v6"/><path d="M3 9h18"/></svg>;
+    case 'activity': return <svg {...c}><polyline points="3 12 8 12 10 5 14 19 16 12 21 12"/></svg>;
+    case 'pos': return <svg {...c}><rect x="2" y="6" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="14.5" x2="10" y2="14.5"/><line x1="6" y1="17" x2="8" y2="17"/></svg>;
+    case 'search': return <svg {...c}><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>;
+    case 'plus': return <svg {...c}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+    case 'edit': return <svg {...c}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>;
+    case 'trash': return <svg {...c}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>;
+    case 'x': return <svg {...c}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+    case 'chevronUp': return <svg {...c}><polyline points="6 15 12 9 18 15"/></svg>;
+    case 'chevronDown': return <svg {...c}><polyline points="6 9 12 15 18 9"/></svg>;
+    case 'chevronsUpDown': return <svg {...c}><polyline points="7 9 12 4 17 9"/><polyline points="7 15 12 20 17 15"/></svg>;
+    case 'trendUp': return <svg {...c}><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>;
+    case 'trendDown': return <svg {...c}><polyline points="3 7 9 13 13 9 21 18"/><polyline points="15 18 21 18 21 12"/></svg>;
+    case 'trendFlat': return <svg {...c}><line x1="4" y1="12" x2="20" y2="12"/></svg>;
+    case 'alert': return <svg {...c}><path d="M10.3 3.86L1.8 18a1 1 0 00.86 1.5h18.7a1 1 0 00.86-1.5L13.7 3.86a1 1 0 00-1.72 0z"/><line x1="12" y1="9" x2="12" y2="13.5"/><line x1="12" y1="16.5" x2="12" y2="16.6"/></svg>;
+    case 'check': return <svg {...c}><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>;
+    case 'clock': return <svg {...c}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>;
+    case 'menu': return <svg {...c}><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>;
+    case 'user': return <svg {...c}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>;
+    case 'server': return <svg {...c}><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><line x1="7" y1="7" x2="7" y2="7.1"/><line x1="7" y1="17" x2="7" y2="17.1"/></svg>;
+    case 'eye': return <svg {...c}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>;
+    default: return null;
+  }
+}
+
+/* =========================================================
+   CONSTANTS / DEMO DATA
+   ========================================================= */
+const DEPARTMENTS = ["Accounting","Human Resources","Merchandising","Warehouse & Logistics","Customer Service","IT Office","Executive Office","Marketing","Loss Prevention","Admin Office"];
+const SELLING_AREAS = ["Grocery Selling Area","Appliance Selling Area","Electronics Selling Area","Fashion Selling Area","Hardware Selling Area","Housewares Selling Area","School & Office Supplies","Toys & Sports Selling Area","Cashiering Area","Customer Service Counter"];
+const TECHNICIANS = ["Mark Villanueva","Jenny Cruz","Paolo Santos","Angela Reyes","Kevin Tan"];
+const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancelled"];
+const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
+const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
+const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Ubuntu 22.04 LTS"];
+
+const STATUS_STYLES = {
+  'Completed': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+  'Active': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+  'Pending': { bg:'var(--amber-bg)', text:'var(--amber-text)', dot:'var(--amber)' },
+  'In Progress': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
+  'Replaced': { bg:'var(--violet-bg)', text:'var(--violet-text)', dot:'var(--violet)' },
+  'Cancelled': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
+  'Under Repair': { bg:'var(--orange-bg)', text:'var(--orange-text)', dot:'var(--orange)' },
+  'Inactive': { bg:'var(--gray-bg)', text:'var(--gray-text)', dot:'#94A3B8' },
+  'Decommissioned': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
+};
+
+let idCounter = 1000;
+function nextId(prefix){ idCounter += 1; return prefix + '-' + idCounter; }
+
+const SEED_PC_REPORTS = [
+  { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'Mark Villanueva' },
+  { id:'PCR-2', dateReported:'2026-08-10', department:'Accounting', problem:'Blue screen error (BSOD) on startup', actionTaken:'Replaced failing RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-77012', status:'Completed', remarks:'User confirmed no more crashes', technician:'Jenny Cruz' },
+  { id:'PCR-3', dateReported:'2026-08-05', department:'Human Resources', problem:'Slow performance / freezing', actionTaken:'Cleared temp files, upgraded to SSD', replacement:'SSD 256GB', serialReplacement:'SSD-SN-65210', status:'Completed', remarks:'Boot time improved to 12s', technician:'Paolo Santos' },
+  { id:'PCR-4', dateReported:'2026-07-29', department:'Warehouse & Logistics', problem:'No internet connection', actionTaken:'Replaced network adapter', replacement:'USB Network Adapter', serialReplacement:'NIC-SN-44018', status:'Completed', remarks:'Connectivity restored', technician:'Kevin Tan' },
+  { id:'PCR-5', dateReported:'2026-07-22', department:'Marketing', problem:'Printer not detected', actionTaken:'Reinstalled printer drivers', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer working normally', technician:'Angela Reyes' },
+  { id:'PCR-6', dateReported:'2026-07-18', department:'Customer Service', problem:'Application crashes on launch', actionTaken:'Reinstalled application, patched OS', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Awaiting vendor patch confirmation', technician:'Mark Villanueva' },
+  { id:'PCR-7', dateReported:'2026-07-10', department:'Loss Prevention', problem:'Keyboard/mouse not responding', actionTaken:'Replaced USB keyboard and mouse set', replacement:'Keyboard & Mouse Combo', serialReplacement:'PERIPH-SN-33771', status:'Completed', remarks:'Issue resolved', technician:'Jenny Cruz' },
+  { id:'PCR-8', dateReported:'2026-06-27', department:'Admin Office', problem:'Overheating and auto shutdown', actionTaken:'Cleaned dust, reapplied thermal paste', replacement:'Thermal Paste', serialReplacement:'-', status:'Completed', remarks:'Temp reduced from 85\u00b0C to 55\u00b0C', technician:'Kevin Tan' },
+  { id:'PCR-9', dateReported:'2026-06-15', department:'Executive Office', problem:'Windows update failure', actionTaken:'Ran troubleshooter, manually installed update', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Waiting for scheduled downtime', technician:'Paolo Santos' },
+  { id:'PCR-10', dateReported:'2026-06-02', department:'Merchandising', problem:'Virus/malware detected', actionTaken:'Ran full malware scan and removal', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'System clean, monitoring for recurrence', technician:'Angela Reyes' },
+  { id:'PCR-11', dateReported:'2026-05-20', department:'IT Office', problem:'Monitor no signal', actionTaken:'Replaced HDMI cable and tested port', replacement:'HDMI Cable', serialReplacement:'-', status:'Replaced', remarks:'New cable issued from stock', technician:'Mark Villanueva' },
+  { id:'PCR-12', dateReported:'2026-05-05', department:'Accounting', problem:'RAM upgrade requested', actionTaken:'Installed additional RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-51290', status:'Completed', remarks:'Upgraded from 8GB to 16GB', technician:'Jenny Cruz' },
+  { id:'PCR-13', dateReported:'2026-04-18', department:'Customer Service', problem:'PC won\u2019t boot / no display', actionTaken:'Diagnosed motherboard failure, escalated to vendor', replacement:'Motherboard', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement unit from supplier', technician:'Kevin Tan' },
+  { id:'PCR-14', dateReported:'2026-04-02', department:'Warehouse & Logistics', problem:'Slow performance / freezing', actionTaken:'Uninstalled unnecessary startup programs', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Performance normalized', technician:'Paolo Santos' },
+];
+
+const SEED_SA_REPORTS = [
+  { id:'SAR-1', dateReported:'2026-08-17', department:'Grocery Selling Area', problem:'POS terminal not powering on', actionTaken:'Replaced power adapter', replacement:'Power Adapter 12V', serialReplacement:'ADP-SN-90211', status:'Completed', remarks:'Terminal back online', technician:'Kevin Tan' },
+  { id:'SAR-2', dateReported:'2026-08-12', department:'Fashion Selling Area', problem:'Barcode scanner not reading', actionTaken:'Cleaned scanner lens and recalibrated', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Scan accuracy restored', technician:'Angela Reyes' },
+  { id:'SAR-3', dateReported:'2026-08-06', department:'Electronics Selling Area', problem:'Receipt printer jammed / not printing', actionTaken:'Replaced printer roller assembly', replacement:'Printer Roller Kit', serialReplacement:'PR-SN-77340', status:'Completed', remarks:'Test print successful', technician:'Mark Villanueva' },
+  { id:'SAR-4', dateReported:'2026-07-30', department:'Cashiering Area', problem:'Touch screen unresponsive', actionTaken:'Recalibrated touch screen digitizer', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Touch response normal', technician:'Jenny Cruz' },
+  { id:'SAR-5', dateReported:'2026-07-24', department:'Appliance Selling Area', problem:'Cash drawer not opening', actionTaken:'Replaced cash drawer solenoid', replacement:'Cash Drawer Solenoid', serialReplacement:'CD-SN-66129', status:'Completed', remarks:'Drawer opens correctly', technician:'Paolo Santos' },
+  { id:'SAR-6', dateReported:'2026-07-16', department:'Hardware Selling Area', problem:'Card reader (GHL) offline', actionTaken:'Restarted and reconnected GHL terminal', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Coordinating with GHL support', technician:'Kevin Tan' },
+  { id:'SAR-7', dateReported:'2026-07-08', department:'Housewares Selling Area', problem:'Monitor flickering / no display', actionTaken:'Replaced VGA cable and tested port', replacement:'VGA Cable', serialReplacement:'-', status:'Completed', remarks:'Display stable', technician:'Angela Reyes' },
+  { id:'SAR-8', dateReported:'2026-06-25', department:'School & Office Supplies', problem:'Network disconnection at counter', actionTaken:'Reconnected LAN cable / replaced switch port', replacement:'Network Switch Port', serialReplacement:'-', status:'Completed', remarks:'Connection stable for 48 hrs', technician:'Mark Villanueva' },
+  { id:'SAR-9', dateReported:'2026-06-14', department:'Toys & Sports Selling Area', problem:'System freezes during transaction', actionTaken:'Cleared cache and restarted POS application', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Monitoring for recurrence', technician:'Jenny Cruz' },
+  { id:'SAR-10', dateReported:'2026-06-03', department:'Customer Service Counter', problem:'Slow transaction processing', actionTaken:'Reinstalled POS software', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Transaction speed improved', technician:'Paolo Santos' },
+  { id:'SAR-11', dateReported:'2026-05-22', department:'Grocery Selling Area', problem:'Barcode scanner not reading', actionTaken:'Replaced barcode scanner unit', replacement:'Barcode Scanner', serialReplacement:'SCN-SN-40218', status:'Replaced', remarks:'New unit issued from stock', technician:'Kevin Tan' },
+  { id:'SAR-12', dateReported:'2026-05-09', department:'Fashion Selling Area', problem:'Receipt printer jammed / not printing', actionTaken:'Cleaned print head, replaced paper roll holder', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer functioning normally', technician:'Angela Reyes' },
+  { id:'SAR-13', dateReported:'2026-04-21', department:'Electronics Selling Area', problem:'POS terminal not powering on', actionTaken:'Diagnosed base unit failure, escalated to vendor', replacement:'Base Unit', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement from IT Office', technician:'Mark Villanueva' },
+  { id:'SAR-14', dateReported:'2026-04-06', department:'Cashiering Area', problem:'Cash drawer not opening', actionTaken:'Replaced cash drawer cable', replacement:'Cash Drawer Cable', serialReplacement:'-', status:'Completed', remarks:'Drawer opens correctly', technician:'Jenny Cruz' },
+];
+
+const SEED_PC_INVENTORY = [
+  { id:'PCM-1', department:'IT Office', ipAddress:'10.10.1.10', pcName:'IT-PC01', macAddress:'00:1A:2B:3C:4D:01', ramSerial:'RAM-88213X', ramGB:'16', ramMHz:'3200', ramBrand:'Kingston', storageSerial:'SSD-KX9911', storageMHz:'N/A', storageSize:'512GB', storageBrand:'Samsung', motherboard:'ASUS PRIME B460M-A', osVersion:'Windows 11 Pro', osActivationKey:'W11P-A1B2C-D3E4F-88213', processor:'Intel Core i5-10400', status:'Active' },
+  { id:'PCM-2', department:'Accounting', ipAddress:'10.10.2.11', pcName:'ACCT-PC01', macAddress:'00:1A:2B:3C:4D:02', ramSerial:'RAM-77012Y', ramGB:'8', ramMHz:'2666', ramBrand:'HyperX', storageSerial:'HDD-WD4402', storageMHz:'7200 RPM', storageSize:'1TB', storageBrand:'Western Digital', motherboard:'Gigabyte H410M-H', osVersion:'Windows 10 Pro', osActivationKey:'W10P-B2C3D-E4F5G-77012', processor:'Intel Core i3-10100', status:'Active' },
+  { id:'PCM-3', department:'Human Resources', ipAddress:'10.10.3.12', pcName:'HR-PC02', macAddress:'00:1A:2B:3C:4D:03', ramSerial:'RAM-65210Z', ramGB:'8', ramMHz:'3200', ramBrand:'Corsair', storageSerial:'SSD-CR3301', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Crucial', motherboard:'ASRock B450M', osVersion:'Windows 11 Pro', osActivationKey:'W11P-C3D4E-F5G6H-65210', processor:'AMD Ryzen 5 3400G', status:'Active' },
+  { id:'PCM-4', department:'Warehouse & Logistics', ipAddress:'10.10.4.13', pcName:'WHS-PC01', macAddress:'00:1A:2B:3C:4D:04', ramSerial:'RAM-44018A', ramGB:'4', ramMHz:'2400', ramBrand:'Kingston', storageSerial:'HDD-ST5001', storageMHz:'5400 RPM', storageSize:'500GB', storageBrand:'Seagate', motherboard:'MSI H310M PRO', osVersion:'Windows 10 Pro', osActivationKey:'W10P-D4E5F-G6H7I-44018', processor:'Intel Pentium Gold G5400', status:'Under Repair' },
+  { id:'PCM-5', department:'Marketing', ipAddress:'10.10.5.14', pcName:'MKT-PC01', macAddress:'00:1A:2B:3C:4D:05', ramSerial:'RAM-33771B', ramGB:'16', ramMHz:'3600', ramBrand:'Corsair Vengeance', storageSerial:'SSD-SK7702', storageMHz:'N/A', storageSize:'512GB', storageBrand:'Samsung', motherboard:'ASUS TUF B550M-Plus', osVersion:'Windows 11 Pro', osActivationKey:'W11P-E5F6G-H7I8J-33771', processor:'AMD Ryzen 5 5600G', status:'Active' },
+  { id:'PCM-6', department:'Customer Service', ipAddress:'10.10.6.15', pcName:'CS-PC01', macAddress:'00:1A:2B:3C:4D:06', ramSerial:'RAM-51290C', ramGB:'8', ramMHz:'2666', ramBrand:'Kingston', storageSerial:'SSD-AD1103', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Adata', motherboard:'Gigabyte H410M-H', osVersion:'Windows 10 Pro', osActivationKey:'W10P-F6G7H-I8J9K-51290', processor:'Intel Core i3-9100', status:'Active' },
+  { id:'PCM-7', department:'Loss Prevention', ipAddress:'10.10.7.16', pcName:'LP-PC01', macAddress:'00:1A:2B:3C:4D:07', ramSerial:'RAM-91002D', ramGB:'8', ramMHz:'3200', ramBrand:'HyperX', storageSerial:'SSD-KX2204', storageMHz:'N/A', storageSize:'480GB', storageBrand:'Kingston', motherboard:'ASRock H510M-HVS', osVersion:'Windows 11 Pro', osActivationKey:'W11P-G7H8I-J9K0L-91002', processor:'Intel Core i5-11400', status:'Active' },
+  { id:'PCM-8', department:'Admin Office', ipAddress:'10.10.8.17', pcName:'ADM-PC01', macAddress:'00:1A:2B:3C:4D:08', ramSerial:'RAM-22981E', ramGB:'4', ramMHz:'2133', ramBrand:'Kingston', storageSerial:'HDD-TS3305', storageMHz:'5400 RPM', storageSize:'500GB', storageBrand:'Toshiba', motherboard:'Biostar H310MHP', osVersion:'Windows 10 Pro', osActivationKey:'W10P-H8I9J-K0L1M-22981', processor:'Intel Celeron G4930', status:'Inactive' },
+  { id:'PCM-9', department:'Executive Office', ipAddress:'10.10.9.18', pcName:'EXEC-PC01', macAddress:'00:1A:2B:3C:4D:09', ramSerial:'RAM-10938F', ramGB:'16', ramMHz:'3200', ramBrand:'Corsair', storageSerial:'SSD-SS8801', storageMHz:'N/A', storageSize:'1TB', storageBrand:'Samsung', motherboard:'ASUS ProArt B560-Creator', osVersion:'Windows 11 Pro', osActivationKey:'W11P-I9J0K-L1M2N-10938', processor:'Intel Core i7-11700', status:'Active' },
+  { id:'PCM-10', department:'Merchandising', ipAddress:'10.10.10.19', pcName:'MRC-PC01', macAddress:'00:1A:2B:3C:4D:0A', ramSerial:'RAM-30021G', ramGB:'8', ramMHz:'2666', ramBrand:'Kingston', storageSerial:'SSD-CR4402', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Crucial', motherboard:'MSI B450M PRO-VDH', osVersion:'Windows 10 Pro', osActivationKey:'W10P-J0K1L-M2N3O-30021', processor:'AMD Ryzen 3 3200G', status:'Active' },
+  { id:'PCM-11', department:'IT Office', ipAddress:'10.10.1.20', pcName:'IT-PC02', macAddress:'00:1A:2B:3C:4D:0B', ramSerial:'RAM-40982H', ramGB:'32', ramMHz:'3600', ramBrand:'Corsair Dominator', storageSerial:'SSD-WD9903', storageMHz:'N/A', storageSize:'1TB', storageBrand:'Western Digital', motherboard:'ASUS ROG STRIX B550-F', osVersion:'Windows 11 Pro', osActivationKey:'W11P-K1L2M-N3O4P-40982', processor:'Intel Core i9-11900K', status:'Active' },
+  { id:'PCM-12', department:'Accounting', ipAddress:'10.10.2.21', pcName:'ACCT-PC02', macAddress:'00:1A:2B:3C:4D:0C', ramSerial:'RAM-50871I', ramGB:'8', ramMHz:'2400', ramBrand:'Kingston', storageSerial:'HDD-SG6604', storageMHz:'7200 RPM', storageSize:'1TB', storageBrand:'Seagate', motherboard:'Gigabyte H310M-S2', osVersion:'Windows 10 Pro', osActivationKey:'W10P-L2M3N-O4P5Q-50871', processor:'Intel Core i3-8100', status:'Decommissioned' },
+];
+
+const SEED_POS_INVENTORY = [
+  { id:'POS-1', ctr:'CTR-01', terminal:'POS-01', monitorSerial:'MON-SN-10021', baseUnitSerial:'BASE-SN-20031', secondDisplaySerial:'DISP2-SN-30041', ghlSerial:'GHL-SN-40051', bir:'BIR-ACCR-000123456', min:'0001234567890', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-2', ctr:'CTR-02', terminal:'POS-02', monitorSerial:'MON-SN-10022', baseUnitSerial:'BASE-SN-20032', secondDisplaySerial:'DISP2-SN-30042', ghlSerial:'GHL-SN-40052', bir:'BIR-ACCR-000123457', min:'0001234567891', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-3', ctr:'CTR-03', terminal:'POS-03', monitorSerial:'MON-SN-10023', baseUnitSerial:'BASE-SN-20033', secondDisplaySerial:'DISP2-SN-30043', ghlSerial:'GHL-SN-40053', bir:'BIR-ACCR-000123458', min:'0001234567892', tin:'123-456-789-000', status:'Under Repair' },
+  { id:'POS-4', ctr:'CTR-04', terminal:'POS-04', monitorSerial:'MON-SN-10024', baseUnitSerial:'BASE-SN-20034', secondDisplaySerial:'DISP2-SN-30044', ghlSerial:'GHL-SN-40054', bir:'BIR-ACCR-000123459', min:'0001234567893', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-5', ctr:'CTR-05', terminal:'POS-05', monitorSerial:'MON-SN-10025', baseUnitSerial:'BASE-SN-20035', secondDisplaySerial:'DISP2-SN-30045', ghlSerial:'GHL-SN-40055', bir:'BIR-ACCR-000123460', min:'0001234567894', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-6', ctr:'CTR-06', terminal:'POS-06', monitorSerial:'MON-SN-10026', baseUnitSerial:'BASE-SN-20036', secondDisplaySerial:'DISP2-SN-30046', ghlSerial:'GHL-SN-40056', bir:'BIR-ACCR-000123461', min:'0001234567895', tin:'123-456-789-000', status:'Inactive' },
+  { id:'POS-7', ctr:'CTR-07', terminal:'POS-07', monitorSerial:'MON-SN-10027', baseUnitSerial:'BASE-SN-20037', secondDisplaySerial:'DISP2-SN-30047', ghlSerial:'GHL-SN-40057', bir:'BIR-ACCR-000123462', min:'0001234567896', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-8', ctr:'CTR-08', terminal:'POS-08', monitorSerial:'MON-SN-10028', baseUnitSerial:'BASE-SN-20038', secondDisplaySerial:'DISP2-SN-30048', ghlSerial:'GHL-SN-40058', bir:'BIR-ACCR-000123463', min:'0001234567897', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-9', ctr:'CTR-09', terminal:'POS-09', monitorSerial:'MON-SN-10029', baseUnitSerial:'BASE-SN-20039', secondDisplaySerial:'DISP2-SN-30049', ghlSerial:'GHL-SN-40059', bir:'BIR-ACCR-000123464', min:'0001234567898', tin:'123-456-789-000', status:'Replaced' },
+  { id:'POS-10', ctr:'CTR-10', terminal:'POS-10', monitorSerial:'MON-SN-10030', baseUnitSerial:'BASE-SN-20040', secondDisplaySerial:'DISP2-SN-30050', ghlSerial:'GHL-SN-40060', bir:'BIR-ACCR-000123465', min:'0001234567899', tin:'123-456-789-000', status:'Active' },
+];
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function formatDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  if (isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function monthKey(d) { const dt = new Date(d + 'T00:00:00'); return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); }
+function monthLabelFromKey(k) { const [y, m] = k.split('-'); return MONTHS[parseInt(m, 10) - 1]; }
+function computeMonthlySeries(data, refDate) {
+  const keys = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
+    keys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  return keys.map(k => ({ month: monthLabelFromKey(k), value: data.filter(r => monthKey(r.dateReported) === k).length }));
+}
+function trendPct(curr, prev) {
+  if (prev === 0 && curr === 0) return { label: '0%', dir: 'flat' };
+  if (prev === 0) return { label: '+100%', dir: 'up' };
+  const pct = Math.round(((curr - prev) / prev) * 100);
+  return { label: (pct >= 0 ? '+' : '') + pct + '%', dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+}
+function statusCounts(data, statuses) {
+  const colorFor = s => (STATUS_STYLES[s] || {}).dot || '#94A3B8';
+  return statuses.map(s => ({ label: s, value: data.filter(r => r.status === s).length, color: colorFor(s) })).filter(x => x.value > 0);
+}
+
+/* =========================================================
+   SMALL SHARED UI COMPONENTS
+   ========================================================= */
+function StatusBadge({ status }) {
+  const st = STATUS_STYLES[status] || { bg: 'var(--gray-bg)', text: 'var(--gray-text)', dot: '#94A3B8' };
+  return <span className="badge" style={{ background: st.bg, color: st.text }}><span className="bdot" style={{ background: st.dot }}></span>{status}</span>;
+}
+
+function SearchInput({ value, onChange, placeholder, className = '' }) {
+  return (
+    <div className={"input-wrap " + className}>
+      <span className="ic-search"><Icon name="search" size={15} /></span>
+      <input className="input" style={{ width: '100%' }} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function Modal({ title, onClose, children, maxWidth = '620px' }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth }}>
+        <div className="modal-head">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onCancel(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="modal confirm-box">
+        <div className="confirm-icon"><Icon name="alert" size={22} /></div>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="confirm-actions">
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-danger" onClick={onConfirm}><Icon name="trash" size={14} /> Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToastContainer({ toasts }) {
+  return (
+    <div className="toast-wrap">
+      {toasts.map(t => (
+        <div key={t.id} className={"toast " + t.type}>
+          <Icon name={t.type === 'danger' ? 'trash' : 'check'} size={15} />
+          {t.message}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Field({ label, children, full, required }) {
+  return (
+    <div className={"field" + (full ? " field-full" : "")}>
+      <label>{label}{required && <span className="req">*</span>}</label>
+      {children}
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, onChange, total, pageSize }) {
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
+  return (
+    <div className="pagination">
+      <div className="info">Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> records</div>
+      <div className="controls">
+        <button className="page-btn" disabled={page <= 1} onClick={() => onChange(page - 1)}>Prev</button>
+        <span className="page-btn current">{page} / {totalPages}</span>
+        <button className="page-btn" disabled={page >= totalPages} onClick={() => onChange(page + 1)}>Next</button>
+      </div>
+    </div>
+  );
+}
+
+function SortableTh({ label, sortKey, currentKey, dir, onSort }) {
+  const icon = currentKey === sortKey ? (dir === 'asc' ? 'chevronUp' : 'chevronDown') : 'chevronsUpDown';
+  return <th onClick={() => onSort(sortKey)}><span className="th-inner">{label} <Icon name={icon} size={12} /></span></th>;
+}
+
+/* =========================================================
+   CHARTS (custom SVG, no external chart library)
+   ========================================================= */
+function BarTrendChart({ data, color }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  const w = 340, h = 160, padBottom = 26, padTop = 16;
+  const gap = w / data.length;
+  const barWidth = gap * 0.46;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <line x1="0" y1={h - padBottom} x2={w} y2={h - padBottom} stroke="#E2E8F0" strokeWidth="1" />
+      {data.map((d, i) => {
+        const barH = ((h - padBottom - padTop) * d.value) / max;
+        const x = i * gap + (gap - barWidth) / 2;
+        const y = h - padBottom - barH;
+        const isLast = i === data.length - 1;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barWidth} height={Math.max(barH, 1)} rx="4" fill={color} opacity={isLast ? 1 : 0.42} />
+            <text x={x + barWidth / 2} y={h - padBottom + 15} textAnchor="middle" fontSize="9.5" fill="#64748B" fontFamily="'IBM Plex Mono',monospace">{d.month}</text>
+            {d.value > 0 && <text x={x + barWidth / 2} y={y - 5} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#0F172A" fontFamily="'Space Grotesk',sans-serif">{d.value}</text>}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DonutChart({ data, size = 128, strokeWidth = 18 }) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let acc = 0;
+  if (data.length === 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#E2E8F0" strokeWidth={strokeWidth} />
+        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#94A3B8" fontFamily="'Inter',sans-serif">No data</text>
+      </svg>
+    );
+  }
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+        {data.map((d, i) => {
+          const frac = d.value / total;
+          const dash = frac * circumference;
+          const el = (
+            <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={d.color} strokeWidth={strokeWidth}
+              strokeDasharray={`${dash} ${circumference - dash}`} strokeDashoffset={-acc} strokeLinecap="butt" />
+          );
+          acc += dash;
+          return el;
+        })}
+      </g>
+      <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" fontSize="21" fontWeight="700" fill="#0F172A" fontFamily="'Space Grotesk',sans-serif">{total}</text>
+      <text x="50%" y="63%" textAnchor="middle" dominantBaseline="middle" fontSize="9.5" fill="#94A3B8" fontFamily="'Inter',sans-serif">reports</text>
+    </svg>
+  );
+}
+
+function Legend({ data }) {
+  return (
+    <div className="legend">
+      {data.map((d, i) => (
+        <div className="legend-row" key={i}>
+          <span className="sw" style={{ background: d.color }}></span>
+          <span>{d.label}</span>
+          <span className="lv">{d.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   KPI / PANEL COMPONENTS
+   ========================================================= */
+function KpiCard({ icon, label, value, accentBg, accentColor }) {
+  return (
+    <div className="card kpi-card">
+      <div className="kpi-top">
+        <div className="kpi-icon" style={{ background: accentBg, color: accentColor }}><Icon name={icon} size={17} /></div>
+      </div>
+      <div className="kpi-value">{value}</div>
+      <div className="kpi-label">{label}</div>
+    </div>
+  );
+}
+
+function MiniKpi({ label, value, trendDir }) {
+  return (
+    <div className="mini-kpi">
+      <div className={"mv" + (trendDir ? ' trend-' + trendDir : '')}>
+        {value}
+        {trendDir && <Icon name={trendDir === 'up' ? 'trendUp' : trendDir === 'down' ? 'trendDown' : 'trendFlat'} size={14} />}
+      </div>
+      <div className="ml">{label}</div>
+    </div>
+  );
+}
+
+function SectionPanel({ variant, icon, title, subtitle, children }) {
+  return (
+    <div className={"panel" + (variant === 'sa' ? ' sa' : '')}>
+      <div className="panel-head-bar"></div>
+      <div className="panel-body">
+        <div className="panel-title-row">
+          <div className="panel-ic"><Icon name={icon} size={16} /></div>
+          <h3>{title}</h3>
+        </div>
+        <p className="panel-sub">{subtitle}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
+  const now = new Date();
+  const pcSeries = useMemo(() => computeMonthlySeries(pcReports, now), [pcReports]);
+  const saSeries = useMemo(() => computeMonthlySeries(saReports, now), [saReports]);
+  const pcThisMonth = pcSeries[pcSeries.length - 1].value;
+  const pcLastMonth = pcSeries[pcSeries.length - 2].value;
+  const pcTrend = trendPct(pcThisMonth, pcLastMonth);
+  const saThisMonth = saSeries[saSeries.length - 1].value;
+  const saLastMonth = saSeries[saSeries.length - 2].value;
+  const saTrend = trendPct(saThisMonth, saLastMonth);
+  const pcStatusData = useMemo(() => statusCounts(pcReports, REPORT_STATUSES), [pcReports]);
+  const saStatusData = useMemo(() => statusCounts(saReports, REPORT_STATUSES), [saReports]);
+
+  const recent = useMemo(() => {
+    const combined = [
+      ...pcReports.map(r => ({ ...r, kind: 'pc' })),
+      ...saReports.map(r => ({ ...r, kind: 'sa' })),
+    ];
+    combined.sort((a, b) => new Date(b.dateReported) - new Date(a.dateReported));
+    return combined.slice(0, 6);
+  }, [pcReports, saReports]);
+
+  return (
+    <div>
+      <div className="kpi-row">
+        <KpiCard icon="pc" label="Total PC Reports" value={pcReports.length} accentBg="var(--accent-soft)" accentColor="var(--accent-dark)" />
+        <KpiCard icon="store" label="Total Selling Area Reports" value={saReports.length} accentBg="var(--accent-2-soft)" accentColor="var(--accent-2-dark)" />
+        <KpiCard icon="server" label="PCs Monitored" value={pcInventory.length} accentBg="var(--violet-bg)" accentColor="var(--violet-text)" />
+        <KpiCard icon="pos" label="POS Terminals Monitored" value={posInventory.length} accentBg="var(--orange-bg)" accentColor="var(--orange-text)" />
+      </div>
+
+      <div className="panel-grid">
+        <SectionPanel variant="pc" icon="pc" title="PC Reports Monitoring" subtitle="Trouble reports logged for back-office & admin department computers">
+          <div className="mini-kpi-row">
+            <MiniKpi label="Total Reports" value={pcReports.length} />
+            <MiniKpi label="This Month" value={pcThisMonth} />
+            <MiniKpi label="Monthly Trend" value={pcTrend.label} trendDir={pcTrend.dir} />
+          </div>
+          <div className="chart-row">
+            <div className="chart-col">
+              <div className="chart-title">Monthly Report Volume</div>
+              <BarTrendChart data={pcSeries} color="var(--accent-dark)" />
+            </div>
+            <div className="chart-col donut-col">
+              <div className="chart-title">Status Breakdown</div>
+              <DonutChart data={pcStatusData} />
+              <Legend data={pcStatusData} />
+            </div>
+          </div>
+        </SectionPanel>
+
+        <SectionPanel variant="sa" icon="store" title="Selling Area / POS Reports Monitoring" subtitle="Trouble reports logged for selling floor & POS counter equipment">
+          <div className="mini-kpi-row">
+            <MiniKpi label="Total Reports" value={saReports.length} />
+            <MiniKpi label="This Month" value={saThisMonth} />
+            <MiniKpi label="Monthly Trend" value={saTrend.label} trendDir={saTrend.dir} />
+          </div>
+          <div className="chart-row">
+            <div className="chart-col">
+              <div className="chart-title">Monthly Report Volume</div>
+              <BarTrendChart data={saSeries} color="var(--accent-2-dark)" />
+            </div>
+            <div className="chart-col donut-col">
+              <div className="chart-title">Status Breakdown</div>
+              <DonutChart data={saStatusData} />
+              <Legend data={saStatusData} />
+            </div>
+          </div>
+        </SectionPanel>
+      </div>
+
+      <div className="card recent-card">
+        <div className="card-header">Recent Activity</div>
+        {recent.map(r => (
+          <div className="recent-row" key={r.kind + '-' + r.id}>
+            <span className={"recent-tag " + r.kind}>{r.kind === 'pc' ? 'PC' : 'S.AREA'}</span>
+            <span className="recent-dept">{r.department}</span>
+            <span className="recent-problem">{r.problem}</span>
+            <StatusBadge status={r.status} />
+            <span className="recent-date">{formatDate(r.dateReported)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   REPORT FORM MODAL (shared by PC Reports & Selling Area Reports)
+   ========================================================= */
+function ReportFormModal({ record, departmentOptions, onClose, onSave, titleLabel }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    dateReported: new Date().toISOString().slice(0, 10),
+    department: departmentOptions[0],
+    problem: '', actionTaken: '', replacement: 'None', serialReplacement: '',
+    status: 'Pending', remarks: '', technician: TECHNICIANS[0],
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.problem.trim() || !form.dateReported) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={(record ? 'Edit ' : 'Add ') + titleLabel} onClose={onClose} maxWidth="700px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Technician" required>
+          <select className="select" style={{ width: '100%' }} value={form.technician} onChange={e => update('technician', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Problem" full required>
+          <textarea className="textarea" rows="2" value={form.problem} onChange={e => update('problem', e.target.value)} placeholder="Describe the reported issue" required />
+        </Field>
+        <Field label="Action Taken" full>
+          <textarea className="textarea" rows="2" value={form.actionTaken} onChange={e => update('actionTaken', e.target.value)} placeholder="Describe the resolution steps" />
+        </Field>
+        <Field label="Replacement"><input className="input" style={{ width: '100%' }} value={form.replacement} onChange={e => update('replacement', e.target.value)} placeholder="e.g. RAM Module 8GB" /></Field>
+        <Field label="Serial (Replacement)"><input className="input mono" style={{ width: '100%' }} value={form.serialReplacement} onChange={e => update('serialReplacement', e.target.value)} placeholder="e.g. RAM-SN-12345" /></Field>
+        <Field label="Remarks" full>
+          <textarea className="textarea" rows="2" value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Additional notes" />
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* =========================================================
+   REPORTS PAGE (shared: PC Reports & Selling Area Reports)
+   ========================================================= */
+const REPORT_COLUMNS = [
+  ['dateReported', 'Date Reported'], ['department', 'Department'], ['problem', 'Problem'],
+  ['actionTaken', 'Action Taken'], ['replacement', 'Replacement'], ['serialReplacement', 'Serial No.'],
+  ['status', 'Status'], ['remarks', 'Remarks'], ['technician', 'Technician'],
+];
+
+function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('dateReported');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.problem, r.actionTaken, r.remarks, r.department, r.technician, r.replacement].join(' ').toLowerCase().includes(q);
+      const matchesDept = deptFilter === 'All' || r.department === deptFilter;
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesDept && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'dateReported') { av = new Date(av).getTime(); bv = new Date(bv).getTime(); }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId(idPrefix) }, ...prev]);
+      addToast('Report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Report deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {REPORT_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={REPORT_COLUMNS.length + 1} className="empty-row">No reports match your search or filters.</td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.dateReported)}</td>
+                  <td>{r.department}</td>
+                  <td className="truncate" title={r.problem}>{r.problem}</td>
+                  <td className="truncate" title={r.actionTaken}>{r.actionTaken}</td>
+                  <td className="truncate" title={r.replacement}>{r.replacement}</td>
+                  <td className="mono">{r.serialReplacement}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td className="truncate" title={r.remarks}>{r.remarks}</td>
+                  <td>{r.technician}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <ReportFormModal record={editingRecord} departmentOptions={departmentOptions} onClose={() => setModalOpen(false)} onSave={handleSave} titleLabel={titleLabel} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete this ${titleLabel.toLowerCase()} for "${confirmState.department}" dated ${formatDate(confirmState.dateReported)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   PC MONITORING
+   ========================================================= */
+function PcFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    department: DEPARTMENTS[0], ipAddress: '', pcName: '', macAddress: '',
+    ramSerial: '', ramGB: '8', ramMHz: '2666', ramBrand: '',
+    storageSerial: '', storageMHz: 'N/A', storageSize: '', storageBrand: '',
+    motherboard: '', osVersion: OS_VERSIONS[0], osActivationKey: '', processor: '', status: 'Active',
+  });
+  const [showKey, setShowKey] = useState(false);
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.pcName.trim() || !form.ipAddress.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit PC Record' : 'Add PC Record'} onClose={onClose} maxWidth="760px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Identification</div>
+        <Field label="PC Name" required><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. ACCT-PC01" required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="IP Address" required><input className="input mono" style={{ width: '100%' }} value={form.ipAddress} onChange={e => update('ipAddress', e.target.value)} placeholder="10.10.x.x" required /></Field>
+        <Field label="MAC Address"><input className="input mono" style={{ width: '100%' }} value={form.macAddress} onChange={e => update('macAddress', e.target.value)} placeholder="00:1A:2B:3C:4D:00" /></Field>
+        <Field label="Processor / CPU"><input className="input" style={{ width: '100%' }} value={form.processor} onChange={e => update('processor', e.target.value)} /></Field>
+        <Field label="Status">
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Memory (RAM)</div>
+        <Field label="RAM Brand"><input className="input" style={{ width: '100%' }} value={form.ramBrand} onChange={e => update('ramBrand', e.target.value)} /></Field>
+        <Field label="RAM Serial"><input className="input mono" style={{ width: '100%' }} value={form.ramSerial} onChange={e => update('ramSerial', e.target.value)} /></Field>
+        <Field label="RAM (GB)">
+          <select className="select" style={{ width: '100%' }} value={form.ramGB} onChange={e => update('ramGB', e.target.value)}>
+            {['2','4','8','16','32','64'].map(v => <option key={v} value={v}>{v} GB</option>)}
+          </select>
+        </Field>
+        <Field label="RAM Speed (MHz)"><input className="input" style={{ width: '100%' }} value={form.ramMHz} onChange={e => update('ramMHz', e.target.value)} /></Field>
+
+        <div className="form-section-label">Storage</div>
+        <Field label="Storage Brand"><input className="input" style={{ width: '100%' }} value={form.storageBrand} onChange={e => update('storageBrand', e.target.value)} /></Field>
+        <Field label="Storage Serial Number"><input className="input mono" style={{ width: '100%' }} value={form.storageSerial} onChange={e => update('storageSerial', e.target.value)} /></Field>
+        <Field label="Storage Size"><input className="input" style={{ width: '100%' }} value={form.storageSize} onChange={e => update('storageSize', e.target.value)} placeholder="e.g. 512GB" /></Field>
+        <Field label="Storage Speed (MHz / RPM)"><input className="input" style={{ width: '100%' }} value={form.storageMHz} onChange={e => update('storageMHz', e.target.value)} placeholder="N/A for SSD" /></Field>
+
+        <div className="form-section-label">System</div>
+        <Field label="Motherboard"><input className="input" style={{ width: '100%' }} value={form.motherboard} onChange={e => update('motherboard', e.target.value)} /></Field>
+        <Field label="OS Version">
+          <select className="select" style={{ width: '100%' }} value={form.osVersion} onChange={e => update('osVersion', e.target.value)}>
+            {OS_VERSIONS.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
+        <Field label="OS Activation Key" full>
+          <div className="key-field">
+            <input className="input mono" type={showKey ? 'text' : 'password'} value={form.osActivationKey} onChange={e => update('osActivationKey', e.target.value)} placeholder="XXXXX-XXXXX-XXXXX-XXXXX" />
+            <button type="button" className="icon-btn" onClick={() => setShowKey(s => !s)} title={showKey ? 'Hide key' : 'Show key'}><Icon name="eye" size={15} /></button>
+          </div>
+        </Field>
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add PC Record'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('pcName');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || r.pcName.toLowerCase().includes(q) || r.ipAddress.toLowerCase().includes(q) || r.department.toLowerCase().includes(q) || r.macAddress.toLowerCase().includes(q);
+      const md = deptFilter === 'All' || r.department === deptFilter;
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && md && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('PC record updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('PCM') }, ...prev]);
+      addToast('PC record added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('PC record deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add PC Record</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="PC Name" sortKey="pcName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="IP Address" sortKey="ipAddress" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>MAC Address</th>
+                <th>RAM</th>
+                <th>Storage</th>
+                <th>OS Version</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="9" className="empty-row">No PCs match your search or filters.</td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 600 }}>{r.pcName}</td>
+                  <td>{r.department}</td>
+                  <td className="mono">{r.ipAddress}</td>
+                  <td className="mono truncate-sm" title={r.macAddress}>{r.macAddress}</td>
+                  <td>
+                    <div>{r.ramGB}GB &middot; {r.ramBrand}</div>
+                    <div className="cell-sub">{r.ramMHz}MHz</div>
+                  </td>
+                  <td>
+                    <div>{r.storageSize} &middot; {r.storageBrand}</div>
+                    <div className="cell-sub">{r.storageMHz}</div>
+                  </td>
+                  <td>{r.osVersion}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="View / Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PcFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete PC record "${confirmState.pcName}" (${confirmState.ipAddress})? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   POS MONITORING
+   ========================================================= */
+function PosFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    ctr: '', terminal: '', monitorSerial: '', baseUnitSerial: '', secondDisplaySerial: '',
+    ghlSerial: '', bir: '', min: '', tin: '', status: 'Active',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.ctr.trim() || !form.terminal.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit POS Terminal' : 'Add POS Terminal'} onClose={onClose} maxWidth="680px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Terminal Identification</div>
+        <Field label="CTR" required><input className="input" style={{ width: '100%' }} value={form.ctr} onChange={e => update('ctr', e.target.value)} placeholder="e.g. CTR-11" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-11" required /></Field>
+        <Field label="Status">
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Hardware Serials</div>
+        <Field label="Monitor Serial"><input className="input mono" style={{ width: '100%' }} value={form.monitorSerial} onChange={e => update('monitorSerial', e.target.value)} /></Field>
+        <Field label="Base Unit Serial"><input className="input mono" style={{ width: '100%' }} value={form.baseUnitSerial} onChange={e => update('baseUnitSerial', e.target.value)} /></Field>
+        <Field label="2nd Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.secondDisplaySerial} onChange={e => update('secondDisplaySerial', e.target.value)} /></Field>
+        <Field label="GHL Serial"><input className="input mono" style={{ width: '100%' }} value={form.ghlSerial} onChange={e => update('ghlSerial', e.target.value)} /></Field>
+
+        <div className="form-section-label">BIR / Fiscal Details</div>
+        <Field label="BIR"><input className="input mono" style={{ width: '100%' }} value={form.bir} onChange={e => update('bir', e.target.value)} /></Field>
+        <Field label="MIN"><input className="input mono" style={{ width: '100%' }} value={form.min} onChange={e => update('min', e.target.value)} /></Field>
+        <Field label="TIN" full><input className="input mono" style={{ width: '100%' }} value={form.tin} onChange={e => update('tin', e.target.value)} /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Terminal'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('ctr');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || [r.ctr, r.terminal, r.monitorSerial, r.baseUnitSerial, r.secondDisplaySerial, r.ghlSerial, r.bir, r.min, r.tin].join(' ').toLowerCase().includes(q);
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('POS terminal updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('POS') }, ...prev]);
+      addToast('POS terminal added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('POS terminal deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add POS Terminal</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="CTR" sortKey="ctr" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Terminal" sortKey="terminal" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Monitor Serial</th>
+                <th>Base Unit Serial</th>
+                <th>2nd Display Serial</th>
+                <th>GHL Serial</th>
+                <th>BIR</th>
+                <th>MIN</th>
+                <th>TIN</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row">No POS terminals match your search or filters.</td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 600 }}>{r.ctr}</td>
+                  <td>{r.terminal}</td>
+                  <td className="mono truncate-sm" title={r.monitorSerial}>{r.monitorSerial}</td>
+                  <td className="mono truncate-sm" title={r.baseUnitSerial}>{r.baseUnitSerial}</td>
+                  <td className="mono truncate-sm" title={r.secondDisplaySerial}>{r.secondDisplaySerial}</td>
+                  <td className="mono truncate-sm" title={r.ghlSerial}>{r.ghlSerial}</td>
+                  <td className="mono truncate-sm" title={r.bir}>{r.bir}</td>
+                  <td className="mono truncate-sm" title={r.min}>{r.min}</td>
+                  <td className="mono truncate-sm" title={r.tin}>{r.tin}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PosFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete POS terminal "${confirmState.terminal}" at ${confirmState.ctr}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   SIDEBAR / HEADER
+   ========================================================= */
+const NAV_ITEMS = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { key: 'pcReports', label: 'PC Reports', icon: 'pc' },
+  { key: 'saReports', label: 'Selling Area Reports', icon: 'store' },
+  { key: 'pcMonitoring', label: 'PC Monitoring', icon: 'activity' },
+  { key: 'posMonitoring', label: 'POS Monitoring', icon: 'pos' },
+];
+
+function Sidebar({ active, onSelect, open, pcCount, posCount }) {
+  return (
+    <aside className={"sidebar" + (open ? " open" : "")}>
+      <div className="sidebar-brand">
+        <div className="brand-mark">ISS</div>
+        <div className="brand-text">
+          <h2>ISS Department</h2>
+          <span>MONITORING SYSTEM</span>
+        </div>
+      </div>
+      <nav className="sidebar-nav">
+        <div className="nav-label">Main Menu</div>
+        {NAV_ITEMS.map(item => (
+          <button key={item.key} className={"nav-item" + (active === item.key ? " active" : "")} onClick={() => onSelect(item.key)}>
+            <span className="nav-ic"><Icon name={item.icon} size={17} /></span>
+            {item.label}
+            {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
+            {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-footer">
+        <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
+        <div className="meta">ISS Department &middot; Internal Use Only</div>
+      </div>
+    </aside>
+  );
+}
+
+function Header({ current, onMenu, clock, query, setQuery, searchPlaceholder, showSearch }) {
+  return (
+    <header className="header">
+      <div className="header-left">
+        <button className="menu-btn" onClick={onMenu}><Icon name="menu" size={18} /></button>
+        <div className="header-title-wrap">
+          <div className="header-icon"><Icon name={current.icon} size={18} /></div>
+          <div>
+            <h1>{current.title}</h1>
+            <p>{current.subtitle}</p>
+          </div>
+        </div>
+      </div>
+      <div className="header-right">
+        {showSearch && <SearchInput value={query} onChange={setQuery} placeholder={searchPlaceholder} className="header-search" />}
+        <div className="clock-chip">
+          <Icon name="clock" size={13} />
+          {clock.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} &middot; {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+        <div className="user-chip"><Icon name="user" size={15} /> ISS Admin</div>
+      </div>
+    </header>
+  );
+}
+
+/* =========================================================
+   APP ROOT
+   ========================================================= */
+const PAGES_META = {
+  dashboard: { title: 'Dashboard', subtitle: 'Monitoring overview across PC & Selling Area operations', icon: 'dashboard' },
+  pcReports: { title: 'PC Reports', subtitle: 'Trouble reports for back-office & admin department computers', icon: 'pc' },
+  saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for selling floor & POS counter equipment', icon: 'store' },
+  pcMonitoring: { title: 'PC Monitoring', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
+  posMonitoring: { title: 'POS Monitoring', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
+};
+
+function App() {
+  const [page, setPage] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pcReports, setPcReports] = useState(SEED_PC_REPORTS);
+  const [saReports, setSaReports] = useState(SEED_SA_REPORTS);
+  const [pcInventory, setPcInventory] = useState(SEED_PC_INVENTORY);
+  const [posInventory, setPosInventory] = useState(SEED_POS_INVENTORY);
+  const [toasts, setToasts] = useState([]);
+  const [clock, setClock] = useState(new Date());
+
+  const [pcQuery, setPcQuery] = useState('');
+  const [saQuery, setSaQuery] = useState('');
+  const [pcInvQuery, setPcInvQuery] = useState('');
+  const [posInvQuery, setPosInvQuery] = useState('');
+
+  useEffect(() => {
+    const t = setInterval(() => setClock(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  function addToast(message, type = 'success') {
+    const id = Date.now() + Math.random();
+    setToasts(t => [...t, { id, message, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+  }
+
+  let searchProps = { show: false, query: '', setQuery: () => {}, placeholder: '' };
+  if (page === 'pcReports') searchProps = { show: true, query: pcQuery, setQuery: setPcQuery, placeholder: 'Search PC reports (problem, dept, technician)...' };
+  if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search selling area reports...' };
+  if (page === 'pcMonitoring') searchProps = { show: true, query: pcInvQuery, setQuery: setPcInvQuery, placeholder: 'Search by PC Name, IP Address, or Department...' };
+  if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, CTR, serials...' };
+
+  return (
+    <div className="app-shell">
+      <div className={"overlay" + (sidebarOpen ? " show" : "")} onClick={() => setSidebarOpen(false)}></div>
+      <Sidebar active={page} onSelect={(k) => { setPage(k); setSidebarOpen(false); }} open={sidebarOpen} pcCount={pcInventory.length} posCount={posInventory.length} />
+      <div className="main">
+        <Header
+          current={PAGES_META[page]}
+          onMenu={() => setSidebarOpen(o => !o)}
+          clock={clock}
+          query={searchProps.query}
+          setQuery={searchProps.setQuery}
+          searchPlaceholder={searchProps.placeholder}
+          showSearch={searchProps.show}
+        />
+        <div className="ticker">
+          <span className="tick-item"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
+          <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
+          <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
+          <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+          <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        </div>
+        <div className="content">
+          {page === 'dashboard' && <Dashboard pcReports={pcReports} saReports={saReports} pcInventory={pcInventory} posInventory={posInventory} />}
+          {page === 'pcReports' && (
+            <ReportsPage titleLabel="PC Report" idPrefix="PCR" data={pcReports} setData={setPcReports} departmentOptions={DEPARTMENTS} addToast={addToast} query={pcQuery} setQuery={setPcQuery} />
+          )}
+          {page === 'saReports' && (
+            <ReportsPage titleLabel="Selling Area Report" idPrefix="SAR" data={saReports} setData={setSaReports} departmentOptions={SELLING_AREAS} addToast={addToast} query={saQuery} setQuery={setSaQuery} />
+          )}
+          {page === 'pcMonitoring' && (
+            <PcMonitoringPage data={pcInventory} setData={setPcInventory} addToast={addToast} query={pcInvQuery} setQuery={setPcInvQuery} />
+          )}
+          {page === 'posMonitoring' && (
+            <PosMonitoringPage data={posInventory} setData={setPosInventory} addToast={addToast} query={posInvQuery} setQuery={setPosInvQuery} />
+          )}
+        </div>
+      </div>
+      <ToastContainer toasts={toasts} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
