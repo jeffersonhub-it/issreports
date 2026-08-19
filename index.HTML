@@ -382,7 +382,7 @@ const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
 const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
 const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Ubuntu 22.04 LTS"];
 const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","Software Issue","Network Issue","Paper Jam","Other"];
-const GHL_REPORT_STATUSES = ["Pending","Submitted","Received","Resolved","Cancelled"];
+const GHL_REPORT_STATUSES = ["Pending","Reported","Received"];
 
 const STATUS_STYLES = {
   'Completed': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
@@ -394,9 +394,8 @@ const STATUS_STYLES = {
   'Under Repair': { bg:'var(--orange-bg)', text:'var(--orange-text)', dot:'var(--orange)' },
   'Inactive': { bg:'var(--gray-bg)', text:'var(--gray-text)', dot:'#94A3B8' },
   'Decommissioned': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
-  'Submitted': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
-  'Received': { bg:'var(--violet-bg)', text:'var(--violet-text)', dot:'var(--violet)' },
-  'Resolved': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+  'Reported': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
+  'Received': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
 };
 
 let idCounter = 1000;
@@ -465,12 +464,12 @@ const SEED_POS_INVENTORY = [
 ];
 
 const SEED_GHL_REPORTS = [
-  { id:'GHL-1', dateReported:'2026-08-14', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Resolved' },
+  { id:'GHL-1', dateReported:'2026-08-14', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
   { id:'GHL-2', dateReported:'2026-08-11', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
   { id:'GHL-3', dateReported:'2026-08-07', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
-  { id:'GHL-4', dateReported:'2026-07-30', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'2026-08-01', status:'Submitted' },
-  { id:'GHL-5', dateReported:'2026-07-22', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Resolved' },
-  { id:'GHL-6', dateReported:'2026-07-15', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Cancelled' },
+  { id:'GHL-4', dateReported:'2026-07-30', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
+  { id:'GHL-5', dateReported:'2026-07-22', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
+  { id:'GHL-6', dateReported:'2026-07-15', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
 ];
 
 const SEED_GHL_TERMINALS = [
