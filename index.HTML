@@ -1376,12 +1376,22 @@ const GHL_COLUMNS = [
   ['reportCount', 'Report Count'], ['requestNumber', 'Request Number'], ['dateReceived', 'Date Received'], ['status', 'Status'],
 ];
 
-function GhlReportFormModal({ record, onClose, onSave }) {
+function GhlReportFormModal({ record, terminals, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
     dateReported: new Date().toISOString().slice(0, 10), counter: '', type: GHL_TYPES[0], sn: '',
     reportCount: 1, requestNumber: '', dateReceived: '', status: 'Pending',
   });
+  const [snAuto, setSnAuto] = useState(true);
+  const counterOptions = useMemo(() => {
+    const seen = new Set();
+    return terminals.map(t => t.ctr).filter(c => c && !seen.has(c) && seen.add(c)).sort();
+  }, [terminals]);
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function updateCounter(ctr) {
+    const match = terminals.find(t => t.ctr === ctr);
+    setForm(f => ({ ...f, counter: ctr, sn: (snAuto && match) ? match.serialNumber : f.sn }));
+  }
+  function updateSn(v) { setSnAuto(false); update('sn', v); }
   function submit(e) {
     e.preventDefault();
     if (!form.counter.trim() || !form.dateReported) return;
@@ -1391,13 +1401,25 @@ function GhlReportFormModal({ record, onClose, onSave }) {
     <Modal title={record ? 'Edit GHL Report' : 'Add GHL Report'} onClose={onClose} maxWidth="700px">
       <form onSubmit={submit} className="form-grid">
         <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
-        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. CTR-01" required /></Field>
+        <Field label="Counter" required>
+          {counterOptions.length > 0 ? (
+            <select className="select" style={{ width: '100%' }} value={form.counter} onChange={e => updateCounter(e.target.value)} required>
+              <option value="" disabled>Select counter...</option>
+              {counterOptions.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          ) : (
+            <input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. CTR-01" required />
+          )}
+        </Field>
         <Field label="Type" required>
           <select className="select" style={{ width: '100%' }} value={form.type} onChange={e => update('type', e.target.value)}>
             {GHL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </Field>
-        <Field label="SN"><input className="input mono" style={{ width: '100%' }} value={form.sn} onChange={e => update('sn', e.target.value)} placeholder="e.g. GHL-SN-40051" /></Field>
+        <Field label="SN">
+          <input className="input mono" style={{ width: '100%' }} value={form.sn} onChange={e => updateSn(e.target.value)} placeholder="Auto-filled from Terminal, or type manually" />
+          <span className="cell-sub">Auto-filled from the Terminal list based on the selected Counter. You can still edit it.</span>
+        </Field>
         <Field label="Report Count" required><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.reportCount} onChange={e => update('reportCount', e.target.value)} required /></Field>
         <Field label="Request Number"><input className="input mono" style={{ width: '100%' }} value={form.requestNumber} onChange={e => update('requestNumber', e.target.value)} placeholder="e.g. REQ-20260814-01" /></Field>
         <Field label="Date Received"><input type="date" className="input" style={{ width: '100%' }} value={form.dateReceived} onChange={e => update('dateReceived', e.target.value)} /></Field>
@@ -1652,7 +1674,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
         </div>
         <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
       </div>
-      {modalOpen && <GhlReportFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {modalOpen && <GhlReportFormModal record={editingRecord} terminals={terminals} onClose={() => setModalOpen(false)} onSave={handleSave} />}
       {confirmState && (
         <ConfirmDialog
           message={`Delete GHL report for "${confirmState.counter}" dated ${formatDate(confirmState.dateReported)}? This action cannot be undone.`}
