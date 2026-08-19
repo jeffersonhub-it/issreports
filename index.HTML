@@ -200,11 +200,21 @@
   .btn-secondary:hover{background:var(--gray-bg);border-color:#CBD5E1;}
   .btn-danger{background:var(--red);color:#fff;}
   .btn-danger:hover{background:#B91C1C;}
+  .confirm-actions .btn-danger:focus{outline:3px solid #B91C1C;outline-offset:2px;box-shadow:0 0 0 4px rgba(220,38,38,.22);}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
 
   .table-card{padding:0;}
   .table-wrap{overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px;}
+  table.table-compact{min-width:680px;}
+
+  /* ---------- inventory location tabs ---------- */
+  .loc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .loc-tab{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);}
+  .loc-tab:hover{border-color:#CBD5E1;color:var(--text);}
+  .loc-tab.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .loc-tab .loc-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:var(--gray-bg);color:var(--text-muted);padding:1px 7px;border-radius:20px;}
+  .loc-tab.active .loc-count{background:rgba(255,255,255,.16);color:#fff;}
   thead th{
     text-align:left;padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);
     font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);
@@ -380,6 +390,7 @@ function Icon({ name, size = 18, className = '' }) {
     case 'user': return <svg {...c}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>;
     case 'server': return <svg {...c}><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><line x1="7" y1="7" x2="7" y2="7.1"/><line x1="7" y1="17" x2="7" y2="17.1"/></svg>;
     case 'eye': return <svg {...c}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>;
+    case 'box': return <svg {...c}><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="M3 8l9 5 9-5"/></svg>;
     default: return null;
   }
 }
@@ -387,13 +398,16 @@ function Icon({ name, size = 18, className = '' }) {
 /* =========================================================
    CONSTANTS / DEMO DATA
    ========================================================= */
-const DEPARTMENTS = ["Accounting","Human Resources","Merchandising","Warehouse & Logistics","Customer Service","IT Office","Executive Office","Marketing","Loss Prevention","Admin Office"];
-const SELLING_AREAS = ["Grocery Selling Area","Appliance Selling Area","Electronics Selling Area","Fashion Selling Area","Hardware Selling Area","Housewares Selling Area","School & Office Supplies","Toys & Sports Selling Area","Cashiering Area","Customer Service Counter"];
+const DEPARTMENTS = ["DSRS","RFID","FOREX","DSCS","SPCS","COUNTERING","DS WAREHOUSE","DSO","FCCON","REVENUE","DSCON","GA","PAYROLL","PAYABLES","ADMIN","CREDIT","AUDIT","ICT","DEO","HRD","SCO","CLINIC","BILLING","TREASURY A","TREASURY B","SP WAREHOUSE","IS WAREHOUSE","PRICING","SP OFFICE","PRODUCE","SP SELLING AREA","SP RECEIVING","VISUAL"];
+const SELLING_AREAS = ["DEPARTMENT STORE","SUPERMARKET"];
 const TECHNICIANS = ["Mark Villanueva","Jenny Cruz","Paolo Santos","Angela Reyes","Kevin Tan"];
 const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancelled"];
 const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
 const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
+const POS_SECTIONS = ["Department Store","Supermarket"];
+function flatbedFieldLabel(section) { return section === 'Department Store' ? 'Vertical Scanner Serial' : 'Flatbed Serial'; }
 const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Ubuntu 22.04 LTS"];
+const STORAGE_TYPES = ["HDD","SSD","NVMe SSD"];
 const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","Software Issue","Network Issue","Paper Jam","Other"];
 const GHL_REPORT_STATUSES = ["Pending","Reported","Received"];
 
@@ -431,49 +445,77 @@ const SEED_PC_REPORTS = [
   { id:'PCR-14', dateReported:'2026-04-02', department:'Warehouse & Logistics', problem:'Slow performance / freezing', actionTaken:'Uninstalled unnecessary startup programs', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Performance normalized', technician:'Paolo Santos' },
 ];
 
+const SA_ISSUE_TYPES = ["Terminal Malfunction","Network Connectivity","Printer Issue","Scanner Issue","Display Issue","Power Issue","Software Glitch","Card Reader Issue","Cash Drawer Issue","Other"];
+
 const SEED_SA_REPORTS = [
-  { id:'SAR-1', dateReported:'2026-08-17', department:'Grocery Selling Area', problem:'POS terminal not powering on', actionTaken:'Replaced power adapter', replacement:'Power Adapter 12V', serialReplacement:'ADP-SN-90211', status:'Completed', remarks:'Terminal back online', technician:'Kevin Tan' },
-  { id:'SAR-2', dateReported:'2026-08-12', department:'Fashion Selling Area', problem:'Barcode scanner not reading', actionTaken:'Cleaned scanner lens and recalibrated', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Scan accuracy restored', technician:'Angela Reyes' },
-  { id:'SAR-3', dateReported:'2026-08-06', department:'Electronics Selling Area', problem:'Receipt printer jammed / not printing', actionTaken:'Replaced printer roller assembly', replacement:'Printer Roller Kit', serialReplacement:'PR-SN-77340', status:'Completed', remarks:'Test print successful', technician:'Mark Villanueva' },
-  { id:'SAR-4', dateReported:'2026-07-30', department:'Cashiering Area', problem:'Touch screen unresponsive', actionTaken:'Recalibrated touch screen digitizer', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Touch response normal', technician:'Jenny Cruz' },
-  { id:'SAR-5', dateReported:'2026-07-24', department:'Appliance Selling Area', problem:'Cash drawer not opening', actionTaken:'Replaced cash drawer solenoid', replacement:'Cash Drawer Solenoid', serialReplacement:'CD-SN-66129', status:'Completed', remarks:'Drawer opens correctly', technician:'Paolo Santos' },
-  { id:'SAR-6', dateReported:'2026-07-16', department:'Hardware Selling Area', problem:'Card reader (GHL) offline', actionTaken:'Restarted and reconnected GHL terminal', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Coordinating with GHL support', technician:'Kevin Tan' },
-  { id:'SAR-7', dateReported:'2026-07-08', department:'Housewares Selling Area', problem:'Monitor flickering / no display', actionTaken:'Replaced VGA cable and tested port', replacement:'VGA Cable', serialReplacement:'-', status:'Completed', remarks:'Display stable', technician:'Angela Reyes' },
-  { id:'SAR-8', dateReported:'2026-06-25', department:'School & Office Supplies', problem:'Network disconnection at counter', actionTaken:'Reconnected LAN cable / replaced switch port', replacement:'Network Switch Port', serialReplacement:'-', status:'Completed', remarks:'Connection stable for 48 hrs', technician:'Mark Villanueva' },
-  { id:'SAR-9', dateReported:'2026-06-14', department:'Toys & Sports Selling Area', problem:'System freezes during transaction', actionTaken:'Cleared cache and restarted POS application', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Monitoring for recurrence', technician:'Jenny Cruz' },
-  { id:'SAR-10', dateReported:'2026-06-03', department:'Customer Service Counter', problem:'Slow transaction processing', actionTaken:'Reinstalled POS software', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Transaction speed improved', technician:'Paolo Santos' },
-  { id:'SAR-11', dateReported:'2026-05-22', department:'Grocery Selling Area', problem:'Barcode scanner not reading', actionTaken:'Replaced barcode scanner unit', replacement:'Barcode Scanner', serialReplacement:'SCN-SN-40218', status:'Replaced', remarks:'New unit issued from stock', technician:'Kevin Tan' },
-  { id:'SAR-12', dateReported:'2026-05-09', department:'Fashion Selling Area', problem:'Receipt printer jammed / not printing', actionTaken:'Cleaned print head, replaced paper roll holder', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer functioning normally', technician:'Angela Reyes' },
-  { id:'SAR-13', dateReported:'2026-04-21', department:'Electronics Selling Area', problem:'POS terminal not powering on', actionTaken:'Diagnosed base unit failure, escalated to vendor', replacement:'Base Unit', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement from IT Office', technician:'Mark Villanueva' },
-  { id:'SAR-14', dateReported:'2026-04-06', department:'Cashiering Area', problem:'Cash drawer not opening', actionTaken:'Replaced cash drawer cable', replacement:'Cash Drawer Cable', serialReplacement:'-', status:'Completed', remarks:'Drawer opens correctly', technician:'Jenny Cruz' },
+  { id:'SAR-1', date:'2026-08-16', supermarket:'SUPERMARKET', counter:'Counter 1', terminal:'POS-01', issueType:'Terminal Malfunction', problemDescription:'Terminal freezes when scanning barcoded items', troubleshootingSteps:'Restarted terminal, updated POS software to latest build', status:'Completed', technician:'Mark Villanueva', dateResolved:'2026-08-16' },
+  { id:'SAR-2', date:'2026-08-15', supermarket:'DEPARTMENT STORE', counter:'Counter 2', terminal:'POS-02', issueType:'Printer Issue', problemDescription:'Receipt printer not printing, blank receipts', troubleshootingSteps:'Replaced printer ribbon and cleaned print head', status:'Completed', technician:'Jenny Cruz', dateResolved:'2026-08-15' },
+  { id:'SAR-3', date:'2026-08-14', supermarket:'DEPARTMENT STORE', counter:'Counter 3', terminal:'POS-03', issueType:'Network Connectivity', problemDescription:'Terminal intermittently loses connection to server', troubleshootingSteps:'Checked LAN cable, replaced with new Cat6 cable, monitoring for recurrence', status:'In Progress', technician:'Paolo Santos', dateResolved:'' },
+  { id:'SAR-4', date:'2026-08-13', supermarket:'SUPERMARKET', counter:'Counter 4', terminal:'POS-04', issueType:'Scanner Issue', problemDescription:'Handheld scanner not reading barcodes properly', troubleshootingSteps:'Recalibrated scanner, cleaned lens', status:'Completed', technician:'Kevin Tan', dateResolved:'2026-08-13' },
+  { id:'SAR-5', date:'2026-08-11', supermarket:'DEPARTMENT STORE', counter:'Counter 5', terminal:'POS-05', issueType:'Display Issue', problemDescription:'Second customer-facing display shows no image', troubleshootingSteps:'Checked cable connection, replacement display ordered', status:'Pending', technician:'Angela Reyes', dateResolved:'' },
+  { id:'SAR-6', date:'2026-08-09', supermarket:'DEPARTMENT STORE', counter:'Counter 6', terminal:'POS-06', issueType:'Power Issue', problemDescription:'Terminal randomly shuts down during transactions', troubleshootingSteps:'Replaced power supply unit', status:'Completed', technician:'Mark Villanueva', dateResolved:'2026-08-10' },
+  { id:'SAR-7', date:'2026-08-07', supermarket:'SUPERMARKET', counter:'Counter 7', terminal:'POS-07', issueType:'Software Glitch', problemDescription:'POS application crashes when applying discounts', troubleshootingSteps:'Reinstalled POS application, cleared cache', status:'Completed', technician:'Jenny Cruz', dateResolved:'2026-08-08' },
+  { id:'SAR-8', date:'2026-08-05', supermarket:'DEPARTMENT STORE', counter:'Counter 8', terminal:'POS-08', issueType:'Card Reader Issue', problemDescription:'GHL card terminal not reading chip cards', troubleshootingSteps:'Cleaned card reader slot, tested with multiple cards', status:'Completed', technician:'Paolo Santos', dateResolved:'2026-08-05' },
+  { id:'SAR-9', date:'2026-08-02', supermarket:'DEPARTMENT STORE', counter:'Counter 9', terminal:'POS-09', issueType:'Cash Drawer Issue', problemDescription:'Cash drawer does not open after transaction', troubleshootingSteps:'Checked solenoid connection, replacement part requested', status:'Cancelled', technician:'Kevin Tan', dateResolved:'' },
+  { id:'SAR-10', date:'2026-07-30', supermarket:'SUPERMARKET', counter:'Counter 10', terminal:'POS-10', issueType:'Terminal Malfunction', problemDescription:'Touchscreen unresponsive on left side of screen', troubleshootingSteps:'Recalibrated touchscreen driver', status:'Completed', technician:'Angela Reyes', dateResolved:'2026-07-31' },
 ];
 
+
 const SEED_PC_INVENTORY = [
-  { id:'PCM-1', department:'IT Office', ipAddress:'10.10.1.10', pcName:'IT-PC01', macAddress:'00:1A:2B:3C:4D:01', ramSerial:'RAM-88213X', ramGB:'16', ramMHz:'3200', ramBrand:'Kingston', storageSerial:'SSD-KX9911', storageMHz:'N/A', storageSize:'512GB', storageBrand:'Samsung', motherboard:'ASUS PRIME B460M-A', osVersion:'Windows 11 Pro', osActivationKey:'W11P-A1B2C-D3E4F-88213', processor:'Intel Core i5-10400', status:'Active' },
-  { id:'PCM-2', department:'Accounting', ipAddress:'10.10.2.11', pcName:'ACCT-PC01', macAddress:'00:1A:2B:3C:4D:02', ramSerial:'RAM-77012Y', ramGB:'8', ramMHz:'2666', ramBrand:'HyperX', storageSerial:'HDD-WD4402', storageMHz:'7200 RPM', storageSize:'1TB', storageBrand:'Western Digital', motherboard:'Gigabyte H410M-H', osVersion:'Windows 10 Pro', osActivationKey:'W10P-B2C3D-E4F5G-77012', processor:'Intel Core i3-10100', status:'Active' },
-  { id:'PCM-3', department:'Human Resources', ipAddress:'10.10.3.12', pcName:'HR-PC02', macAddress:'00:1A:2B:3C:4D:03', ramSerial:'RAM-65210Z', ramGB:'8', ramMHz:'3200', ramBrand:'Corsair', storageSerial:'SSD-CR3301', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Crucial', motherboard:'ASRock B450M', osVersion:'Windows 11 Pro', osActivationKey:'W11P-C3D4E-F5G6H-65210', processor:'AMD Ryzen 5 3400G', status:'Active' },
-  { id:'PCM-4', department:'Warehouse & Logistics', ipAddress:'10.10.4.13', pcName:'WHS-PC01', macAddress:'00:1A:2B:3C:4D:04', ramSerial:'RAM-44018A', ramGB:'4', ramMHz:'2400', ramBrand:'Kingston', storageSerial:'HDD-ST5001', storageMHz:'5400 RPM', storageSize:'500GB', storageBrand:'Seagate', motherboard:'MSI H310M PRO', osVersion:'Windows 10 Pro', osActivationKey:'W10P-D4E5F-G6H7I-44018', processor:'Intel Pentium Gold G5400', status:'Under Repair' },
-  { id:'PCM-5', department:'Marketing', ipAddress:'10.10.5.14', pcName:'MKT-PC01', macAddress:'00:1A:2B:3C:4D:05', ramSerial:'RAM-33771B', ramGB:'16', ramMHz:'3600', ramBrand:'Corsair Vengeance', storageSerial:'SSD-SK7702', storageMHz:'N/A', storageSize:'512GB', storageBrand:'Samsung', motherboard:'ASUS TUF B550M-Plus', osVersion:'Windows 11 Pro', osActivationKey:'W11P-E5F6G-H7I8J-33771', processor:'AMD Ryzen 5 5600G', status:'Active' },
-  { id:'PCM-6', department:'Customer Service', ipAddress:'10.10.6.15', pcName:'CS-PC01', macAddress:'00:1A:2B:3C:4D:06', ramSerial:'RAM-51290C', ramGB:'8', ramMHz:'2666', ramBrand:'Kingston', storageSerial:'SSD-AD1103', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Adata', motherboard:'Gigabyte H410M-H', osVersion:'Windows 10 Pro', osActivationKey:'W10P-F6G7H-I8J9K-51290', processor:'Intel Core i3-9100', status:'Active' },
-  { id:'PCM-7', department:'Loss Prevention', ipAddress:'10.10.7.16', pcName:'LP-PC01', macAddress:'00:1A:2B:3C:4D:07', ramSerial:'RAM-91002D', ramGB:'8', ramMHz:'3200', ramBrand:'HyperX', storageSerial:'SSD-KX2204', storageMHz:'N/A', storageSize:'480GB', storageBrand:'Kingston', motherboard:'ASRock H510M-HVS', osVersion:'Windows 11 Pro', osActivationKey:'W11P-G7H8I-J9K0L-91002', processor:'Intel Core i5-11400', status:'Active' },
-  { id:'PCM-8', department:'Admin Office', ipAddress:'10.10.8.17', pcName:'ADM-PC01', macAddress:'00:1A:2B:3C:4D:08', ramSerial:'RAM-22981E', ramGB:'4', ramMHz:'2133', ramBrand:'Kingston', storageSerial:'HDD-TS3305', storageMHz:'5400 RPM', storageSize:'500GB', storageBrand:'Toshiba', motherboard:'Biostar H310MHP', osVersion:'Windows 10 Pro', osActivationKey:'W10P-H8I9J-K0L1M-22981', processor:'Intel Celeron G4930', status:'Inactive' },
-  { id:'PCM-9', department:'Executive Office', ipAddress:'10.10.9.18', pcName:'EXEC-PC01', macAddress:'00:1A:2B:3C:4D:09', ramSerial:'RAM-10938F', ramGB:'16', ramMHz:'3200', ramBrand:'Corsair', storageSerial:'SSD-SS8801', storageMHz:'N/A', storageSize:'1TB', storageBrand:'Samsung', motherboard:'ASUS ProArt B560-Creator', osVersion:'Windows 11 Pro', osActivationKey:'W11P-I9J0K-L1M2N-10938', processor:'Intel Core i7-11700', status:'Active' },
-  { id:'PCM-10', department:'Merchandising', ipAddress:'10.10.10.19', pcName:'MRC-PC01', macAddress:'00:1A:2B:3C:4D:0A', ramSerial:'RAM-30021G', ramGB:'8', ramMHz:'2666', ramBrand:'Kingston', storageSerial:'SSD-CR4402', storageMHz:'N/A', storageSize:'256GB', storageBrand:'Crucial', motherboard:'MSI B450M PRO-VDH', osVersion:'Windows 10 Pro', osActivationKey:'W10P-J0K1L-M2N3O-30021', processor:'AMD Ryzen 3 3200G', status:'Active' },
-  { id:'PCM-11', department:'IT Office', ipAddress:'10.10.1.20', pcName:'IT-PC02', macAddress:'00:1A:2B:3C:4D:0B', ramSerial:'RAM-40982H', ramGB:'32', ramMHz:'3600', ramBrand:'Corsair Dominator', storageSerial:'SSD-WD9903', storageMHz:'N/A', storageSize:'1TB', storageBrand:'Western Digital', motherboard:'ASUS ROG STRIX B550-F', osVersion:'Windows 11 Pro', osActivationKey:'W11P-K1L2M-N3O4P-40982', processor:'Intel Core i9-11900K', status:'Active' },
-  { id:'PCM-12', department:'Accounting', ipAddress:'10.10.2.21', pcName:'ACCT-PC02', macAddress:'00:1A:2B:3C:4D:0C', ramSerial:'RAM-50871I', ramGB:'8', ramMHz:'2400', ramBrand:'Kingston', storageSerial:'HDD-SG6604', storageMHz:'7200 RPM', storageSize:'1TB', storageBrand:'Seagate', motherboard:'Gigabyte H310M-S2', osVersion:'Windows 10 Pro', osActivationKey:'W10P-L2M3N-O4P5Q-50871', processor:'Intel Core i3-8100', status:'Decommissioned' },
+  { id:'PCM-1', department:'ICT', pcName:'IT-PC01', user:'Mark Villanueva', ipAddress:'10.10.1.10', macAddress:'00:1A:2B:3C:4D:01', windowsVersion:'Windows 11 Pro', productKey:'W11P-A1B2C-D3E4F-88213', motherboardModel:'ASUS PRIME B460M-A', motherboardSN:'MB-SN-88213', ramModel:'Kingston 16GB DDR4 3200MHz', ramSN:'RAM-88213X', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11001', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22001', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-10400', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-2', department:'AUDIT', pcName:'AUDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.11', macAddress:'00:1A:2B:3C:4D:02', windowsVersion:'Windows 10 Pro', productKey:'W10P-B2C3D-E4F5G-77012', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-77012', ramModel:'HyperX 8GB DDR4 2666MHz', ramSN:'RAM-77012Y', storageModel:'Western Digital 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11002', monitorModel:'LG 20" LED', monitor:'MON-SN-22002', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30021', processor:'Intel Core i3-10100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-3', department:'HRD', pcName:'HR-PC02', user:'Paolo Santos', ipAddress:'10.10.3.12', macAddress:'00:1A:2B:3C:4D:03', windowsVersion:'Windows 11 Pro', productKey:'W11P-C3D4E-F5G6H-65210', motherboardModel:'ASRock B450M', motherboardSN:'MB-SN-65210', ramModel:'Corsair 8GB DDR4 3200MHz', ramSN:'RAM-65210Z', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11003', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22003', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 3400G', gpu:'AMD Radeon Vega 11', projector:'-', status:'Active' },
+  { id:'PCM-4', department:'DS WAREHOUSE', pcName:'WHS-PC01', user:'Kevin Tan', ipAddress:'10.10.4.13', macAddress:'00:1A:2B:3C:4D:04', windowsVersion:'Windows 10 Pro', productKey:'W10P-D4E5F-G6H7I-44018', motherboardModel:'MSI H310M PRO', motherboardSN:'MB-SN-44018', ramModel:'Kingston 4GB DDR4 2400MHz', ramSN:'RAM-44018A', storageModel:'Seagate 500GB', storageType:'HDD', printerModel:'-', printer:'-', monitorModel:'AOC 19" LED', monitor:'MON-SN-22004', scannerModel:'-', scannerSN:'-', processor:'Intel Pentium Gold G5400', gpu:'Intel UHD Graphics 610', projector:'-', status:'Under Repair' },
+  { id:'PCM-5', department:'REVENUE', pcName:'REV-PC01', user:'Angela Reyes', ipAddress:'10.10.5.14', macAddress:'00:1A:2B:3C:4D:05', windowsVersion:'Windows 11 Pro', productKey:'W11P-E5F6G-H7I8J-33771', motherboardModel:'ASUS TUF B550M-Plus', motherboardSN:'MB-SN-33771', ramModel:'Corsair Vengeance 16GB DDR4 3600MHz', ramSN:'RAM-33771B', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11005', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22005', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 5600G', gpu:'AMD Radeon Vega 7', projector:'-', status:'Active' },
+  { id:'PCM-6', department:'BILLING', pcName:'BILL-PC01', user:'Mark Villanueva', ipAddress:'10.10.6.15', macAddress:'00:1A:2B:3C:4D:06', windowsVersion:'Windows 10 Pro', productKey:'W10P-F6G7H-I8J9K-51290', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-51290', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-51290C', storageModel:'Adata 256GB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11006', monitorModel:'LG 20" LED', monitor:'MON-SN-22006', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-9100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-7', department:'CREDIT', pcName:'CREDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.7.16', macAddress:'00:1A:2B:3C:4D:07', windowsVersion:'Windows 11 Pro', productKey:'W11P-G7H8I-J9K0L-91002', motherboardModel:'ASRock H510M-HVS', motherboardSN:'MB-SN-91002', ramModel:'HyperX 8GB DDR4 3200MHz', ramSN:'RAM-91002D', storageModel:'Kingston 480GB', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22007', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-11400', gpu:'Intel UHD Graphics 730', projector:'-', status:'Active' },
+  { id:'PCM-8', department:'ADMIN', pcName:'ADM-PC01', user:'Paolo Santos', ipAddress:'10.10.8.17', macAddress:'00:1A:2B:3C:4D:08', windowsVersion:'Windows 10 Pro', productKey:'W10P-H8I9J-K0L1M-22981', motherboardModel:'Biostar H310MHP', motherboardSN:'MB-SN-22981', ramModel:'Kingston 4GB DDR4 2133MHz', ramSN:'RAM-22981E', storageModel:'Toshiba 500GB', storageType:'HDD', printerModel:'Epson L3210', printer:'PRT-SN-11008', monitorModel:'AOC 19" LED', monitor:'MON-SN-22008', scannerModel:'-', scannerSN:'-', processor:'Intel Celeron G4930', gpu:'Intel UHD Graphics 610', projector:'-', status:'Inactive' },
+  { id:'PCM-9', department:'GA', pcName:'GA-PC01', user:'Kevin Tan', ipAddress:'10.10.9.18', macAddress:'00:1A:2B:3C:4D:09', windowsVersion:'Windows 11 Pro', productKey:'W11P-I9J0K-L1M2N-10938', motherboardModel:'ASUS ProArt B560-Creator', motherboardSN:'MB-SN-10938', ramModel:'Corsair 16GB DDR4 3200MHz', ramSN:'RAM-10938F', storageModel:'Samsung 1TB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11009', monitorModel:'LG 24" LED', monitor:'MON-SN-22009', scannerModel:'-', scannerSN:'-', processor:'Intel Core i7-11700', gpu:'Intel UHD Graphics 750', projector:'Epson EB-X06', status:'Active' },
+  { id:'PCM-10', department:'PAYROLL', pcName:'PAYROLL-PC01', user:'Angela Reyes', ipAddress:'10.10.10.19', macAddress:'00:1A:2B:3C:4D:0A', windowsVersion:'Windows 10 Pro', productKey:'W10P-J0K1L-M2N3O-30021', motherboardModel:'MSI B450M PRO-VDH', motherboardSN:'MB-SN-30021', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-30021G', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22010', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 3 3200G', gpu:'AMD Radeon Vega 8', projector:'-', status:'Active' },
+  { id:'PCM-11', department:'ICT', pcName:'IT-PC02', user:'Mark Villanueva', ipAddress:'10.10.1.20', macAddress:'00:1A:2B:3C:4D:0B', windowsVersion:'Windows 11 Pro', productKey:'W11P-K1L2M-N3O4P-40982', motherboardModel:'ASUS ROG STRIX B550-F', motherboardSN:'MB-SN-40982', ramModel:'Corsair Dominator 32GB DDR4 3600MHz', ramSN:'RAM-40982H', storageModel:'Western Digital 1TB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11011', monitorModel:'Dell 24" LED', monitor:'MON-SN-22011', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30022', processor:'Intel Core i9-11900K', gpu:'NVIDIA GTX 1660', projector:'-', status:'Active' },
+  { id:'PCM-12', department:'PAYABLES', pcName:'PAYABLES-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.21', macAddress:'00:1A:2B:3C:4D:0C', windowsVersion:'Windows 10 Pro', productKey:'W10P-L2M3N-O4P5Q-50871', motherboardModel:'Gigabyte H310M-S2', motherboardSN:'MB-SN-50871', ramModel:'Kingston 8GB DDR4 2400MHz', ramSN:'RAM-50871I', storageModel:'Seagate 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11012', monitorModel:'LG 20" LED', monitor:'MON-SN-22012', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-8100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Decommissioned' },
 ];
 
 const SEED_POS_INVENTORY = [
-  { id:'POS-1', ctr:'CTR-01', terminal:'POS-01', monitorSerial:'MON-SN-10021', baseUnitSerial:'BASE-SN-20031', secondDisplaySerial:'DISP2-SN-30041', ghlSerial:'GHL-SN-40051', bir:'BIR-ACCR-000123456', min:'0001234567890', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-2', ctr:'CTR-02', terminal:'POS-02', monitorSerial:'MON-SN-10022', baseUnitSerial:'BASE-SN-20032', secondDisplaySerial:'DISP2-SN-30042', ghlSerial:'GHL-SN-40052', bir:'BIR-ACCR-000123457', min:'0001234567891', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-3', ctr:'CTR-03', terminal:'POS-03', monitorSerial:'MON-SN-10023', baseUnitSerial:'BASE-SN-20033', secondDisplaySerial:'DISP2-SN-30043', ghlSerial:'GHL-SN-40053', bir:'BIR-ACCR-000123458', min:'0001234567892', tin:'123-456-789-000', status:'Under Repair' },
-  { id:'POS-4', ctr:'CTR-04', terminal:'POS-04', monitorSerial:'MON-SN-10024', baseUnitSerial:'BASE-SN-20034', secondDisplaySerial:'DISP2-SN-30044', ghlSerial:'GHL-SN-40054', bir:'BIR-ACCR-000123459', min:'0001234567893', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-5', ctr:'CTR-05', terminal:'POS-05', monitorSerial:'MON-SN-10025', baseUnitSerial:'BASE-SN-20035', secondDisplaySerial:'DISP2-SN-30045', ghlSerial:'GHL-SN-40055', bir:'BIR-ACCR-000123460', min:'0001234567894', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-6', ctr:'CTR-06', terminal:'POS-06', monitorSerial:'MON-SN-10026', baseUnitSerial:'BASE-SN-20036', secondDisplaySerial:'DISP2-SN-30046', ghlSerial:'GHL-SN-40056', bir:'BIR-ACCR-000123461', min:'0001234567895', tin:'123-456-789-000', status:'Inactive' },
-  { id:'POS-7', ctr:'CTR-07', terminal:'POS-07', monitorSerial:'MON-SN-10027', baseUnitSerial:'BASE-SN-20037', secondDisplaySerial:'DISP2-SN-30047', ghlSerial:'GHL-SN-40057', bir:'BIR-ACCR-000123462', min:'0001234567896', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-8', ctr:'CTR-08', terminal:'POS-08', monitorSerial:'MON-SN-10028', baseUnitSerial:'BASE-SN-20038', secondDisplaySerial:'DISP2-SN-30048', ghlSerial:'GHL-SN-40058', bir:'BIR-ACCR-000123463', min:'0001234567897', tin:'123-456-789-000', status:'Active' },
-  { id:'POS-9', ctr:'CTR-09', terminal:'POS-09', monitorSerial:'MON-SN-10029', baseUnitSerial:'BASE-SN-20039', secondDisplaySerial:'DISP2-SN-30049', ghlSerial:'GHL-SN-40059', bir:'BIR-ACCR-000123464', min:'0001234567898', tin:'123-456-789-000', status:'Replaced' },
-  { id:'POS-10', ctr:'CTR-10', terminal:'POS-10', monitorSerial:'MON-SN-10030', baseUnitSerial:'BASE-SN-20040', secondDisplaySerial:'DISP2-SN-30050', ghlSerial:'GHL-SN-40060', bir:'BIR-ACCR-000123465', min:'0001234567899', tin:'123-456-789-000', status:'Active' },
+  { id:'POS-1', section:'Department Store', counter:'Counter 1', terminal:'DS-POS-01', serial:'TERM-SN-DS0011', display1:'DISP1-SN-DS0021', display2:'DISP2-SN-DS0031', printerSerial:'PRT-SN-DS0041', scannerSerial:'SCN-SN-DS0051', flatbedSerial:'VSC-SN-DS0061', ghlSerial:'GHL-SN-DS0071', status:'Active' },
+  { id:'POS-2', section:'Department Store', counter:'Counter 2', terminal:'DS-POS-02', serial:'TERM-SN-DS0012', display1:'DISP1-SN-DS0022', display2:'DISP2-SN-DS0032', printerSerial:'PRT-SN-DS0042', scannerSerial:'SCN-SN-DS0052', flatbedSerial:'VSC-SN-DS0062', ghlSerial:'GHL-SN-DS0072', status:'Active' },
+  { id:'POS-3', section:'Department Store', counter:'Counter 3', terminal:'DS-POS-03', serial:'TERM-SN-DS0013', display1:'DISP1-SN-DS0023', display2:'DISP2-SN-DS0033', printerSerial:'PRT-SN-DS0043', scannerSerial:'SCN-SN-DS0053', flatbedSerial:'VSC-SN-DS0063', ghlSerial:'GHL-SN-DS0073', status:'Under Repair' },
+  { id:'POS-4', section:'Department Store', counter:'Counter 4', terminal:'DS-POS-04', serial:'TERM-SN-DS0014', display1:'DISP1-SN-DS0024', display2:'DISP2-SN-DS0034', printerSerial:'PRT-SN-DS0044', scannerSerial:'SCN-SN-DS0054', flatbedSerial:'VSC-SN-DS0064', ghlSerial:'GHL-SN-DS0074', status:'Active' },
+  { id:'POS-5', section:'Department Store', counter:'Counter 5', terminal:'DS-POS-05', serial:'TERM-SN-DS0015', display1:'DISP1-SN-DS0025', display2:'DISP2-SN-DS0035', printerSerial:'PRT-SN-DS0045', scannerSerial:'SCN-SN-DS0055', flatbedSerial:'VSC-SN-DS0065', ghlSerial:'GHL-SN-DS0075', status:'Active' },
+  { id:'POS-6', section:'Department Store', counter:'Counter 6', terminal:'DS-POS-06', serial:'TERM-SN-DS0016', display1:'DISP1-SN-DS0026', display2:'DISP2-SN-DS0036', printerSerial:'PRT-SN-DS0046', scannerSerial:'SCN-SN-DS0056', flatbedSerial:'VSC-SN-DS0066', ghlSerial:'GHL-SN-DS0076', status:'Inactive' },
+  { id:'POS-7', section:'Department Store', counter:'Counter 7', terminal:'DS-POS-07', serial:'TERM-SN-DS0017', display1:'DISP1-SN-DS0027', display2:'DISP2-SN-DS0037', printerSerial:'PRT-SN-DS0047', scannerSerial:'SCN-SN-DS0057', flatbedSerial:'VSC-SN-DS0067', ghlSerial:'GHL-SN-DS0077', status:'Active' },
+  { id:'POS-8', section:'Department Store', counter:'Counter 8', terminal:'DS-POS-08', serial:'TERM-SN-DS0018', display1:'DISP1-SN-DS0028', display2:'DISP2-SN-DS0038', printerSerial:'PRT-SN-DS0048', scannerSerial:'SCN-SN-DS0058', flatbedSerial:'VSC-SN-DS0068', ghlSerial:'GHL-SN-DS0078', status:'Active' },
+  { id:'POS-9', section:'Supermarket', counter:'Counter 1', terminal:'SP-POS-01', serial:'TERM-SN-SP0011', display1:'DISP1-SN-SP0021', display2:'DISP2-SN-SP0031', printerSerial:'PRT-SN-SP0041', scannerSerial:'SCN-SN-SP0051', flatbedSerial:'FLB-SN-SP0061', ghlSerial:'GHL-SN-SP0071', status:'Replaced' },
+  { id:'POS-10', section:'Supermarket', counter:'Counter 2', terminal:'SP-POS-02', serial:'TERM-SN-SP0012', display1:'DISP1-SN-SP0022', display2:'DISP2-SN-SP0032', printerSerial:'PRT-SN-SP0042', scannerSerial:'SCN-SN-SP0052', flatbedSerial:'FLB-SN-SP0062', ghlSerial:'GHL-SN-SP0072', status:'Active' },
+  { id:'POS-11', section:'Supermarket', counter:'Counter 3', terminal:'SP-POS-03', serial:'TERM-SN-SP0013', display1:'DISP1-SN-SP0023', display2:'DISP2-SN-SP0033', printerSerial:'PRT-SN-SP0043', scannerSerial:'SCN-SN-SP0053', flatbedSerial:'FLB-SN-SP0063', ghlSerial:'GHL-SN-SP0073', status:'Active' },
+  { id:'POS-12', section:'Supermarket', counter:'Counter 4', terminal:'SP-POS-04', serial:'TERM-SN-SP0014', display1:'DISP1-SN-SP0024', display2:'DISP2-SN-SP0034', printerSerial:'PRT-SN-SP0044', scannerSerial:'SCN-SN-SP0054', flatbedSerial:'FLB-SN-SP0064', ghlSerial:'GHL-SN-SP0074', status:'Active' },
+  { id:'POS-13', section:'Supermarket', counter:'Counter 5', terminal:'SP-POS-05', serial:'TERM-SN-SP0015', display1:'DISP1-SN-SP0025', display2:'DISP2-SN-SP0035', printerSerial:'PRT-SN-SP0045', scannerSerial:'SCN-SN-SP0055', flatbedSerial:'FLB-SN-SP0065', ghlSerial:'GHL-SN-SP0075', status:'Under Repair' },
+  { id:'POS-14', section:'Supermarket', counter:'Counter 6', terminal:'SP-POS-06', serial:'TERM-SN-SP0016', display1:'DISP1-SN-SP0026', display2:'DISP2-SN-SP0036', printerSerial:'PRT-SN-SP0046', scannerSerial:'SCN-SN-SP0056', flatbedSerial:'FLB-SN-SP0066', ghlSerial:'GHL-SN-SP0076', status:'Active' },
+  { id:'POS-15', section:'Supermarket', counter:'Counter 7', terminal:'SP-POS-07', serial:'TERM-SN-SP0017', display1:'DISP1-SN-SP0027', display2:'DISP2-SN-SP0037', printerSerial:'PRT-SN-SP0047', scannerSerial:'SCN-SN-SP0057', flatbedSerial:'FLB-SN-SP0067', ghlSerial:'GHL-SN-SP0077', status:'Active' },
+];
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+const INVENTORY_LOCATIONS = ["Main Office","2nd Room","Server","DS1","DS2","DS3","DS4","Cabin"];
+
+const SEED_INVENTORY = [
+  { id:'INV-1', location:'Main Office', date:'2026-08-10', itemName:'Bond Paper A4 (Ream)', quantity:12, remarks:'Stocked for monthly printing needs' },
+  { id:'INV-2', location:'Main Office', date:'2026-08-14', itemName:'Toner Cartridge (Black)', quantity:3, remarks:'For Epson L3210 printers' },
+  { id:'INV-3', location:'2nd Room', date:'2026-08-05', itemName:'Ethernet Cable (Cat6, 5m)', quantity:8, remarks:'Spare cables for network setup' },
+  { id:'INV-4', location:'2nd Room', date:'2026-08-12', itemName:'USB Flash Drive 32GB', quantity:5, remarks:'For data transfer and backup' },
+  { id:'INV-5', location:'Server', date:'2026-08-02', itemName:'UPS Battery Backup', quantity:2, remarks:'Replacement units for server room' },
+  { id:'INV-6', location:'Server', date:'2026-08-16', itemName:'Rack Screws & Cage Nuts (Set)', quantity:4, remarks:'For server rack mounting' },
+  { id:'INV-7', location:'DS1', date:'2026-08-07', itemName:'Barcode Scanner', quantity:2, remarks:'Backup units for counter use' },
+  { id:'INV-8', location:'DS1', date:'2026-08-11', itemName:'Thermal Paper Roll', quantity:20, remarks:'For POS receipt printers' },
+  { id:'INV-9', location:'DS2', date:'2026-08-09', itemName:'POS Monitor Stand', quantity:3, remarks:'Extra stands in storage' },
+  { id:'INV-10', location:'DS2', date:'2026-08-15', itemName:'Cash Drawer Lock Key', quantity:6, remarks:'Spare keys, labeled by counter' },
+  { id:'INV-11', location:'DS3', date:'2026-08-06', itemName:'Extension Cord (10m)', quantity:4, remarks:'For temporary counter setups' },
+  { id:'INV-12', location:'DS3', date:'2026-08-13', itemName:'Handheld Scanner Battery', quantity:7, remarks:'Rechargeable, for RF scanners' },
+  { id:'INV-13', location:'DS4', date:'2026-08-08', itemName:'Label Printer Ribbon', quantity:10, remarks:'For pricing and tagging' },
+  { id:'INV-14', location:'DS4', date:'2026-08-17', itemName:'Wireless Mouse', quantity:5, remarks:'For replacement stock' },
+  { id:'INV-15', location:'Cabin', date:'2026-08-03', itemName:'First Aid Kit', quantity:1, remarks:'Checked and restocked monthly' },
+  { id:'INV-16', location:'Cabin', date:'2026-08-18', itemName:'Fire Extinguisher (Portable)', quantity:2, remarks:'Inspected, tags up to date' },
 ];
 
 const SEED_GHL_REPORTS = [
@@ -504,13 +546,13 @@ function formatDate(d) {
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function monthKey(d) { const dt = new Date(d + 'T00:00:00'); return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); }
 function monthLabelFromKey(k) { const [y, m] = k.split('-'); return MONTHS[parseInt(m, 10) - 1]; }
-function computeMonthlySeries(data, refDate) {
+function computeMonthlySeries(data, refDate, dateKey = 'dateReported') {
   const keys = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
     keys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
   }
-  return keys.map(k => ({ month: monthLabelFromKey(k), value: data.filter(r => monthKey(r.dateReported) === k).length }));
+  return keys.map(k => ({ month: monthLabelFromKey(k), value: data.filter(r => monthKey(r[dateKey]) === k).length }));
 }
 function trendPct(curr, prev) {
   if (prev === 0 && curr === 0) return { label: '0%', dir: 'flat' };
@@ -575,9 +617,11 @@ function Modal({ title, onClose, children, maxWidth = '620px' }) {
 }
 
 function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" }) {
+  const deleteBtnRef = useRef(null);
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onCancel(); }
     window.addEventListener('keydown', onKey);
+    deleteBtnRef.current && deleteBtnRef.current.focus();
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   return (
@@ -588,7 +632,7 @@ function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" 
         <p>{message}</p>
         <div className="confirm-actions">
           <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
-          <button className="btn btn-danger" onClick={onConfirm}><Icon name="trash" size={14} /> Delete</button>
+          <button ref={deleteBtnRef} className="btn btn-danger" onClick={onConfirm}><Icon name="trash" size={14} /> Delete</button>
         </div>
       </div>
     </div>
@@ -761,30 +805,29 @@ function SectionPanel({ variant, icon, title, subtitle, children }) {
 function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
   const now = new Date();
   const pcSeries = useMemo(() => computeMonthlySeries(pcReports, now), [pcReports]);
-  const saSeries = useMemo(() => computeMonthlySeries(saReports, now), [saReports]);
   const pcThisMonth = pcSeries[pcSeries.length - 1].value;
   const pcLastMonth = pcSeries[pcSeries.length - 2].value;
   const pcTrend = trendPct(pcThisMonth, pcLastMonth);
+  const pcStatusData = useMemo(() => statusCounts(pcReports, REPORT_STATUSES), [pcReports]);
+  const saStatusData = useMemo(() => statusCounts(saReports, REPORT_STATUSES), [saReports]);
+  const saSeries = useMemo(() => computeMonthlySeries(saReports, now, 'date'), [saReports]);
   const saThisMonth = saSeries[saSeries.length - 1].value;
   const saLastMonth = saSeries[saSeries.length - 2].value;
   const saTrend = trendPct(saThisMonth, saLastMonth);
-  const pcStatusData = useMemo(() => statusCounts(pcReports, REPORT_STATUSES), [pcReports]);
-  const saStatusData = useMemo(() => statusCounts(saReports, REPORT_STATUSES), [saReports]);
+  const saResolvedCount = useMemo(() => saReports.filter(r => r.status === 'Completed').length, [saReports]);
+  const saAttentionCount = useMemo(() => saReports.filter(r => r.status === 'Pending' || r.status === 'In Progress').length, [saReports]);
 
   const recent = useMemo(() => {
-    const combined = [
-      ...pcReports.map(r => ({ ...r, kind: 'pc' })),
-      ...saReports.map(r => ({ ...r, kind: 'sa' })),
-    ];
+    const combined = pcReports.map(r => ({ ...r, kind: 'pc' }));
     combined.sort((a, b) => new Date(b.dateReported) - new Date(a.dateReported));
     return combined.slice(0, 6);
-  }, [pcReports, saReports]);
+  }, [pcReports]);
 
   return (
     <div>
       <div className="kpi-row">
         <KpiCard icon="pc" label="Total PC Reports" value={pcReports.length} accentBg="var(--accent-soft)" accentColor="var(--accent-dark)" />
-        <KpiCard icon="store" label="Total Selling Area Reports" value={saReports.length} accentBg="var(--accent-2-soft)" accentColor="var(--accent-2-dark)" />
+        <KpiCard icon="store" label="Selling Area Reports" value={saReports.length} accentBg="var(--accent-2-soft)" accentColor="var(--accent-2-dark)" />
         <KpiCard icon="server" label="PCs Monitored" value={pcInventory.length} accentBg="var(--violet-bg)" accentColor="var(--violet-text)" />
         <KpiCard icon="pos" label="POS Terminals Monitored" value={posInventory.length} accentBg="var(--orange-bg)" accentColor="var(--orange-text)" />
       </div>
@@ -809,11 +852,11 @@ function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
           </div>
         </SectionPanel>
 
-        <SectionPanel variant="sa" icon="store" title="Selling Area / POS Reports Monitoring" subtitle="Trouble reports logged for selling floor & POS counter equipment">
+        <SectionPanel variant="sa" icon="store" title="Selling Area Reports" subtitle="Trouble reports for supermarket & department store counters and terminals">
           <div className="mini-kpi-row">
             <MiniKpi label="Total Reports" value={saReports.length} />
-            <MiniKpi label="This Month" value={saThisMonth} />
-            <MiniKpi label="Monthly Trend" value={saTrend.label} trendDir={saTrend.dir} />
+            <MiniKpi label="Resolved" value={saResolvedCount} />
+            <MiniKpi label="Needs Attention" value={saAttentionCount} />
           </div>
           <div className="chart-row">
             <div className="chart-col">
@@ -834,7 +877,7 @@ function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
         {recent.length === 0 && <div className="recent-row" style={{ justifyContent: 'center', color: 'var(--text-faint)' }}>No activity yet.</div>}
         {recent.map(r => (
           <div className="recent-row" key={r.kind + '-' + r.id}>
-            <span className={"recent-tag " + r.kind}>{r.kind === 'pc' ? 'PC' : 'S.AREA'}</span>
+            <span className={"recent-tag " + r.kind}>PC</span>
             <span className="recent-dept">{r.department}</span>
             <span className="recent-problem">{r.problem}</span>
             <StatusBadge status={r.status} />
@@ -1034,10 +1077,15 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
    ========================================================= */
 function PcFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    department: DEPARTMENTS[0], ipAddress: '', pcName: '', macAddress: '',
-    ramSerial: '', ramGB: '8', ramMHz: '2666', ramBrand: '',
-    storageSerial: '', storageMHz: 'N/A', storageSize: '', storageBrand: '',
-    motherboard: '', osVersion: OS_VERSIONS[0], osActivationKey: '', processor: '', status: 'Active',
+    department: DEPARTMENTS[0], pcName: '', user: '', ipAddress: '', macAddress: '',
+    windowsVersion: OS_VERSIONS[0], productKey: '',
+    motherboardModel: '', motherboardSN: '',
+    ramModel: '', ramSN: '',
+    storageModel: '', storageType: STORAGE_TYPES[1],
+    printerModel: '', printer: '',
+    monitorModel: '', monitor: '',
+    scannerModel: '', scannerSN: '',
+    processor: '', gpu: '', projector: '', status: 'Active',
   });
   const [showKey, setShowKey] = useState(false);
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
@@ -1050,50 +1098,56 @@ function PcFormModal({ record, onClose, onSave }) {
     <Modal title={record ? 'Edit PC Record' : 'Add PC Record'} onClose={onClose} maxWidth="760px">
       <form onSubmit={submit} className="form-grid">
         <div className="form-section-label">Identification</div>
-        <Field label="PC Name" required><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. ACCT-PC01" required /></Field>
         <Field label="Department" required>
           <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
             {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </Field>
+        <Field label="PC Name" required><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. ADMIN-PC01" required /></Field>
+        <Field label="User"><input className="input" style={{ width: '100%' }} value={form.user} onChange={e => update('user', e.target.value)} placeholder="Assigned user" /></Field>
         <Field label="IP Address" required><input className="input mono" style={{ width: '100%' }} value={form.ipAddress} onChange={e => update('ipAddress', e.target.value)} placeholder="10.10.x.x" required /></Field>
         <Field label="MAC Address"><input className="input mono" style={{ width: '100%' }} value={form.macAddress} onChange={e => update('macAddress', e.target.value)} placeholder="00:1A:2B:3C:4D:00" /></Field>
-        <Field label="Processor / CPU"><input className="input" style={{ width: '100%' }} value={form.processor} onChange={e => update('processor', e.target.value)} /></Field>
         <Field label="Status">
           <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
             {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </Field>
 
-        <div className="form-section-label">Memory (RAM)</div>
-        <Field label="RAM Brand"><input className="input" style={{ width: '100%' }} value={form.ramBrand} onChange={e => update('ramBrand', e.target.value)} /></Field>
-        <Field label="RAM Serial"><input className="input mono" style={{ width: '100%' }} value={form.ramSerial} onChange={e => update('ramSerial', e.target.value)} /></Field>
-        <Field label="RAM (GB)">
-          <select className="select" style={{ width: '100%' }} value={form.ramGB} onChange={e => update('ramGB', e.target.value)}>
-            {['2','4','8','16','32','64'].map(v => <option key={v} value={v}>{v} GB</option>)}
-          </select>
-        </Field>
-        <Field label="RAM Speed (MHz)"><input className="input" style={{ width: '100%' }} value={form.ramMHz} onChange={e => update('ramMHz', e.target.value)} /></Field>
-
-        <div className="form-section-label">Storage</div>
-        <Field label="Storage Brand"><input className="input" style={{ width: '100%' }} value={form.storageBrand} onChange={e => update('storageBrand', e.target.value)} /></Field>
-        <Field label="Storage Serial Number"><input className="input mono" style={{ width: '100%' }} value={form.storageSerial} onChange={e => update('storageSerial', e.target.value)} /></Field>
-        <Field label="Storage Size"><input className="input" style={{ width: '100%' }} value={form.storageSize} onChange={e => update('storageSize', e.target.value)} placeholder="e.g. 512GB" /></Field>
-        <Field label="Storage Speed (MHz / RPM)"><input className="input" style={{ width: '100%' }} value={form.storageMHz} onChange={e => update('storageMHz', e.target.value)} placeholder="N/A for SSD" /></Field>
-
-        <div className="form-section-label">System</div>
-        <Field label="Motherboard"><input className="input" style={{ width: '100%' }} value={form.motherboard} onChange={e => update('motherboard', e.target.value)} /></Field>
-        <Field label="OS Version">
-          <select className="select" style={{ width: '100%' }} value={form.osVersion} onChange={e => update('osVersion', e.target.value)}>
+        <div className="form-section-label">Operating System</div>
+        <Field label="Windows Version">
+          <select className="select" style={{ width: '100%' }} value={form.windowsVersion} onChange={e => update('windowsVersion', e.target.value)}>
             {OS_VERSIONS.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </Field>
-        <Field label="OS Activation Key" full>
+        <Field label="Product Key" full>
           <div className="key-field">
-            <input className="input mono" type={showKey ? 'text' : 'password'} value={form.osActivationKey} onChange={e => update('osActivationKey', e.target.value)} placeholder="XXXXX-XXXXX-XXXXX-XXXXX" />
+            <input className="input mono" type={showKey ? 'text' : 'password'} value={form.productKey} onChange={e => update('productKey', e.target.value)} placeholder="XXXXX-XXXXX-XXXXX-XXXXX" />
             <button type="button" className="icon-btn" onClick={() => setShowKey(s => !s)} title={showKey ? 'Hide key' : 'Show key'}><Icon name="eye" size={15} /></button>
           </div>
         </Field>
+
+        <div className="form-section-label">Hardware</div>
+        <Field label="Motherboard Model"><input className="input" style={{ width: '100%' }} value={form.motherboardModel} onChange={e => update('motherboardModel', e.target.value)} /></Field>
+        <Field label="Motherboard SN"><input className="input mono" style={{ width: '100%' }} value={form.motherboardSN} onChange={e => update('motherboardSN', e.target.value)} /></Field>
+        <Field label="Processor"><input className="input" style={{ width: '100%' }} value={form.processor} onChange={e => update('processor', e.target.value)} /></Field>
+        <Field label="GPU"><input className="input" style={{ width: '100%' }} value={form.gpu} onChange={e => update('gpu', e.target.value)} /></Field>
+        <Field label="RAM Model"><input className="input" style={{ width: '100%' }} value={form.ramModel} onChange={e => update('ramModel', e.target.value)} placeholder="e.g. Kingston 8GB DDR4 2666MHz" /></Field>
+        <Field label="RAM SN"><input className="input mono" style={{ width: '100%' }} value={form.ramSN} onChange={e => update('ramSN', e.target.value)} /></Field>
+        <Field label="HDD / SSD Model"><input className="input" style={{ width: '100%' }} value={form.storageModel} onChange={e => update('storageModel', e.target.value)} placeholder="e.g. Samsung 512GB NVMe" /></Field>
+        <Field label="Storage: HDD or SSD">
+          <select className="select" style={{ width: '100%' }} value={form.storageType} onChange={e => update('storageType', e.target.value)}>
+            {STORAGE_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Peripherals</div>
+        <Field label="Printer Model"><input className="input" style={{ width: '100%' }} value={form.printerModel} onChange={e => update('printerModel', e.target.value)} /></Field>
+        <Field label="Printer"><input className="input mono" style={{ width: '100%' }} value={form.printer} onChange={e => update('printer', e.target.value)} placeholder="Serial / asset tag" /></Field>
+        <Field label="Monitor Model"><input className="input" style={{ width: '100%' }} value={form.monitorModel} onChange={e => update('monitorModel', e.target.value)} /></Field>
+        <Field label="Monitor"><input className="input mono" style={{ width: '100%' }} value={form.monitor} onChange={e => update('monitor', e.target.value)} placeholder="Serial / asset tag" /></Field>
+        <Field label="Scanner Model"><input className="input" style={{ width: '100%' }} value={form.scannerModel} onChange={e => update('scannerModel', e.target.value)} /></Field>
+        <Field label="Scanner SN"><input className="input mono" style={{ width: '100%' }} value={form.scannerSN} onChange={e => update('scannerSN', e.target.value)} /></Field>
+        <Field label="Projector"><input className="input" style={{ width: '100%' }} value={form.projector} onChange={e => update('projector', e.target.value)} placeholder="Model / asset tag, if any" /></Field>
 
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
@@ -1118,7 +1172,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matches = !q || r.pcName.toLowerCase().includes(q) || r.ipAddress.toLowerCase().includes(q) || r.department.toLowerCase().includes(q) || r.macAddress.toLowerCase().includes(q);
+      const matches = !q || r.pcName.toLowerCase().includes(q) || r.ipAddress.toLowerCase().includes(q) || r.department.toLowerCase().includes(q) || r.macAddress.toLowerCase().includes(q) || (r.user || '').toLowerCase().includes(q);
       const md = deptFilter === 'All' || r.department === deptFilter;
       const ms = statusFilter === 'All' || r.status === statusFilter;
       return matches && md && ms;
@@ -1177,34 +1231,61 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
           <table>
             <thead>
               <tr>
-                <SortableTh label="PC Name" sortKey="pcName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="PC Name" sortKey="pcName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>User</th>
                 <SortableTh label="IP Address" sortKey="ipAddress" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <th>MAC Address</th>
+                <th>Windows Version</th>
+                <th>Motherboard</th>
                 <th>RAM</th>
                 <th>Storage</th>
-                <th>OS Version</th>
+                <th>Printer</th>
+                <th>Monitor</th>
+                <th>Scanner</th>
+                <th>Processor</th>
+                <th>GPU</th>
+                <th>Projector</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan="9" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan="16" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td style={{ fontWeight: 600 }}>{r.pcName}</td>
                   <td>{r.department}</td>
+                  <td style={{ fontWeight: 600 }}>{r.pcName}</td>
+                  <td>{r.user || '-'}</td>
                   <td className="mono">{r.ipAddress}</td>
                   <td className="mono truncate-sm" title={r.macAddress}>{r.macAddress}</td>
+                  <td>{r.windowsVersion}</td>
                   <td>
-                    <div>{r.ramGB}GB &middot; {r.ramBrand}</div>
-                    <div className="cell-sub">{r.ramMHz}MHz</div>
+                    <div>{r.motherboardModel}</div>
+                    <div className="cell-sub mono">{r.motherboardSN}</div>
                   </td>
                   <td>
-                    <div>{r.storageSize} &middot; {r.storageBrand}</div>
-                    <div className="cell-sub">{r.storageMHz}</div>
+                    <div>{r.ramModel}</div>
+                    <div className="cell-sub mono">{r.ramSN}</div>
                   </td>
-                  <td>{r.osVersion}</td>
+                  <td>
+                    <div>{r.storageModel} &middot; {r.storageType}</div>
+                  </td>
+                  <td>
+                    <div>{r.printerModel}</div>
+                    <div className="cell-sub mono">{r.printer}</div>
+                  </td>
+                  <td>
+                    <div>{r.monitorModel}</div>
+                    <div className="cell-sub mono">{r.monitor}</div>
+                  </td>
+                  <td>
+                    <div>{r.scannerModel}</div>
+                    <div className="cell-sub mono">{r.scannerSN}</div>
+                  </td>
+                  <td>{r.processor}</td>
+                  <td>{r.gpu}</td>
+                  <td>{r.projector}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>
                     <div className="row-actions">
@@ -1234,23 +1315,30 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
 /* =========================================================
    POS MONITORING
    ========================================================= */
-function PosFormModal({ record, onClose, onSave }) {
+function PosFormModal({ record, onClose, onSave, defaultSection }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    ctr: '', terminal: '', monitorSerial: '', baseUnitSerial: '', secondDisplaySerial: '',
-    ghlSerial: '', bir: '', min: '', tin: '', status: 'Active',
+    section: defaultSection || POS_SECTIONS[0], counter: '', terminal: '', serial: '',
+    display1: '', display2: '', printerSerial: '', scannerSerial: '', flatbedSerial: '',
+    ghlSerial: '', status: 'Active',
   });
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
   function submit(e) {
     e.preventDefault();
-    if (!form.ctr.trim() || !form.terminal.trim()) return;
+    if (!form.counter.trim() || !form.terminal.trim()) return;
     onSave({ ...form, id: record ? record.id : null });
   }
   return (
     <Modal title={record ? 'Edit POS Terminal' : 'Add POS Terminal'} onClose={onClose} maxWidth="680px">
       <form onSubmit={submit} className="form-grid">
         <div className="form-section-label">Terminal Identification</div>
-        <Field label="CTR" required><input className="input" style={{ width: '100%' }} value={form.ctr} onChange={e => update('ctr', e.target.value)} placeholder="e.g. CTR-11" required /></Field>
-        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-11" required /></Field>
+        <Field label="Section" required>
+          <select className="select" style={{ width: '100%' }} value={form.section} onChange={e => update('section', e.target.value)}>
+            {POS_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. Counter 11" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. DS-POS-11" required /></Field>
+        <Field label="Serial"><input className="input mono" style={{ width: '100%' }} value={form.serial} onChange={e => update('serial', e.target.value)} /></Field>
         <Field label="Status">
           <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
             {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -1258,15 +1346,12 @@ function PosFormModal({ record, onClose, onSave }) {
         </Field>
 
         <div className="form-section-label">Hardware Serials</div>
-        <Field label="Monitor Serial"><input className="input mono" style={{ width: '100%' }} value={form.monitorSerial} onChange={e => update('monitorSerial', e.target.value)} /></Field>
-        <Field label="Base Unit Serial"><input className="input mono" style={{ width: '100%' }} value={form.baseUnitSerial} onChange={e => update('baseUnitSerial', e.target.value)} /></Field>
-        <Field label="2nd Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.secondDisplaySerial} onChange={e => update('secondDisplaySerial', e.target.value)} /></Field>
-        <Field label="GHL Serial"><input className="input mono" style={{ width: '100%' }} value={form.ghlSerial} onChange={e => update('ghlSerial', e.target.value)} /></Field>
-
-        <div className="form-section-label">BIR / Fiscal Details</div>
-        <Field label="BIR"><input className="input mono" style={{ width: '100%' }} value={form.bir} onChange={e => update('bir', e.target.value)} /></Field>
-        <Field label="MIN"><input className="input mono" style={{ width: '100%' }} value={form.min} onChange={e => update('min', e.target.value)} /></Field>
-        <Field label="TIN" full><input className="input mono" style={{ width: '100%' }} value={form.tin} onChange={e => update('tin', e.target.value)} /></Field>
+        <Field label="1st Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.display1} onChange={e => update('display1', e.target.value)} /></Field>
+        <Field label="2nd Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.display2} onChange={e => update('display2', e.target.value)} /></Field>
+        <Field label="Printer Serial"><input className="input mono" style={{ width: '100%' }} value={form.printerSerial} onChange={e => update('printerSerial', e.target.value)} /></Field>
+        <Field label="Handheld Scanner Serial"><input className="input mono" style={{ width: '100%' }} value={form.scannerSerial} onChange={e => update('scannerSerial', e.target.value)} /></Field>
+        <Field label={flatbedFieldLabel(form.section)}><input className="input mono" style={{ width: '100%' }} value={form.flatbedSerial} onChange={e => update('flatbedSerial', e.target.value)} /></Field>
+        <Field label="GHL Terminal Serial"><input className="input mono" style={{ width: '100%' }} value={form.ghlSerial} onChange={e => update('ghlSerial', e.target.value)} /></Field>
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Terminal'}</button>
@@ -1277,8 +1362,9 @@ function PosFormModal({ record, onClose, onSave }) {
 }
 
 function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
+  const [activeSection, setActiveSection] = useState(POS_SECTIONS[0]);
   const [statusFilter, setStatusFilter] = useState('All');
-  const [sortKey, setSortKey] = useState('ctr');
+  const [sortKey, setSortKey] = useState('counter');
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage] = useState(1);
   const pageSize = 8;
@@ -1286,10 +1372,18 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
 
+  const sectionCounts = useMemo(() => {
+    const m = {};
+    POS_SECTIONS.forEach(s => { m[s] = 0; });
+    data.forEach(r => { if (m[r.section] !== undefined) m[r.section] += 1; });
+    return m;
+  }, [data]);
+
   const filtered = useMemo(() => {
-    let rows = data.filter(r => {
+    let rows = data.filter(r => r.section === activeSection);
+    rows = rows.filter(r => {
       const q = query.trim().toLowerCase();
-      const matches = !q || [r.ctr, r.terminal, r.monitorSerial, r.baseUnitSerial, r.secondDisplaySerial, r.ghlSerial, r.bir, r.min, r.tin].join(' ').toLowerCase().includes(q);
+      const matches = !q || [r.counter, r.terminal, r.serial, r.display1, r.display2, r.printerSerial, r.scannerSerial, r.flatbedSerial, r.ghlSerial].join(' ').toLowerCase().includes(q);
       const ms = statusFilter === 'All' || r.status === statusFilter;
       return matches && ms;
     });
@@ -1300,9 +1394,9 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
       return 0;
     });
     return rows;
-  }, [data, query, statusFilter, sortKey, sortDir]);
+  }, [data, activeSection, query, statusFilter, sortKey, sortDir]);
 
-  useEffect(() => { setPage(1); }, [query, statusFilter]);
+  useEffect(() => { setPage(1); }, [query, statusFilter, activeSection]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -1330,6 +1424,14 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
 
   return (
     <div>
+      <div className="loc-tabs">
+        {POS_SECTIONS.map(s => (
+          <button key={s} className={"loc-tab" + (activeSection === s ? " active" : "")} onClick={() => setActiveSection(s)}>
+            {s}
+            <span className="loc-count">{sectionCounts[s] || 0}</span>
+          </button>
+        ))}
+      </div>
       <div className="toolbar">
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
@@ -1343,32 +1445,32 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
           <table>
             <thead>
               <tr>
-                <SortableTh label="CTR" sortKey="ctr" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Counter" sortKey="counter" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <SortableTh label="Terminal" sortKey="terminal" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <th>Monitor Serial</th>
-                <th>Base Unit Serial</th>
-                <th>2nd Display Serial</th>
-                <th>GHL Serial</th>
-                <th>BIR</th>
-                <th>MIN</th>
-                <th>TIN</th>
+                <th>Serial</th>
+                <th>1st Display</th>
+                <th>2nd Display</th>
+                <th>Printer Serial</th>
+                <th>Handheld Scanner Serial</th>
+                <th>{flatbedFieldLabel(activeSection)}</th>
+                <th>GHL Terminal Serial</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No POS terminals match your search or filters.</div></td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No POS terminals match your search or filters for {activeSection}.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td style={{ fontWeight: 600 }}>{r.ctr}</td>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
                   <td>{r.terminal}</td>
-                  <td className="mono truncate-sm" title={r.monitorSerial}>{r.monitorSerial}</td>
-                  <td className="mono truncate-sm" title={r.baseUnitSerial}>{r.baseUnitSerial}</td>
-                  <td className="mono truncate-sm" title={r.secondDisplaySerial}>{r.secondDisplaySerial}</td>
+                  <td className="mono truncate-sm" title={r.serial}>{r.serial}</td>
+                  <td className="mono truncate-sm" title={r.display1}>{r.display1}</td>
+                  <td className="mono truncate-sm" title={r.display2}>{r.display2}</td>
+                  <td className="mono truncate-sm" title={r.printerSerial}>{r.printerSerial}</td>
+                  <td className="mono truncate-sm" title={r.scannerSerial}>{r.scannerSerial}</td>
+                  <td className="mono truncate-sm" title={r.flatbedSerial}>{r.flatbedSerial}</td>
                   <td className="mono truncate-sm" title={r.ghlSerial}>{r.ghlSerial}</td>
-                  <td className="mono truncate-sm" title={r.bir}>{r.bir}</td>
-                  <td className="mono truncate-sm" title={r.min}>{r.min}</td>
-                  <td className="mono truncate-sm" title={r.tin}>{r.tin}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>
                     <div className="row-actions">
@@ -1383,10 +1485,200 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
         </div>
         <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
       </div>
-      {modalOpen && <PosFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {modalOpen && <PosFormModal record={editingRecord} defaultSection={activeSection} onClose={() => setModalOpen(false)} onSave={handleSave} />}
       {confirmState && (
         <ConfirmDialog
-          message={`Delete POS terminal "${confirmState.terminal}" at ${confirmState.ctr}? This action cannot be undone.`}
+          message={`Delete POS terminal "${confirmState.terminal}" at ${confirmState.counter}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   SELLING AREA REPORTS
+   ========================================================= */
+const SA_REPORT_COLUMNS = [
+  ['date', 'Date'], ['supermarket', 'Supermarket'], ['counter', 'Counter'], ['terminal', 'Terminal'],
+  ['issueType', 'Issue Type'], ['problemDescription', 'Problem Description'], ['troubleshootingSteps', 'Troubleshooting Steps'],
+  ['status', 'Status'], ['technician', 'Technician Assigned'], ['dateResolved', 'Date Resolved'],
+];
+
+function SaReportFormModal({ record, departmentOptions, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), supermarket: departmentOptions[0],
+    counter: '', terminal: '', issueType: SA_ISSUE_TYPES[0],
+    problemDescription: '', troubleshootingSteps: '',
+    status: 'Pending', technician: TECHNICIANS[0], dateResolved: '',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.counter.trim() || !form.terminal.trim() || !form.problemDescription.trim() || !form.date) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Selling Area Report' : 'Add Selling Area Report'} onClose={onClose} maxWidth="720px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Identification</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Supermarket" required>
+          <select className="select" style={{ width: '100%' }} value={form.supermarket} onChange={e => update('supermarket', e.target.value)}>
+            {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. Counter 1" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-01" required /></Field>
+        <Field label="Issue Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.issueType} onChange={e => update('issueType', e.target.value)}>
+            {SA_ISSUE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Technician Assigned" required>
+          <select className="select" style={{ width: '100%' }} value={form.technician} onChange={e => update('technician', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Details</div>
+        <Field label="Problem Description" full required>
+          <textarea className="textarea" rows="2" value={form.problemDescription} onChange={e => update('problemDescription', e.target.value)} placeholder="Describe the reported issue" required />
+        </Field>
+        <Field label="Troubleshooting Steps" full>
+          <textarea className="textarea" rows="2" value={form.troubleshootingSteps} onChange={e => update('troubleshootingSteps', e.target.value)} placeholder="Describe the steps taken to resolve the issue" />
+        </Field>
+
+        <div className="form-section-label">Resolution</div>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Date Resolved"><input type="date" className="input" style={{ width: '100%' }} value={form.dateResolved} onChange={e => update('dateResolved', e.target.value)} /></Field>
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || [r.counter, r.terminal, r.issueType, r.problemDescription, r.troubleshootingSteps, r.technician].join(' ').toLowerCase().includes(q);
+      const md = deptFilter === 'All' || r.supermarket === deptFilter;
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && md && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date' || sortKey === 'dateResolved') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('SAR') }, ...prev]);
+      addToast('Report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Report deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Supermarkets</option>
+          {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {SA_REPORT_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={SA_REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td>{r.supermarket}</td>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
+                  <td>{r.terminal}</td>
+                  <td>{r.issueType}</td>
+                  <td className="truncate" title={r.problemDescription}>{r.problemDescription}</td>
+                  <td className="truncate" title={r.troubleshootingSteps}>{r.troubleshootingSteps || '-'}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>{r.technician}</td>
+                  <td className="mono">{r.dateResolved ? formatDate(r.dateResolved) : '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <SaReportFormModal record={editingRecord} departmentOptions={departmentOptions} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete report for "${confirmState.terminal}" at ${confirmState.counter}? This action cannot be undone.`}
           onCancel={() => setConfirmState(null)}
           onConfirm={handleDeleteConfirmed}
         />
@@ -1719,6 +2011,157 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
 }
 
 /* =========================================================
+   INVENTORY
+   ========================================================= */
+function InventoryFormModal({ record, location, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), itemName: '', quantity: '', remarks: '', location,
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.itemName.trim() || !form.date || form.quantity === '') return;
+    onSave({ ...form, quantity: Number(form.quantity), id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Inventory Item' : `Add Inventory Item — ${location}`} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Item Details &middot; {location}</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Quantity" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Item Name" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. Bond Paper A4" required /></Field>
+        <Field label="Remarks" full><textarea className="textarea" rows="3" style={{ width: '100%' }} value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Optional notes..." /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Item'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function InventoryPage({ data, setData, addToast, query, setQuery }) {
+  const [activeLoc, setActiveLoc] = useState(INVENTORY_LOCATIONS[0]);
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const locCounts = useMemo(() => {
+    const m = {};
+    INVENTORY_LOCATIONS.forEach(l => { m[l] = 0; });
+    data.forEach(r => { if (m[r.location] !== undefined) m[r.location] += 1; });
+    return m;
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => r.location === activeLoc);
+    const q = query.trim().toLowerCase();
+    if (q) rows = rows.filter(r => [r.itemName, r.remarks].join(' ').toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'quantity') { av = Number(a.quantity) || 0; bv = Number(b.quantity) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, activeLoc, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, activeLoc]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalQty = filtered.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Inventory item updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('INV'), location: activeLoc }, ...prev]);
+      addToast('Inventory item added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Inventory item deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="loc-tabs">
+        {INVENTORY_LOCATIONS.map(loc => (
+          <button key={loc} className={"loc-tab" + (activeLoc === loc ? " active" : "")} onClick={() => setActiveLoc(loc)}>
+            {loc}
+            <span className="loc-count">{locCounts[loc] || 0}</span>
+          </button>
+        ))}
+      </div>
+      <div className="toolbar">
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {activeLoc} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
+        </div>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Item</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="table-compact">
+            <thead>
+              <tr>
+                <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Item Name" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Quantity" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No inventory items found for {activeLoc}.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
+                  <td className="mono">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <InventoryFormModal record={editingRecord} location={activeLoc} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete inventory item "${confirmState.itemName}" from ${confirmState.location}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    SIDEBAR / HEADER
    ========================================================= */
 const NAV_ITEMS = [
@@ -1728,9 +2171,10 @@ const NAV_ITEMS = [
   { key: 'pcMonitoring', label: 'PC Monitoring', icon: 'activity' },
   { key: 'posMonitoring', label: 'POS Monitoring', icon: 'pos' },
   { key: 'ghlReports', label: 'GHL Reports', icon: 'server' },
+  { key: 'inventory', label: 'Inventory', icon: 'box' },
 ];
 
-function Sidebar({ active, onSelect, open, pcCount, posCount }) {
+function Sidebar({ active, onSelect, open, pcCount, posCount, inventoryCount }) {
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand">
@@ -1748,6 +2192,7 @@ function Sidebar({ active, onSelect, open, pcCount, posCount }) {
             {item.label}
             {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
             {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
+            {item.key === 'inventory' && <span className="nav-item-badge">{inventoryCount}</span>}
           </button>
         ))}
       </nav>
@@ -1819,6 +2264,16 @@ function useFirestoreCollection(collectionName, seedData) {
           const batch = db.batch();
           seedData.forEach(item => batch.set(db.collection(collectionName).doc(item.id), item));
           await batch.commit();
+        } else if (!cancelled && collectionName === 'posInventory' && snap.docs.some(d => !('section' in d.data()))) {
+          // One-time migration: legacy POS Monitoring records (old CTR/Monitor Serial/BIR-MIN-TIN schema)
+          // don't have a `section` field, so they no longer match the Department Store / Supermarket tabs.
+          // Replace them with the current schema so counts and tables stay accurate.
+          const delBatch = db.batch();
+          snap.docs.forEach(d => delBatch.delete(d.ref));
+          await delBatch.commit();
+          const addBatch = db.batch();
+          seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
+          await addBatch.commit();
         }
         unsub = db.collection(collectionName).onSnapshot(
           snapshot => {
@@ -1870,10 +2325,11 @@ function useFirestoreCollection(collectionName, seedData) {
 const PAGES_META = {
   dashboard: { title: 'Dashboard', subtitle: 'Monitoring overview across PC & Selling Area operations', icon: 'dashboard' },
   pcReports: { title: 'PC Reports', subtitle: 'Trouble reports for back-office & admin department computers', icon: 'pc' },
-  saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for selling floor & POS counter equipment', icon: 'store' },
+  saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for supermarket & department store counters and terminals', icon: 'store' },
   pcMonitoring: { title: 'PC Monitoring', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
   posMonitoring: { title: 'POS Monitoring', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
   ghlReports: { title: 'GHL Reports', subtitle: 'GHL card terminal trouble reports and terminal registry', icon: 'server' },
+  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, 2nd Room, Server, DS1-4, and Cabin', icon: 'box' },
 };
 
 function App() {
@@ -1885,8 +2341,9 @@ function App() {
   const [posInventory, setPosInventory, posInventoryReady, posInventoryErr] = useFirestoreCollection('posInventory', SEED_POS_INVENTORY);
   const [ghlReports, setGhlReports, ghlReportsReady, ghlReportsErr] = useFirestoreCollection('ghlReports', SEED_GHL_REPORTS);
   const [ghlTerminals, setGhlTerminals, ghlTerminalsReady, ghlTerminalsErr] = useFirestoreCollection('ghlTerminals', SEED_GHL_TERMINALS);
-  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady;
-  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr;
+  const [inventory, setInventory, inventoryReady, inventoryErr] = useFirestoreCollection('inventory', SEED_INVENTORY);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
 
@@ -1895,6 +2352,7 @@ function App() {
   const [pcInvQuery, setPcInvQuery] = useState('');
   const [posInvQuery, setPosInvQuery] = useState('');
   const [ghlQuery, setGhlQuery] = useState('');
+  const [invQuery, setInvQuery] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 30000);
@@ -1909,10 +2367,11 @@ function App() {
 
   let searchProps = { show: false, query: '', setQuery: () => {}, placeholder: '' };
   if (page === 'pcReports') searchProps = { show: true, query: pcQuery, setQuery: setPcQuery, placeholder: 'Search PC reports (problem, dept, technician)...' };
-  if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search selling area reports...' };
+  if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search by counter, terminal, issue, or technician...' };
   if (page === 'pcMonitoring') searchProps = { show: true, query: pcInvQuery, setQuery: setPcInvQuery, placeholder: 'Search by PC Name, IP Address, or Department...' };
-  if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, CTR, serials...' };
+  if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, counter, serials...' };
   if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
+  if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
 
   if (!allReady) {
     return (
@@ -1931,7 +2390,7 @@ function App() {
         </div>
       )}
       <div className={"overlay" + (sidebarOpen ? " show" : "")} onClick={() => setSidebarOpen(false)}></div>
-      <Sidebar active={page} onSelect={(k) => { setPage(k); setSidebarOpen(false); }} open={sidebarOpen} pcCount={pcInventory.length} posCount={posInventory.length} />
+      <Sidebar active={page} onSelect={(k) => { setPage(k); setSidebarOpen(false); }} open={sidebarOpen} pcCount={pcInventory.length} posCount={posInventory.length} inventoryCount={inventory.length} />
       <div className="main">
         <Header
           current={PAGES_META[page]}
@@ -1949,12 +2408,14 @@ function App() {
             <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
             <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
             <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
         </div>
@@ -1964,7 +2425,7 @@ function App() {
             <ReportsPage titleLabel="PC Report" idPrefix="PCR" data={pcReports} setData={setPcReports} departmentOptions={DEPARTMENTS} addToast={addToast} query={pcQuery} setQuery={setPcQuery} />
           )}
           {page === 'saReports' && (
-            <ReportsPage titleLabel="Selling Area Report" idPrefix="SAR" data={saReports} setData={setSaReports} departmentOptions={SELLING_AREAS} addToast={addToast} query={saQuery} setQuery={setSaQuery} />
+            <SaReportsPage data={saReports} setData={setSaReports} departmentOptions={SELLING_AREAS} addToast={addToast} query={saQuery} setQuery={setSaQuery} />
           )}
           {page === 'pcMonitoring' && (
             <PcMonitoringPage data={pcInventory} setData={setPcInventory} addToast={addToast} query={pcInvQuery} setQuery={setPcInvQuery} />
@@ -1974,6 +2435,9 @@ function App() {
           )}
           {page === 'ghlReports' && (
             <GhlReportsPage data={ghlReports} setData={setGhlReports} terminals={ghlTerminals} setTerminals={setGhlTerminals} addToast={addToast} query={ghlQuery} setQuery={setGhlQuery} />
+          )}
+          {page === 'inventory' && (
+            <InventoryPage data={inventory} setData={setInventory} addToast={addToast} query={invQuery} setQuery={setInvQuery} />
           )}
         </div>
       </div>
