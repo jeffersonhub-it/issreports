@@ -237,6 +237,15 @@
   /* ---------- badges ---------- */
   .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;}
   .badge .bdot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .status-select{
+    appearance:none;-webkit-appearance:none;border:1px solid transparent;border-radius:999px;
+    padding:4px 26px 4px 10px;font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    background-repeat:no-repeat;background-position:right 8px center;background-size:11px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    transition:box-shadow .15s,border-color .15s;
+  }
+  .status-select:hover{border-color:rgba(15,23,42,.18);}
+  .status-select:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px var(--accent-2-soft);}
 
   /* ---------- modal ---------- */
   .modal-overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
@@ -516,6 +525,21 @@ function statusCounts(data, statuses) {
 function StatusBadge({ status }) {
   const st = STATUS_STYLES[status] || { bg: 'var(--gray-bg)', text: 'var(--gray-text)', dot: '#94A3B8' };
   return <span className="badge" style={{ background: st.bg, color: st.text }}><span className="bdot" style={{ background: st.dot }}></span>{status}</span>;
+}
+
+function StatusSelect({ status, options, onChange }) {
+  const st = STATUS_STYLES[status] || { bg: 'var(--gray-bg)', text: 'var(--gray-text)', dot: '#94A3B8' };
+  return (
+    <select
+      className="status-select"
+      value={status}
+      onChange={e => onChange(e.target.value)}
+      style={{ background: st.bg, color: st.text }}
+      title="Click to update status"
+    >
+      {options.map(s => <option key={s} value={s}>{s}</option>)}
+    </select>
+  );
 }
 
 function SearchInput({ value, onChange, placeholder, className = '' }) {
@@ -1617,6 +1641,11 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
     addToast('GHL report deleted', 'danger');
     setConfirmState(null);
   }
+  function handleStatusChange(record, newStatus) {
+    if (newStatus === record.status) return;
+    setData(prev => prev.map(r => r.id === record.id ? { ...r, status: newStatus } : r));
+    addToast(`Status updated to "${newStatus}"`, 'success');
+  }
 
   if (view === 'terminals') {
     return <TerminalsList data={terminals} setData={setTerminals} addToast={addToast} onBack={() => setView('reports')} />;
@@ -1659,7 +1688,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
                   <td>{r.reportCount}</td>
                   <td className="mono">{r.requestNumber}</td>
                   <td className="mono">{r.dateReceived ? formatDate(r.dateReceived) : '-'}</td>
-                  <td><StatusBadge status={r.status} /></td>
+                  <td><StatusSelect status={r.status} options={GHL_REPORT_STATUSES} onChange={s => handleStatusChange(r, s)} /></td>
                   <td>
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
