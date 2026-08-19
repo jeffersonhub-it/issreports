@@ -110,10 +110,13 @@
 
   /* ---------- ticker ---------- */
   .ticker{
-    background:var(--ink);color:#CBD5E1;padding:7px 26px;display:flex;gap:22px;align-items:center;
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;overflow-x:auto;white-space:nowrap;
+    background:var(--ink);color:#CBD5E1;padding:7px 0;display:flex;align-items:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;overflow:hidden;position:relative;
   }
-  .tick-item{display:flex;align-items:center;gap:7px;color:#D6DEEC;}
+  .ticker-track{display:flex;gap:22px;align-items:center;flex:none;padding-left:26px;animation:tickerScroll 26s linear infinite;}
+  .ticker:hover .ticker-track{animation-play-state:paused;}
+  @keyframes tickerScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .tick-item{display:flex;align-items:center;gap:7px;color:#D6DEEC;flex:none;}
   .tick-item .dot{width:6px;height:6px;border-radius:50%;flex:none;}
   .tick-item.muted{color:var(--text-faint);}
 
@@ -305,7 +308,8 @@
     .content{padding:16px 12px 50px;}
     .header{padding:12px 14px;}
     .header-right{gap:8px;width:100%;justify-content:space-between;}
-    .ticker{padding:7px 14px;gap:16px;}
+    .ticker{padding:7px 0;}
+    .ticker-track{gap:16px;padding-left:14px;}
     .toolbar{padding:10px;}
     .toolbar .select{flex:1 1 140px;min-width:0;}
     .form-grid{grid-template-columns:1fr;}
@@ -1939,12 +1943,20 @@ function App() {
           showSearch={searchProps.show}
         />
         <div className="ticker">
-          <span className="tick-item"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
-          <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
-          <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
-          <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
-          <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
-          <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          <div className="ticker-track">
+            <span className="tick-item"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          </div>
         </div>
         <div className="content">
           {page === 'dashboard' && <Dashboard pcReports={pcReports} saReports={saReports} pcInventory={pcInventory} posInventory={posInventory} />}
