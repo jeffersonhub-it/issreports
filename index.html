@@ -467,6 +467,24 @@ function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toStri
    queues writes locally even if the tab closes — no interrupting confirm prompt needed. */
 window.__pendingFirestoreWrites = 0;
 
+const ALL_FIRESTORE_COLLECTIONS = ['pcReports','saReports','pcInventory','posInventory','ghlReports','ghlTerminals','inventory','physicalCount'];
+
+/* Deletes every document in every collection the app uses, and marks each collection's
+   _meta flag as "seeded" so the old starter/demo data never gets auto-inserted again. */
+async function wipeAllStarterData() {
+  for (const name of ALL_FIRESTORE_COLLECTIONS) {
+    const snap = await db.collection(name).get();
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 450) {
+      const chunk = docs.slice(i, i + 450);
+      const batch = db.batch();
+      chunk.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    await db.collection('_meta').doc(name).set({ seeded: true, seededAt: new Date().toISOString(), wipedAt: new Date().toISOString() });
+  }
+}
+
 const SEED_PC_REPORTS = [
   { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'CE76' },
   { id:'PCR-2', dateReported:'2026-08-10', department:'Accounting', problem:'Blue screen error (BSOD) on startup', actionTaken:'Replaced failing RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-77012', status:'Completed', remarks:'User confirmed no more crashes', technician:'CE77' },
@@ -826,6 +844,48 @@ function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" 
         <div className="confirm-actions">
           <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
           <button ref={deleteBtnRef} className="btn btn-danger" onClick={onConfirm}><Icon name="trash" size={14} /> Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WipeAllDataModal({ onCancel, onConfirm, busy }) {
+  const [typed, setTyped] = useState('');
+  const canConfirm = typed.trim().toUpperCase() === 'DELETE ALL';
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape' && !busy) onCancel(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy]);
+  return (
+    <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget && !busy) onCancel(); }}>
+      <div className="modal confirm-box" style={{ maxWidth: '440px' }}>
+        <div className="confirm-icon" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}><Icon name="alert" size={22} /></div>
+        <h3>Reset / Clear All Starter Data?</h3>
+        <p>
+          This permanently deletes <strong>every record</strong> across Back Office Reports, Selling Area Reports,
+          NTT Reports &amp; Terminals, Back Office device list, Selling Area device list, Physical Inventory Count,
+          and Inventory by Location — on <strong>every device</strong>, in real time. The old starter/demo data will
+          not come back, and this cannot be undone.
+        </p>
+        <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '-10px' }}>
+          Type <strong style={{ color: 'var(--text)' }}>DELETE ALL</strong> below to confirm.
+        </p>
+        <input
+          className="input"
+          style={{ width: '100%', marginBottom: '16px' }}
+          value={typed}
+          onChange={e => setTyped(e.target.value)}
+          placeholder="Type DELETE ALL"
+          disabled={busy}
+          autoFocus
+        />
+        <div className="confirm-actions">
+          <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+          <button className="btn btn-danger" onClick={onConfirm} disabled={!canConfirm || busy}>
+            <Icon name="trash" size={14} /> {busy ? 'Clearing…' : 'Clear Everything'}
+          </button>
         </div>
       </div>
     </div>
@@ -2616,7 +2676,7 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites }) {
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites, onWipeAllClick, wipeBusy }) {
   const FORMAT_CHOICES = [
     { key: 'pdf', label: 'PDF' },
     { key: 'excel', label: 'Excel' },
@@ -2755,6 +2815,19 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
           <div className="meta" style={{ marginTop: '8px' }}>
             {lastBackupAt ? 'Last backup: ' + lastBackupAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No backup yet this session'}
           </div>
+        </div>
+        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
+          <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: '#F87171', marginBottom: '8px' }}>Danger Zone</div>
+          <button
+            type="button"
+            className="btn"
+            style={{ width: '100%', justifyContent: 'center', background: 'transparent', border: '1px solid #7F1D1D', color: '#FCA5A5' }}
+            onClick={onWipeAllClick}
+            disabled={wipeBusy}
+          >
+            <Icon name="trash" size={14} /> {wipeBusy ? 'Clearing all data…' : 'Reset / Clear All Starter Data'}
+          </button>
+          <div className="meta" style={{ marginTop: '6px' }}>Permanently deletes ALL records in every section, on every device. Use this once to start fresh.</div>
         </div>
         <div className="meta" style={{ marginTop: '10px' }}>ISS Department &middot; Internal Use Only</div>
       </div>
@@ -2935,6 +3008,22 @@ function App() {
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [pendingWrites, setPendingWrites] = useState(0);
+  const [wipeModalOpen, setWipeModalOpen] = useState(false);
+  const [wipeBusy, setWipeBusy] = useState(false);
+
+  async function handleConfirmWipeAll() {
+    setWipeBusy(true);
+    try {
+      await wipeAllStarterData();
+      addToast('All data cleared. Starting fresh — nothing will be re-added automatically.', 'success');
+      setWipeModalOpen(false);
+    } catch (err) {
+      console.error('Wipe all data failed:', err);
+      addToast('Failed to clear data — check your internet connection and try again.', 'danger');
+    } finally {
+      setWipeBusy(false);
+    }
+  }
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -3089,6 +3178,8 @@ function App() {
         backupFormat={backupFormat}
         onBackupFormatChange={setBackupFormat}
         pendingWrites={pendingWrites}
+        onWipeAllClick={() => setWipeModalOpen(true)}
+        wipeBusy={wipeBusy}
       />
       <div className="main">
         <Header
@@ -3147,6 +3238,13 @@ function App() {
       </div>
       <ToastContainer toasts={toasts} />
       {showInstallHelp && <InstallHelpModal onClose={() => setShowInstallHelp(false)} />}
+      {wipeModalOpen && (
+        <WipeAllDataModal
+          busy={wipeBusy}
+          onCancel={() => { if (!wipeBusy) setWipeModalOpen(false); }}
+          onConfirm={handleConfirmWipeAll}
+        />
+      )}
     </div>
   );
 }
