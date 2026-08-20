@@ -462,16 +462,10 @@ const STATUS_STYLES = {
 let idCounter = 1000;
 function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
 
-/* Global pending-writes tracker: warns the user with a native browser prompt if they
-   try to close the tab / shut down while a save or delete hasn't finished syncing yet. */
+/* Global pending-writes tracker: used only to drive the "SAVING..." indicator in the
+   sidebar. Actual data safety comes from Firestore offline persistence above, which
+   queues writes locally even if the tab closes — no interrupting confirm prompt needed. */
 window.__pendingFirestoreWrites = 0;
-window.addEventListener('beforeunload', (e) => {
-  if (window.__pendingFirestoreWrites > 0) {
-    e.preventDefault();
-    e.returnValue = '';
-    return '';
-  }
-});
 
 const SEED_PC_REPORTS = [
   { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'CE76' },
