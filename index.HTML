@@ -407,7 +407,7 @@ function Icon({ name, size = 18, className = '' }) {
    ========================================================= */
 const DEPARTMENTS = ["DSRS","RFID","FOREX","DSCS","SPCS","COUNTERING","DS WAREHOUSE","DSO","FCCON","REVENUE","DSCON","GA","PAYROLL","PAYABLES","ADMIN","CREDIT","AUDIT","ICT","DEO","HRD","SCO","CLINIC","BILLING","TREASURY A","TREASURY B","SP WAREHOUSE","IS WAREHOUSE","PRICING","SP OFFICE","PRODUCE","SP SELLING AREA","SP RECEIVING","VISUAL"];
 const SELLING_AREAS = ["DEPARTMENT STORE","SUPERMARKET"];
-const TECHNICIANS = ["Mark Villanueva","Jenny Cruz","Paolo Santos","Angela Reyes","Kevin Tan"];
+const TECHNICIANS = ["CE76","CE77","CE78","CE79"];
 const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancelled"];
 const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
 const DEVICE_TYPES = ["System Unit","Micro PC"];
@@ -437,35 +437,35 @@ let idCounter = 1000;
 function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
 
 const SEED_PC_REPORTS = [
-  { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'Mark Villanueva' },
-  { id:'PCR-2', dateReported:'2026-08-10', department:'Accounting', problem:'Blue screen error (BSOD) on startup', actionTaken:'Replaced failing RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-77012', status:'Completed', remarks:'User confirmed no more crashes', technician:'Jenny Cruz' },
-  { id:'PCR-3', dateReported:'2026-08-05', department:'Human Resources', problem:'Slow performance / freezing', actionTaken:'Cleared temp files, upgraded to SSD', replacement:'SSD 256GB', serialReplacement:'SSD-SN-65210', status:'Completed', remarks:'Boot time improved to 12s', technician:'Paolo Santos' },
-  { id:'PCR-4', dateReported:'2026-07-29', department:'Warehouse & Logistics', problem:'No internet connection', actionTaken:'Replaced network adapter', replacement:'USB Network Adapter', serialReplacement:'NIC-SN-44018', status:'Completed', remarks:'Connectivity restored', technician:'Kevin Tan' },
-  { id:'PCR-5', dateReported:'2026-07-22', department:'Marketing', problem:'Printer not detected', actionTaken:'Reinstalled printer drivers', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer working normally', technician:'Angela Reyes' },
-  { id:'PCR-6', dateReported:'2026-07-18', department:'Customer Service', problem:'Application crashes on launch', actionTaken:'Reinstalled application, patched OS', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Awaiting vendor patch confirmation', technician:'Mark Villanueva' },
-  { id:'PCR-7', dateReported:'2026-07-10', department:'Loss Prevention', problem:'Keyboard/mouse not responding', actionTaken:'Replaced USB keyboard and mouse set', replacement:'Keyboard & Mouse Combo', serialReplacement:'PERIPH-SN-33771', status:'Completed', remarks:'Issue resolved', technician:'Jenny Cruz' },
-  { id:'PCR-8', dateReported:'2026-06-27', department:'Admin Office', problem:'Overheating and auto shutdown', actionTaken:'Cleaned dust, reapplied thermal paste', replacement:'Thermal Paste', serialReplacement:'-', status:'Completed', remarks:'Temp reduced from 85\u00b0C to 55\u00b0C', technician:'Kevin Tan' },
-  { id:'PCR-9', dateReported:'2026-06-15', department:'Executive Office', problem:'Windows update failure', actionTaken:'Ran troubleshooter, manually installed update', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Waiting for scheduled downtime', technician:'Paolo Santos' },
-  { id:'PCR-10', dateReported:'2026-06-02', department:'Merchandising', problem:'Virus/malware detected', actionTaken:'Ran full malware scan and removal', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'System clean, monitoring for recurrence', technician:'Angela Reyes' },
-  { id:'PCR-11', dateReported:'2026-05-20', department:'IT Office', problem:'Monitor no signal', actionTaken:'Replaced HDMI cable and tested port', replacement:'HDMI Cable', serialReplacement:'-', status:'Replaced', remarks:'New cable issued from stock', technician:'Mark Villanueva' },
-  { id:'PCR-12', dateReported:'2026-05-05', department:'Accounting', problem:'RAM upgrade requested', actionTaken:'Installed additional RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-51290', status:'Completed', remarks:'Upgraded from 8GB to 16GB', technician:'Jenny Cruz' },
-  { id:'PCR-13', dateReported:'2026-04-18', department:'Customer Service', problem:'PC won\u2019t boot / no display', actionTaken:'Diagnosed motherboard failure, escalated to vendor', replacement:'Motherboard', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement unit from supplier', technician:'Kevin Tan' },
-  { id:'PCR-14', dateReported:'2026-04-02', department:'Warehouse & Logistics', problem:'Slow performance / freezing', actionTaken:'Uninstalled unnecessary startup programs', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Performance normalized', technician:'Paolo Santos' },
+  { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'CE76' },
+  { id:'PCR-2', dateReported:'2026-08-10', department:'Accounting', problem:'Blue screen error (BSOD) on startup', actionTaken:'Replaced failing RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-77012', status:'Completed', remarks:'User confirmed no more crashes', technician:'CE77' },
+  { id:'PCR-3', dateReported:'2026-08-05', department:'Human Resources', problem:'Slow performance / freezing', actionTaken:'Cleared temp files, upgraded to SSD', replacement:'SSD 256GB', serialReplacement:'SSD-SN-65210', status:'Completed', remarks:'Boot time improved to 12s', technician:'CE78' },
+  { id:'PCR-4', dateReported:'2026-07-29', department:'Warehouse & Logistics', problem:'No internet connection', actionTaken:'Replaced network adapter', replacement:'USB Network Adapter', serialReplacement:'NIC-SN-44018', status:'Completed', remarks:'Connectivity restored', technician:'CE79' },
+  { id:'PCR-5', dateReported:'2026-07-22', department:'Marketing', problem:'Printer not detected', actionTaken:'Reinstalled printer drivers', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer working normally', technician:'CE76' },
+  { id:'PCR-6', dateReported:'2026-07-18', department:'Customer Service', problem:'Application crashes on launch', actionTaken:'Reinstalled application, patched OS', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Awaiting vendor patch confirmation', technician:'CE76' },
+  { id:'PCR-7', dateReported:'2026-07-10', department:'Loss Prevention', problem:'Keyboard/mouse not responding', actionTaken:'Replaced USB keyboard and mouse set', replacement:'Keyboard & Mouse Combo', serialReplacement:'PERIPH-SN-33771', status:'Completed', remarks:'Issue resolved', technician:'CE77' },
+  { id:'PCR-8', dateReported:'2026-06-27', department:'Admin Office', problem:'Overheating and auto shutdown', actionTaken:'Cleaned dust, reapplied thermal paste', replacement:'Thermal Paste', serialReplacement:'-', status:'Completed', remarks:'Temp reduced from 85\u00b0C to 55\u00b0C', technician:'CE79' },
+  { id:'PCR-9', dateReported:'2026-06-15', department:'Executive Office', problem:'Windows update failure', actionTaken:'Ran troubleshooter, manually installed update', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Waiting for scheduled downtime', technician:'CE78' },
+  { id:'PCR-10', dateReported:'2026-06-02', department:'Merchandising', problem:'Virus/malware detected', actionTaken:'Ran full malware scan and removal', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'System clean, monitoring for recurrence', technician:'CE76' },
+  { id:'PCR-11', dateReported:'2026-05-20', department:'IT Office', problem:'Monitor no signal', actionTaken:'Replaced HDMI cable and tested port', replacement:'HDMI Cable', serialReplacement:'-', status:'Replaced', remarks:'New cable issued from stock', technician:'CE76' },
+  { id:'PCR-12', dateReported:'2026-05-05', department:'Accounting', problem:'RAM upgrade requested', actionTaken:'Installed additional RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-51290', status:'Completed', remarks:'Upgraded from 8GB to 16GB', technician:'CE77' },
+  { id:'PCR-13', dateReported:'2026-04-18', department:'Customer Service', problem:'PC won\u2019t boot / no display', actionTaken:'Diagnosed motherboard failure, escalated to vendor', replacement:'Motherboard', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement unit from supplier', technician:'CE79' },
+  { id:'PCR-14', dateReported:'2026-04-02', department:'Warehouse & Logistics', problem:'Slow performance / freezing', actionTaken:'Uninstalled unnecessary startup programs', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Performance normalized', technician:'CE78' },
 ];
 
 const SA_ISSUE_TYPES = ["Terminal Malfunction","Network Connectivity","Printer Issue","Scanner Issue","Display Issue","Power Issue","Software Glitch","Card Reader Issue","Cash Drawer Issue","Other"];
 
 const SEED_SA_REPORTS = [
-  { id:'SAR-1', date:'2026-08-16', supermarket:'SUPERMARKET', counter:'Counter 1', terminal:'POS-01', issueType:'Terminal Malfunction', problemDescription:'Terminal freezes when scanning barcoded items', troubleshootingSteps:'Restarted terminal, updated POS software to latest build', status:'Completed', technician:'Mark Villanueva', dateResolved:'2026-08-16' },
-  { id:'SAR-2', date:'2026-08-15', supermarket:'DEPARTMENT STORE', counter:'Counter 2', terminal:'POS-02', issueType:'Printer Issue', problemDescription:'Receipt printer not printing, blank receipts', troubleshootingSteps:'Replaced printer ribbon and cleaned print head', status:'Completed', technician:'Jenny Cruz', dateResolved:'2026-08-15' },
-  { id:'SAR-3', date:'2026-08-14', supermarket:'DEPARTMENT STORE', counter:'Counter 3', terminal:'POS-03', issueType:'Network Connectivity', problemDescription:'Terminal intermittently loses connection to server', troubleshootingSteps:'Checked LAN cable, replaced with new Cat6 cable, monitoring for recurrence', status:'In Progress', technician:'Paolo Santos', dateResolved:'' },
-  { id:'SAR-4', date:'2026-08-13', supermarket:'SUPERMARKET', counter:'Counter 4', terminal:'POS-04', issueType:'Scanner Issue', problemDescription:'Handheld scanner not reading barcodes properly', troubleshootingSteps:'Recalibrated scanner, cleaned lens', status:'Completed', technician:'Kevin Tan', dateResolved:'2026-08-13' },
-  { id:'SAR-5', date:'2026-08-11', supermarket:'DEPARTMENT STORE', counter:'Counter 5', terminal:'POS-05', issueType:'Display Issue', problemDescription:'Second customer-facing display shows no image', troubleshootingSteps:'Checked cable connection, replacement display ordered', status:'Pending', technician:'Angela Reyes', dateResolved:'' },
-  { id:'SAR-6', date:'2026-08-09', supermarket:'DEPARTMENT STORE', counter:'Counter 6', terminal:'POS-06', issueType:'Power Issue', problemDescription:'Terminal randomly shuts down during transactions', troubleshootingSteps:'Replaced power supply unit', status:'Completed', technician:'Mark Villanueva', dateResolved:'2026-08-10' },
-  { id:'SAR-7', date:'2026-08-07', supermarket:'SUPERMARKET', counter:'Counter 7', terminal:'POS-07', issueType:'Software Glitch', problemDescription:'POS application crashes when applying discounts', troubleshootingSteps:'Reinstalled POS application, cleared cache', status:'Completed', technician:'Jenny Cruz', dateResolved:'2026-08-08' },
-  { id:'SAR-8', date:'2026-08-05', supermarket:'DEPARTMENT STORE', counter:'Counter 8', terminal:'POS-08', issueType:'Card Reader Issue', problemDescription:'GHL card terminal not reading chip cards', troubleshootingSteps:'Cleaned card reader slot, tested with multiple cards', status:'Completed', technician:'Paolo Santos', dateResolved:'2026-08-05' },
-  { id:'SAR-9', date:'2026-08-02', supermarket:'DEPARTMENT STORE', counter:'Counter 9', terminal:'POS-09', issueType:'Cash Drawer Issue', problemDescription:'Cash drawer does not open after transaction', troubleshootingSteps:'Checked solenoid connection, replacement part requested', status:'Cancelled', technician:'Kevin Tan', dateResolved:'' },
-  { id:'SAR-10', date:'2026-07-30', supermarket:'SUPERMARKET', counter:'Counter 10', terminal:'POS-10', issueType:'Terminal Malfunction', problemDescription:'Touchscreen unresponsive on left side of screen', troubleshootingSteps:'Recalibrated touchscreen driver', status:'Completed', technician:'Angela Reyes', dateResolved:'2026-07-31' },
+  { id:'SAR-1', date:'2026-08-16', supermarket:'SUPERMARKET', counter:'Counter 1', terminal:'POS-01', issueType:'Terminal Malfunction', problemDescription:'Terminal freezes when scanning barcoded items', troubleshootingSteps:'Restarted terminal, updated POS software to latest build', status:'Completed', technician:'CE76', dateResolved:'2026-08-16' },
+  { id:'SAR-2', date:'2026-08-15', supermarket:'DEPARTMENT STORE', counter:'Counter 2', terminal:'POS-02', issueType:'Printer Issue', problemDescription:'Receipt printer not printing, blank receipts', troubleshootingSteps:'Replaced printer ribbon and cleaned print head', status:'Completed', technician:'CE77', dateResolved:'2026-08-15' },
+  { id:'SAR-3', date:'2026-08-14', supermarket:'DEPARTMENT STORE', counter:'Counter 3', terminal:'POS-03', issueType:'Network Connectivity', problemDescription:'Terminal intermittently loses connection to server', troubleshootingSteps:'Checked LAN cable, replaced with new Cat6 cable, monitoring for recurrence', status:'In Progress', technician:'CE78', dateResolved:'' },
+  { id:'SAR-4', date:'2026-08-13', supermarket:'SUPERMARKET', counter:'Counter 4', terminal:'POS-04', issueType:'Scanner Issue', problemDescription:'Handheld scanner not reading barcodes properly', troubleshootingSteps:'Recalibrated scanner, cleaned lens', status:'Completed', technician:'CE79', dateResolved:'2026-08-13' },
+  { id:'SAR-5', date:'2026-08-11', supermarket:'DEPARTMENT STORE', counter:'Counter 5', terminal:'POS-05', issueType:'Display Issue', problemDescription:'Second customer-facing display shows no image', troubleshootingSteps:'Checked cable connection, replacement display ordered', status:'Pending', technician:'CE76', dateResolved:'' },
+  { id:'SAR-6', date:'2026-08-09', supermarket:'DEPARTMENT STORE', counter:'Counter 6', terminal:'POS-06', issueType:'Power Issue', problemDescription:'Terminal randomly shuts down during transactions', troubleshootingSteps:'Replaced power supply unit', status:'Completed', technician:'CE76', dateResolved:'2026-08-10' },
+  { id:'SAR-7', date:'2026-08-07', supermarket:'SUPERMARKET', counter:'Counter 7', terminal:'POS-07', issueType:'Software Glitch', problemDescription:'POS application crashes when applying discounts', troubleshootingSteps:'Reinstalled POS application, cleared cache', status:'Completed', technician:'CE77', dateResolved:'2026-08-08' },
+  { id:'SAR-8', date:'2026-08-05', supermarket:'DEPARTMENT STORE', counter:'Counter 8', terminal:'POS-08', issueType:'Card Reader Issue', problemDescription:'GHL card terminal not reading chip cards', troubleshootingSteps:'Cleaned card reader slot, tested with multiple cards', status:'Completed', technician:'CE78', dateResolved:'2026-08-05' },
+  { id:'SAR-9', date:'2026-08-02', supermarket:'DEPARTMENT STORE', counter:'Counter 9', terminal:'POS-09', issueType:'Cash Drawer Issue', problemDescription:'Cash drawer does not open after transaction', troubleshootingSteps:'Checked solenoid connection, replacement part requested', status:'Cancelled', technician:'CE79', dateResolved:'' },
+  { id:'SAR-10', date:'2026-07-30', supermarket:'SUPERMARKET', counter:'Counter 10', terminal:'POS-10', issueType:'Terminal Malfunction', problemDescription:'Touchscreen unresponsive on left side of screen', troubleshootingSteps:'Recalibrated touchscreen driver', status:'Completed', technician:'CE76', dateResolved:'2026-07-31' },
 ];
 
 
@@ -500,6 +500,20 @@ const SEED_POS_INVENTORY = [
   { id:'POS-13', section:'Supermarket', counter:'Counter 5', terminal:'SP-POS-05', serial:'TERM-SN-SP0015', display1:'DISP1-SN-SP0025', display2:'DISP2-SN-SP0035', printerSerial:'PRT-SN-SP0045', scannerSerial:'SCN-SN-SP0055', flatbedSerial:'FLB-SN-SP0065', ghlSerial:'GHL-SN-SP0075', status:'Under Repair' },
   { id:'POS-14', section:'Supermarket', counter:'Counter 6', terminal:'SP-POS-06', serial:'TERM-SN-SP0016', display1:'DISP1-SN-SP0026', display2:'DISP2-SN-SP0036', printerSerial:'PRT-SN-SP0046', scannerSerial:'SCN-SN-SP0056', flatbedSerial:'FLB-SN-SP0066', ghlSerial:'GHL-SN-SP0076', status:'Active' },
   { id:'POS-15', section:'Supermarket', counter:'Counter 7', terminal:'SP-POS-07', serial:'TERM-SN-SP0017', display1:'DISP1-SN-SP0027', display2:'DISP2-SN-SP0037', printerSerial:'PRT-SN-SP0047', scannerSerial:'SCN-SN-SP0057', flatbedSerial:'FLB-SN-SP0067', ghlSerial:'GHL-SN-SP0077', status:'Active' },
+];
+
+/* =========================================================
+   PHYSICAL INVENTORY COUNT
+   ========================================================= */
+const PHYSICAL_COUNT_CATEGORIES = ["PDT", "Tablet", "Charger"];
+
+const SEED_PHYSICAL_COUNT = [
+  { id:'PIC-1', category:'PDT', date:'2026-08-10', itemName:'PDT Unit (Handheld Scanner)', quantity:6, remarks:'Assigned to inventory counting team' },
+  { id:'PIC-2', category:'PDT', date:'2026-08-15', itemName:'PDT Charging Cradle', quantity:2, remarks:'Spare cradles in storage' },
+  { id:'PIC-3', category:'Tablet', date:'2026-08-09', itemName:'Android Tablet 10-inch', quantity:4, remarks:'For selling area terminal use' },
+  { id:'PIC-4', category:'Tablet', date:'2026-08-16', itemName:'Tablet Protective Case', quantity:5, remarks:'For newly issued units' },
+  { id:'PIC-5', category:'Charger', date:'2026-08-11', itemName:'USB-C Fast Charger', quantity:10, remarks:'Standard issue for tablets and PDTs' },
+  { id:'PIC-6', category:'Charger', date:'2026-08-17', itemName:'Charging Dock (Multi-bay)', quantity:3, remarks:'For back office charging station' },
 ];
 
 /* =========================================================
@@ -601,6 +615,7 @@ function buildBackupSections(collections) {
         ['display1','1st Display SN'],['display2','2nd Display SN'],['printerSerial','Printer SN'],
         ['scannerSerial','Scanner SN'],['flatbedSerial','Flatbed/Vertical SN'],['ghlSerial','NTT Terminal SN'],['status','Status'],
       ], rows: collections.posInventory },
+    { title: 'Physical Inventory Count', columns: [['category','Category'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.physicalCount },
     { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
   ];
 }
@@ -2355,6 +2370,153 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
   );
 }
 
+function PhysicalCountFormModal({ record, category, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), itemName: '', quantity: '', remarks: '', category,
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.itemName.trim() || !form.date || form.quantity === '') return;
+    onSave({ ...form, quantity: Number(form.quantity), id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Physical Count Item' : `Add Physical Count Item — ${category}`} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Item Details &middot; {category}</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Quantity" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Item Name" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. PDT Unit (Handheld Scanner)" required /></Field>
+        <Field label="Remarks" full><textarea className="textarea" rows="3" style={{ width: '100%' }} value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Optional notes..." /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Item'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCategory, setActiveCategory }) {
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const catCounts = useMemo(() => {
+    const m = {};
+    PHYSICAL_COUNT_CATEGORIES.forEach(c => { m[c] = 0; });
+    data.forEach(r => { if (m[r.category] !== undefined) m[r.category] += 1; });
+    return m;
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => r.category === activeCategory);
+    const q = query.trim().toLowerCase();
+    if (q) rows = rows.filter(r => [r.itemName, r.remarks].join(' ').toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'quantity') { av = Number(a.quantity) || 0; bv = Number(b.quantity) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, activeCategory, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, activeCategory]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalQty = filtered.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Physical count item updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('PIC'), category: activeCategory }, ...prev]);
+      addToast('Physical count item added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Physical count item deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="loc-tabs">
+        {PHYSICAL_COUNT_CATEGORIES.map(cat => (
+          <button key={cat} className={"loc-tab" + (activeCategory === cat ? " active" : "")} onClick={() => setActiveCategory(cat)}>
+            {cat}
+            <span className="loc-count">{catCounts[cat] || 0}</span>
+          </button>
+        ))}
+      </div>
+      <div className="toolbar">
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {activeCategory} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
+        </div>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Item</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="table-compact">
+            <thead>
+              <tr>
+                <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Item Name" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Quantity" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No physical count items found for {activeCategory}.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
+                  <td className="mono">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PhysicalCountFormModal record={editingRecord} category={activeCategory} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete physical count item "${confirmState.itemName}" from ${confirmState.category}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
 /* =========================================================
    SIDEBAR / HEADER
    ========================================================= */
@@ -2371,16 +2533,34 @@ const NAV_GROUPS = [
       { key: 'pcMonitoring', label: 'Back Office', icon: 'activity' },
       { key: 'posMonitoring', label: 'Selling Area', icon: 'pos' },
     ] },
-  { label: 'Inventory by Location', items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
+  { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
+  { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange }) {
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange }) {
   const FORMAT_CHOICES = [
     { key: 'pdf', label: 'PDF' },
     { key: 'excel', label: 'Excel' },
     { key: 'both', label: 'Both' },
   ];
   const backupLabel = { pdf: 'PDF', excel: 'Excel', both: 'PDF + Excel' }[backupFormat] || 'PDF';
+
+  const [collapsedGroups, setCollapsedGroups] = useState(() => {
+    const initial = {};
+    NAV_GROUPS.forEach(g => {
+      if (!g.collapsible) return;
+      const hasActiveChild = g.items.some(item => {
+        const isInv = item.key.indexOf('inventory:') === 0;
+        return isInv ? (active === 'inventory' && activeLoc === item.loc) : (active === item.key);
+      });
+      initial[g.label] = !hasActiveChild;
+    });
+    return initial;
+  });
+  function toggleGroup(label) {
+    setCollapsedGroups(s => ({ ...s, [label]: !s[label] }));
+  }
+
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand">
@@ -2391,12 +2571,31 @@ function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCoun
         </div>
       </div>
       <nav className="sidebar-nav">
-        {NAV_GROUPS.map((group, gi) => (
+        {NAV_GROUPS.map((group, gi) => {
+          const isCollapsed = group.collapsible && collapsedGroups[group.label];
+          return (
           <React.Fragment key={group.label || 'top'}>
-            {group.label && <div className="nav-label">{group.label}</div>}
-            {group.items.map(item => {
+            {group.label && (
+              group.collapsible ? (
+                <button
+                  type="button"
+                  className="nav-label"
+                  onClick={() => toggleGroup(group.label)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  <span>{group.label}</span>
+                  <Icon name="chevronDown" size={12} style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform .15s' }} />
+                </button>
+              ) : (
+                <div className="nav-label">{group.label}</div>
+              )
+            )}
+            {!isCollapsed && group.items.map(item => {
               const isInv = item.key.indexOf('inventory:') === 0;
-              const isActive = isInv ? (active === 'inventory' && activeLoc === item.loc) : (active === item.key);
+              const isPhys = item.key.indexOf('physicalCount:') === 0;
+              const isActive = isInv ? (active === 'inventory' && activeLoc === item.loc)
+                : isPhys ? (active === 'physicalCount' && activePhysCat === item.cat)
+                : (active === item.key);
               return (
                 <button key={item.key} className={"nav-item" + (isActive ? " active" : "")} onClick={() => onSelect(item.key)}>
                   <span className="nav-ic"><Icon name={item.icon} size={17} /></span>
@@ -2404,11 +2603,13 @@ function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCoun
                   {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
                   {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
                   {isInv && <span className="nav-item-badge">{locCounts[item.loc] || 0}</span>}
+                  {isPhys && <span className="nav-item-badge">{physCatCounts[item.cat] || 0}</span>}
                 </button>
               );
             })}
           </React.Fragment>
-        ))}
+          );
+        })}
       </nav>
       <div className="sidebar-footer">
         <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
@@ -2588,12 +2789,14 @@ const PAGES_META = {
   pcMonitoring: { title: 'Back Office', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
   posMonitoring: { title: 'Selling Area', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
   ghlReports: { title: 'NTT Reports', subtitle: 'NTT card terminal trouble reports and terminal registry', icon: 'server' },
+  physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
   inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
 };
 
 function App() {
   const [page, setPage] = useState('dashboard');
   const [invLoc, setInvLoc] = useState(INVENTORY_LOCATIONS[0]);
+  const [physCat, setPhysCat] = useState(PHYSICAL_COUNT_CATEGORIES[0]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pcReports, setPcReports, pcReportsReady, pcReportsErr] = useFirestoreCollection('pcReports', SEED_PC_REPORTS);
   const [saReports, setSaReports, saReportsReady, saReportsErr] = useFirestoreCollection('saReports', SEED_SA_REPORTS);
@@ -2602,8 +2805,9 @@ function App() {
   const [ghlReports, setGhlReports, ghlReportsReady, ghlReportsErr] = useFirestoreCollection('ghlReports', SEED_GHL_REPORTS);
   const [ghlTerminals, setGhlTerminals, ghlTerminalsReady, ghlTerminalsErr] = useFirestoreCollection('ghlTerminals', SEED_GHL_TERMINALS);
   const [inventory, setInventory, inventoryReady, inventoryErr] = useFirestoreCollection('inventory', SEED_INVENTORY);
-  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady;
-  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr;
+  const [physicalCount, setPhysicalCount, physicalCountReady, physicalCountErr] = useFirestoreCollection('physicalCount', SEED_PHYSICAL_COUNT);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
   const [backupBusy, setBackupBusy] = useState(false);
@@ -2618,6 +2822,7 @@ function App() {
   const [posInvQuery, setPosInvQuery] = useState('');
   const [ghlQuery, setGhlQuery] = useState('');
   const [invQuery, setInvQuery] = useState('');
+  const [physQuery, setPhysQuery] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 30000);
@@ -2634,7 +2839,7 @@ function App() {
     const fmt = format || backupFormat;
     setBackupBusy(true);
     try {
-      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory };
+      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount };
       const labels = [];
       if (fmt === 'pdf' || fmt === 'both') { generateBackupPdf(collections); labels.push('PDF'); }
       if (fmt === 'excel' || fmt === 'both') { generateBackupExcel(collections); labels.push('Excel'); }
@@ -2653,7 +2858,7 @@ function App() {
     if (!autoBackupMinutes) return;
     const t = setInterval(() => runBackup(true), autoBackupMinutes * 60 * 1000);
     return () => clearInterval(t);
-  }, [autoBackupMinutes, backupFormat, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory]);
+  }, [autoBackupMinutes, backupFormat, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount]);
 
   useEffect(() => {
     if (connectionError && !errorBackupFiredRef.current && allReady) {
@@ -2669,8 +2874,17 @@ function App() {
     return m;
   }, [inventory]);
 
+  const physCatCounts = useMemo(() => {
+    const m = {};
+    PHYSICAL_COUNT_CATEGORIES.forEach(c => { m[c] = 0; });
+    physicalCount.forEach(r => { if (m[r.category] !== undefined) m[r.category] += 1; });
+    return m;
+  }, [physicalCount]);
+
   const currentPageMeta = page === 'inventory'
     ? { title: 'Inventory — ' + invLoc, subtitle: `Stock records for ${invLoc}`, icon: 'box' }
+    : page === 'physicalCount'
+    ? { title: 'Physical Inventory Count — ' + physCat, subtitle: `Stock records for ${physCat}`, icon: 'box' }
     : PAGES_META[page];
 
   let searchProps = { show: false, query: '', setQuery: () => {}, placeholder: '' };
@@ -2680,6 +2894,7 @@ function App() {
   if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, counter, serials...' };
   if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
   if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
+  if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search item name or remarks...' };
 
   if (!allReady) {
     return (
@@ -2701,10 +2916,14 @@ function App() {
       <Sidebar
         active={page}
         activeLoc={invLoc}
+        activePhysCat={physCat}
         onSelect={(k) => {
           if (k.indexOf('inventory:') === 0) {
             setInvLoc(k.slice('inventory:'.length));
             setPage('inventory');
+          } else if (k.indexOf('physicalCount:') === 0) {
+            setPhysCat(k.slice('physicalCount:'.length));
+            setPage('physicalCount');
           } else {
             setPage(k);
           }
@@ -2714,6 +2933,7 @@ function App() {
         pcCount={pcInventory.length}
         posCount={posInventory.length}
         locCounts={invLocCounts}
+        physCatCounts={physCatCounts}
         onBackupNow={() => runBackup(false)}
         backupBusy={backupBusy}
         autoBackupMinutes={autoBackupMinutes}
@@ -2740,6 +2960,7 @@ function App() {
             <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
             <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
             <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Count Items</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
@@ -2747,6 +2968,7 @@ function App() {
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Count Items</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
         </div>
@@ -2769,6 +2991,9 @@ function App() {
           )}
           {page === 'inventory' && (
             <InventoryPage data={inventory} setData={setInventory} addToast={addToast} query={invQuery} setQuery={setInvQuery} activeLoc={invLoc} setActiveLoc={setInvLoc} />
+          )}
+          {page === 'physicalCount' && (
+            <PhysicalCountPage data={physicalCount} setData={setPhysicalCount} addToast={addToast} query={physQuery} setQuery={setPhysQuery} activeCategory={physCat} setActiveCategory={setPhysCat} />
           )}
         </div>
       </div>
