@@ -497,13 +497,13 @@ const SEED_POS_INVENTORY = [
 /* =========================================================
    INVENTORY
    ========================================================= */
-const INVENTORY_LOCATIONS = ["Main Office","2nd Room","Server","DS1","DS2","DS3","DS4","Cabin"];
+const INVENTORY_LOCATIONS = ["Main Office","Second Room","Server","DS1","DS2","DS3","DS4","Cabin"];
 
 const SEED_INVENTORY = [
   { id:'INV-1', location:'Main Office', date:'2026-08-10', itemName:'Bond Paper A4 (Ream)', quantity:12, remarks:'Stocked for monthly printing needs' },
   { id:'INV-2', location:'Main Office', date:'2026-08-14', itemName:'Toner Cartridge (Black)', quantity:3, remarks:'For Epson L3210 printers' },
-  { id:'INV-3', location:'2nd Room', date:'2026-08-05', itemName:'Ethernet Cable (Cat6, 5m)', quantity:8, remarks:'Spare cables for network setup' },
-  { id:'INV-4', location:'2nd Room', date:'2026-08-12', itemName:'USB Flash Drive 32GB', quantity:5, remarks:'For data transfer and backup' },
+  { id:'INV-3', location:'Second Room', date:'2026-08-05', itemName:'Ethernet Cable (Cat6, 5m)', quantity:8, remarks:'Spare cables for network setup' },
+  { id:'INV-4', location:'Second Room', date:'2026-08-12', itemName:'USB Flash Drive 32GB', quantity:5, remarks:'For data transfer and backup' },
   { id:'INV-5', location:'Server', date:'2026-08-02', itemName:'UPS Battery Backup', quantity:2, remarks:'Replacement units for server room' },
   { id:'INV-6', location:'Server', date:'2026-08-16', itemName:'Rack Screws & Cage Nuts (Set)', quantity:4, remarks:'For server rack mounting' },
   { id:'INV-7', location:'DS1', date:'2026-08-07', itemName:'Barcode Scanner', quantity:2, remarks:'Backup units for counter use' },
@@ -1568,7 +1568,7 @@ function SaReportFormModal({ record, departmentOptions, onClose, onSave }) {
 }
 
 function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQuery }) {
-  const [deptFilter, setDeptFilter] = useState('All');
+  const [deptFilter, setDeptFilter] = useState(() => departmentOptions[0] || 'All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
@@ -1627,7 +1627,6 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
     <div>
       <div className="toolbar">
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
-          <option value="All">All Supermarkets</option>
           {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -2040,8 +2039,7 @@ function InventoryFormModal({ record, location, onClose, onSave }) {
   );
 }
 
-function InventoryPage({ data, setData, addToast, query, setQuery }) {
-  const [activeLoc, setActiveLoc] = useState(INVENTORY_LOCATIONS[0]);
+function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, setActiveLoc }) {
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
@@ -2164,17 +2162,23 @@ function InventoryPage({ data, setData, addToast, query, setQuery }) {
 /* =========================================================
    SIDEBAR / HEADER
    ========================================================= */
-const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { key: 'pcReports', label: 'PC Reports', icon: 'pc' },
-  { key: 'saReports', label: 'Selling Area Reports', icon: 'store' },
-  { key: 'pcMonitoring', label: 'PC Monitoring', icon: 'activity' },
-  { key: 'posMonitoring', label: 'POS Monitoring', icon: 'pos' },
-  { key: 'ghlReports', label: 'GHL Reports', icon: 'server' },
-  { key: 'inventory', label: 'Inventory', icon: 'box' },
+const NAV_GROUPS = [
+  { label: null, items: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    ] },
+  { label: 'Operations Monitoring', items: [
+      { key: 'pcReports', label: 'Back Office Reports', icon: 'pc' },
+      { key: 'saReports', label: 'Selling Area Reports', icon: 'store' },
+      { key: 'ghlReports', label: 'NTT Reports', icon: 'server' },
+    ] },
+  { label: 'Device & Specifications', items: [
+      { key: 'pcMonitoring', label: 'Back Office', icon: 'activity' },
+      { key: 'posMonitoring', label: 'Selling Area', icon: 'pos' },
+    ] },
+  { label: 'Inventory by Location', items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, onSelect, open, pcCount, posCount, inventoryCount }) {
+function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts }) {
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand">
@@ -2185,15 +2189,23 @@ function Sidebar({ active, onSelect, open, pcCount, posCount, inventoryCount }) 
         </div>
       </div>
       <nav className="sidebar-nav">
-        <div className="nav-label">Main Menu</div>
-        {NAV_ITEMS.map(item => (
-          <button key={item.key} className={"nav-item" + (active === item.key ? " active" : "")} onClick={() => onSelect(item.key)}>
-            <span className="nav-ic"><Icon name={item.icon} size={17} /></span>
-            {item.label}
-            {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
-            {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
-            {item.key === 'inventory' && <span className="nav-item-badge">{inventoryCount}</span>}
-          </button>
+        {NAV_GROUPS.map((group, gi) => (
+          <React.Fragment key={group.label || 'top'}>
+            {group.label && <div className="nav-label">{group.label}</div>}
+            {group.items.map(item => {
+              const isInv = item.key.indexOf('inventory:') === 0;
+              const isActive = isInv ? (active === 'inventory' && activeLoc === item.loc) : (active === item.key);
+              return (
+                <button key={item.key} className={"nav-item" + (isActive ? " active" : "")} onClick={() => onSelect(item.key)}>
+                  <span className="nav-ic"><Icon name={item.icon} size={17} /></span>
+                  {item.label}
+                  {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
+                  {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
+                  {isInv && <span className="nav-item-badge">{locCounts[item.loc] || 0}</span>}
+                </button>
+              );
+            })}
+          </React.Fragment>
         ))}
       </nav>
       <div className="sidebar-footer">
@@ -2324,16 +2336,17 @@ function useFirestoreCollection(collectionName, seedData) {
    ========================================================= */
 const PAGES_META = {
   dashboard: { title: 'Dashboard', subtitle: 'Monitoring overview across PC & Selling Area operations', icon: 'dashboard' },
-  pcReports: { title: 'PC Reports', subtitle: 'Trouble reports for back-office & admin department computers', icon: 'pc' },
+  pcReports: { title: 'Back Office Reports', subtitle: 'Trouble reports for back-office & admin department computers', icon: 'pc' },
   saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for supermarket & department store counters and terminals', icon: 'store' },
-  pcMonitoring: { title: 'PC Monitoring', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
-  posMonitoring: { title: 'POS Monitoring', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
-  ghlReports: { title: 'GHL Reports', subtitle: 'GHL card terminal trouble reports and terminal registry', icon: 'server' },
-  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, 2nd Room, Server, DS1-4, and Cabin', icon: 'box' },
+  pcMonitoring: { title: 'Back Office', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
+  posMonitoring: { title: 'Selling Area', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
+  ghlReports: { title: 'NTT Reports', subtitle: 'NTT card terminal trouble reports and terminal registry', icon: 'server' },
+  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
 };
 
 function App() {
   const [page, setPage] = useState('dashboard');
+  const [invLoc, setInvLoc] = useState(INVENTORY_LOCATIONS[0]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pcReports, setPcReports, pcReportsReady, pcReportsErr] = useFirestoreCollection('pcReports', SEED_PC_REPORTS);
   const [saReports, setSaReports, saReportsReady, saReportsErr] = useFirestoreCollection('saReports', SEED_SA_REPORTS);
@@ -2365,6 +2378,17 @@ function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
   }
 
+  const invLocCounts = useMemo(() => {
+    const m = {};
+    INVENTORY_LOCATIONS.forEach(l => { m[l] = 0; });
+    inventory.forEach(r => { if (m[r.location] !== undefined) m[r.location] += 1; });
+    return m;
+  }, [inventory]);
+
+  const currentPageMeta = page === 'inventory'
+    ? { title: 'Inventory — ' + invLoc, subtitle: `Stock records for ${invLoc}`, icon: 'box' }
+    : PAGES_META[page];
+
   let searchProps = { show: false, query: '', setQuery: () => {}, placeholder: '' };
   if (page === 'pcReports') searchProps = { show: true, query: pcQuery, setQuery: setPcQuery, placeholder: 'Search PC reports (problem, dept, technician)...' };
   if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search by counter, terminal, issue, or technician...' };
@@ -2390,10 +2414,26 @@ function App() {
         </div>
       )}
       <div className={"overlay" + (sidebarOpen ? " show" : "")} onClick={() => setSidebarOpen(false)}></div>
-      <Sidebar active={page} onSelect={(k) => { setPage(k); setSidebarOpen(false); }} open={sidebarOpen} pcCount={pcInventory.length} posCount={posInventory.length} inventoryCount={inventory.length} />
+      <Sidebar
+        active={page}
+        activeLoc={invLoc}
+        onSelect={(k) => {
+          if (k.indexOf('inventory:') === 0) {
+            setInvLoc(k.slice('inventory:'.length));
+            setPage('inventory');
+          } else {
+            setPage(k);
+          }
+          setSidebarOpen(false);
+        }}
+        open={sidebarOpen}
+        pcCount={pcInventory.length}
+        posCount={posInventory.length}
+        locCounts={invLocCounts}
+      />
       <div className="main">
         <Header
-          current={PAGES_META[page]}
+          current={currentPageMeta}
           onMenu={() => setSidebarOpen(o => !o)}
           clock={clock}
           query={searchProps.query}
@@ -2437,7 +2477,7 @@ function App() {
             <GhlReportsPage data={ghlReports} setData={setGhlReports} terminals={ghlTerminals} setTerminals={setGhlTerminals} addToast={addToast} query={ghlQuery} setQuery={setGhlQuery} />
           )}
           {page === 'inventory' && (
-            <InventoryPage data={inventory} setData={setInventory} addToast={addToast} query={invQuery} setQuery={setInvQuery} />
+            <InventoryPage data={inventory} setData={setInventory} addToast={addToast} query={invQuery} setQuery={setInvQuery} activeLoc={invLoc} setActiveLoc={setInvLoc} />
           )}
         </div>
       </div>
