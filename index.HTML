@@ -70,7 +70,11 @@
   }
   .brand-text h2{color:#fff;font-size:15px;line-height:1.2;}
   .brand-text span{font-size:11px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
-  .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;}
+  .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent;}
+  .sidebar-nav::-webkit-scrollbar{width:5px;}
+  .sidebar-nav::-webkit-scrollbar-track{background:transparent;}
+  .sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:20px;}
+  .sidebar-nav::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.32);}
   .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:10px 12px 6px;}
   .nav-item{
     display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;border:none;background:transparent;width:100%;
@@ -344,6 +348,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCfOeFsru1RpbxQ_oGpFpyEKM6Iv_FQETk",
@@ -519,12 +525,12 @@ const SEED_INVENTORY = [
 ];
 
 const SEED_GHL_REPORTS = [
-  { id:'GHL-1', dateReported:'2026-08-14', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
-  { id:'GHL-2', dateReported:'2026-08-11', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
-  { id:'GHL-3', dateReported:'2026-08-07', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
-  { id:'GHL-4', dateReported:'2026-07-30', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
-  { id:'GHL-5', dateReported:'2026-07-22', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
-  { id:'GHL-6', dateReported:'2026-07-15', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
+  { id:'GHL-1', dateReported:'2026-08-14', section:'SUPERMARKET', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
+  { id:'GHL-2', dateReported:'2026-08-11', section:'DEPARTMENT STORE', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
+  { id:'GHL-3', dateReported:'2026-08-07', section:'DEPARTMENT STORE', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
+  { id:'GHL-4', dateReported:'2026-07-30', section:'SUPERMARKET', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
+  { id:'GHL-5', dateReported:'2026-07-22', section:'DEPARTMENT STORE', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
+  { id:'GHL-6', dateReported:'2026-07-15', section:'SUPERMARKET', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
 ];
 
 const SEED_GHL_TERMINALS = [
@@ -563,6 +569,91 @@ function trendPct(curr, prev) {
 function statusCounts(data, statuses) {
   const colorFor = s => (STATUS_STYLES[s] || {}).dot || '#94A3B8';
   return statuses.map(s => ({ label: s, value: data.filter(r => r.status === s).length, color: colorFor(s) })).filter(x => x.value > 0);
+}
+
+/* =========================================================
+   PDF BACKUP GENERATOR
+   Builds a single PDF containing every data section, so the
+   raw records survive even if the web app / database breaks.
+   ========================================================= */
+function pdfCell(v) {
+  if (v === undefined || v === null || v === '') return '-';
+  return String(v);
+}
+
+function generateBackupPdf(collections) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error('PDF library not loaded');
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const now = new Date();
+  const stamp = now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const sections = [
+    { title: 'Back Office Reports', columns: REPORT_COLUMNS, rows: collections.pcReports },
+    { title: 'Selling Area Reports', columns: SA_REPORT_COLUMNS, rows: collections.saReports },
+    { title: 'NTT Reports', columns: GHL_COLUMNS, rows: collections.ghlReports },
+    { title: 'NTT Terminal Registry', columns: [['ctr','CTR'],['terminal','Terminal'],['serialNumber','Serial Number']], rows: collections.ghlTerminals },
+    { title: 'Back Office — Device & Specifications', columns: [
+        ['department','Department'],['pcName','PC Name'],['user','User'],['ipAddress','IP Address'],['macAddress','MAC Address'],
+        ['windowsVersion','Windows Version'],['motherboardModel','Motherboard Model'],['motherboardSN','Motherboard SN'],
+        ['ramModel','RAM Model'],['ramSN','RAM SN'],['storageModel','Storage Model'],['storageType','Storage Type'],
+        ['printerModel','Printer Model'],['printer','Printer SN'],['monitorModel','Monitor Model'],['monitor','Monitor SN'],
+        ['scannerModel','Scanner Model'],['scannerSN','Scanner SN'],['processor','Processor'],['gpu','GPU'],['projector','Projector'],['status','Status'],
+      ], rows: collections.pcInventory },
+    { title: 'Selling Area — Device & Specifications', columns: [
+        ['section','Section'],['counter','Counter'],['terminal','Terminal'],['serial','Serial'],
+        ['display1','1st Display SN'],['display2','2nd Display SN'],['printerSerial','Printer SN'],
+        ['scannerSerial','Scanner SN'],['flatbedSerial','Flatbed/Vertical SN'],['ghlSerial','NTT Terminal SN'],['status','Status'],
+      ], rows: collections.posInventory },
+    { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
+  ];
+
+  // Cover page
+  doc.setFontSize(20);
+  doc.text('ISS Department Monitoring System', 40, 60);
+  doc.setFontSize(13);
+  doc.text('Full Data Backup', 40, 84);
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text('Generated: ' + stamp, 40, 104);
+  doc.setTextColor(20);
+  doc.setFontSize(11);
+  let y = 140;
+  doc.text('Contents:', 40, y);
+  y += 18;
+  sections.forEach(s => {
+    doc.text('- ' + s.title + '  (' + s.rows.length + ' record' + (s.rows.length === 1 ? '' : 's') + ')', 56, y);
+    y += 16;
+  });
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text('This file is a local backup snapshot for recovery purposes. Keep it somewhere safe.', 40, y + 14);
+  doc.setTextColor(20);
+
+  sections.forEach(sec => {
+    doc.addPage();
+    doc.setFontSize(13);
+    doc.text(sec.title, 30, 32);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(sec.rows.length + ' record' + (sec.rows.length === 1 ? '' : 's'), 30, 46);
+    doc.setTextColor(20);
+    doc.autoTable({
+      startY: 56,
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 6.5, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: { fillColor: [11, 18, 32], textColor: 255 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      head: [sec.columns.map(c => c[1])],
+      body: sec.rows.map(r => sec.columns.map(c => pdfCell(r[c[0]]))),
+    });
+  });
+
+  const filename = 'ISS_Backup_' + now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 8).replace(/:/g, '') + '.pdf';
+  doc.save(filename);
+  return filename;
 }
 
 /* =========================================================
@@ -1690,13 +1781,13 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
    GHL REPORTS
    ========================================================= */
 const GHL_COLUMNS = [
-  ['dateReported', 'Date Reported'], ['counter', 'Counter'], ['type', 'Type'], ['sn', 'SN'],
+  ['dateReported', 'Date Reported'], ['section', 'Section'], ['counter', 'Counter'], ['type', 'Type'], ['sn', 'SN'],
   ['reportCount', 'Report Count'], ['requestNumber', 'Request Number'], ['dateReceived', 'Date Received'], ['status', 'Status'],
 ];
 
 function GhlReportFormModal({ record, terminals, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    dateReported: new Date().toISOString().slice(0, 10), counter: '', type: GHL_TYPES[0], sn: '',
+    dateReported: new Date().toISOString().slice(0, 10), section: SELLING_AREAS[0], counter: '', type: GHL_TYPES[0], sn: '',
     reportCount: 1, requestNumber: '', dateReceived: '', status: 'Pending',
   });
   const [snAuto, setSnAuto] = useState(true);
@@ -1719,6 +1810,11 @@ function GhlReportFormModal({ record, terminals, onClose, onSave }) {
     <Modal title={record ? 'Edit GHL Report' : 'Add GHL Report'} onClose={onClose} maxWidth="700px">
       <form onSubmit={submit} className="form-grid">
         <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
+        <Field label="Section" required>
+          <select className="select" style={{ width: '100%' }} value={form.section} onChange={e => update('section', e.target.value)}>
+            {SELLING_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
         <Field label="Counter" required>
           {counterOptions.length > 0 ? (
             <select className="select" style={{ width: '100%' }} value={form.counter} onChange={e => updateCounter(e.target.value)} required>
@@ -1881,7 +1977,7 @@ function TerminalsList({ data, setData, addToast, onBack }) {
 
 function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, query, setQuery }) {
   const [view, setView] = useState('reports');
-  const [typeFilter, setTypeFilter] = useState('All');
+  const [sectionFilter, setSectionFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortKey, setSortKey] = useState('dateReported');
   const [sortDir, setSortDir] = useState('desc');
@@ -1894,10 +1990,10 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matchesQuery = !q || [r.counter, r.type, r.sn, r.requestNumber, r.status].join(' ').toLowerCase().includes(q);
-      const matchesType = typeFilter === 'All' || r.type === typeFilter;
+      const matchesQuery = !q || [r.section, r.counter, r.type, r.sn, r.requestNumber, r.status].join(' ').toLowerCase().includes(q);
+      const matchesSection = sectionFilter === 'All' || r.section === sectionFilter;
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
-      return matchesQuery && matchesType && matchesStatus;
+      return matchesQuery && matchesSection && matchesStatus;
     });
     rows = rows.slice().sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
@@ -1909,9 +2005,9 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
       return 0;
     });
     return rows;
-  }, [data, query, typeFilter, statusFilter, sortKey, sortDir]);
+  }, [data, query, sectionFilter, statusFilter, sortKey, sortDir]);
 
-  useEffect(() => { setPage(1); }, [query, typeFilter, statusFilter]);
+  useEffect(() => { setPage(1); }, [query, sectionFilter, statusFilter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -1949,9 +2045,9 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
   return (
     <div>
       <div className="toolbar">
-        <select className="select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-          <option value="All">All Types</option>
-          {GHL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        <select className="select" value={sectionFilter} onChange={e => setSectionFilter(e.target.value)}>
+          <option value="All">All Sections</option>
+          {SELLING_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
@@ -1977,6 +2073,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td className="mono">{formatDate(r.dateReported)}</td>
+                  <td>{r.section}</td>
                   <td style={{ fontWeight: 600 }}>{r.counter}</td>
                   <td>{r.type}</td>
                   <td className="mono">{r.sn}</td>
@@ -2178,7 +2275,7 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts }) {
+function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt }) {
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand">
@@ -2210,7 +2307,33 @@ function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCoun
       </nav>
       <div className="sidebar-footer">
         <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
-        <div className="meta">ISS Department &middot; Internal Use Only</div>
+        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
+          <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-faint)', marginBottom: '8px' }}>Data Backup</div>
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-dark)', marginBottom: '8px' }}
+            onClick={onBackupNow}
+            disabled={backupBusy}
+          >
+            <Icon name="box" size={14} /> {backupBusy ? 'Generating PDF…' : 'Backup All Data (PDF)'}
+          </button>
+          <select
+            className="select"
+            style={{ width: '100%', background: 'var(--ink-2)', color: '#CBD5E1', borderColor: 'var(--ink-border)', fontSize: '12px' }}
+            value={autoBackupMinutes}
+            onChange={e => onAutoBackupChange(Number(e.target.value))}
+          >
+            <option value="0">Auto-backup: Off</option>
+            <option value="5">Auto-backup: every 5 min</option>
+            <option value="15">Auto-backup: every 15 min</option>
+            <option value="30">Auto-backup: every 30 min</option>
+            <option value="60">Auto-backup: every 60 min</option>
+          </select>
+          <div className="meta" style={{ marginTop: '8px' }}>
+            {lastBackupAt ? 'Last backup: ' + lastBackupAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No backup yet this session'}
+          </div>
+        </div>
+        <div className="meta" style={{ marginTop: '10px' }}>ISS Department &middot; Internal Use Only</div>
       </div>
     </aside>
   );
@@ -2359,6 +2482,10 @@ function App() {
   const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [autoBackupMinutes, setAutoBackupMinutes] = useState(0);
+  const [lastBackupAt, setLastBackupAt] = useState(null);
+  const errorBackupFiredRef = useRef(false);
 
   const [pcQuery, setPcQuery] = useState('');
   const [saQuery, setSaQuery] = useState('');
@@ -2377,6 +2504,33 @@ function App() {
     setToasts(t => [...t, { id, message, type }]);
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
   }
+
+  function runBackup(silent) {
+    setBackupBusy(true);
+    try {
+      generateBackupPdf({ pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory });
+      setLastBackupAt(new Date());
+      addToast(silent ? 'Auto-backup PDF downloaded' : 'Backup PDF downloaded successfully', 'success');
+    } catch (err) {
+      console.error('Backup failed:', err);
+      addToast('Backup failed — PDF library did not load. Check your internet connection.', 'danger');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!autoBackupMinutes) return;
+    const t = setInterval(() => runBackup(true), autoBackupMinutes * 60 * 1000);
+    return () => clearInterval(t);
+  }, [autoBackupMinutes, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory]);
+
+  useEffect(() => {
+    if (connectionError && !errorBackupFiredRef.current && allReady) {
+      errorBackupFiredRef.current = true;
+      runBackup(true);
+    }
+  }, [connectionError, allReady]);
 
   const invLocCounts = useMemo(() => {
     const m = {};
@@ -2430,6 +2584,11 @@ function App() {
         pcCount={pcInventory.length}
         posCount={posInventory.length}
         locCounts={invLocCounts}
+        onBackupNow={() => runBackup(false)}
+        backupBusy={backupBusy}
+        autoBackupMinutes={autoBackupMinutes}
+        onAutoBackupChange={(mins) => { setAutoBackupMinutes(mins); addToast(mins ? `Auto-backup enabled — every ${mins} min` : 'Auto-backup disabled', 'success'); }}
+        lastBackupAt={lastBackupAt}
       />
       <div className="main">
         <Header
