@@ -851,13 +851,19 @@ function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" 
 }
 
 function WipeAllDataModal({ onCancel, onConfirm, busy }) {
-  const [typed, setTyped] = useState('');
-  const canConfirm = typed.trim().toUpperCase() === 'DELETE ALL';
+  const [password, setPassword] = useState('');
+  const [showError, setShowError] = useState(false);
+  const canConfirm = password === 'smeagol';
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape' && !busy) onCancel(); }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [busy]);
+  function handleConfirmClick() {
+    if (!canConfirm) { setShowError(true); return; }
+    setShowError(false);
+    onConfirm();
+  }
   return (
     <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget && !busy) onCancel(); }}>
       <div className="modal confirm-box" style={{ maxWidth: '440px' }}>
@@ -870,20 +876,23 @@ function WipeAllDataModal({ onCancel, onConfirm, busy }) {
           not come back, and this cannot be undone.
         </p>
         <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '-10px' }}>
-          Type <strong style={{ color: 'var(--text)' }}>DELETE ALL</strong> below to confirm.
+          Enter the delete password to confirm.
         </p>
         <input
           className="input"
-          style={{ width: '100%', marginBottom: '16px' }}
-          value={typed}
-          onChange={e => setTyped(e.target.value)}
-          placeholder="Type DELETE ALL"
+          type="password"
+          style={{ width: '100%', marginBottom: showError ? '6px' : '16px' }}
+          value={password}
+          onChange={e => { setPassword(e.target.value); setShowError(false); }}
+          onKeyDown={e => { if (e.key === 'Enter') handleConfirmClick(); }}
+          placeholder="Delete password"
           disabled={busy}
           autoFocus
         />
+        {showError && <p style={{ color: 'var(--red)', fontSize: '12px', marginTop: 0, marginBottom: '16px' }}>Incorrect password.</p>}
         <div className="confirm-actions">
           <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>Cancel</button>
-          <button className="btn btn-danger" onClick={onConfirm} disabled={!canConfirm || busy}>
+          <button className="btn btn-danger" onClick={handleConfirmClick} disabled={busy}>
             <Icon name="trash" size={14} /> {busy ? 'Clearing…' : 'Clear Everything'}
           </button>
         </div>
@@ -2676,7 +2685,7 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites, onWipeAllClick, wipeBusy }) {
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites, onHiddenFooterClick }) {
   const FORMAT_CHOICES = [
     { key: 'pdf', label: 'PDF' },
     { key: 'excel', label: 'Excel' },
@@ -2816,20 +2825,13 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
             {lastBackupAt ? 'Last backup: ' + lastBackupAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No backup yet this session'}
           </div>
         </div>
-        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
-          <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: '#F87171', marginBottom: '8px' }}>Danger Zone</div>
-          <button
-            type="button"
-            className="btn"
-            style={{ width: '100%', justifyContent: 'center', background: 'transparent', border: '1px solid #7F1D1D', color: '#FCA5A5' }}
-            onClick={onWipeAllClick}
-            disabled={wipeBusy}
-          >
-            <Icon name="trash" size={14} /> {wipeBusy ? 'Clearing all data…' : 'Reset / Clear All Starter Data'}
-          </button>
-          <div className="meta" style={{ marginTop: '6px' }}>Permanently deletes ALL records in every section, on every device. Use this once to start fresh.</div>
+        <div
+          className="meta"
+          style={{ marginTop: '10px', cursor: 'default', userSelect: 'none' }}
+          onClick={onHiddenFooterClick}
+        >
+          ISS Department &middot; Internal Use Only
         </div>
-        <div className="meta" style={{ marginTop: '10px' }}>ISS Department &middot; Internal Use Only</div>
       </div>
     </aside>
   );
@@ -3010,6 +3012,18 @@ function App() {
   const [pendingWrites, setPendingWrites] = useState(0);
   const [wipeModalOpen, setWipeModalOpen] = useState(false);
   const [wipeBusy, setWipeBusy] = useState(false);
+  const footerClickRef = useRef({ count: 0, timer: null });
+
+  function handleHiddenFooterClick() {
+    const ref = footerClickRef.current;
+    ref.count += 1;
+    if (ref.timer) clearTimeout(ref.timer);
+    ref.timer = setTimeout(() => { ref.count = 0; }, 2000);
+    if (ref.count >= 5) {
+      ref.count = 0;
+      setWipeModalOpen(true);
+    }
+  }
 
   async function handleConfirmWipeAll() {
     setWipeBusy(true);
@@ -3178,8 +3192,7 @@ function App() {
         backupFormat={backupFormat}
         onBackupFormatChange={setBackupFormat}
         pendingWrites={pendingWrites}
-        onWipeAllClick={() => setWipeModalOpen(true)}
-        wipeBusy={wipeBusy}
+        onHiddenFooterClick={handleHiddenFooterClick}
       />
       <div className="main">
         <Header
