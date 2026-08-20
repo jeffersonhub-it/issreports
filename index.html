@@ -382,6 +382,12 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  // Enable offline persistence: queues any save/delete locally (IndexedDB) so it
+  // survives closing the app, shutting down the PC, or losing internet — and
+  // automatically syncs to the server once the app reopens / reconnects.
+  db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+    console.warn('Firestore offline persistence not enabled:', err.code || err.message);
+  });
 </script>
 
 <script type="text/babel" data-presets="react">
@@ -455,6 +461,17 @@ const STATUS_STYLES = {
 
 let idCounter = 1000;
 function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
+
+/* Global pending-writes tracker: warns the user with a native browser prompt if they
+   try to close the tab / shut down while a save or delete hasn't finished syncing yet. */
+window.__pendingFirestoreWrites = 0;
+window.addEventListener('beforeunload', (e) => {
+  if (window.__pendingFirestoreWrites > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
 
 const SEED_PC_REPORTS = [
   { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'CE76' },
@@ -2605,7 +2622,7 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick }) {
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites }) {
   const FORMAT_CHOICES = [
     { key: 'pdf', label: 'PDF' },
     { key: 'excel', label: 'Excel' },
@@ -2681,7 +2698,10 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
       </nav>
       <div className="sidebar-footer">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-          <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
+          <div className="status-pill" style={pendingWrites > 0 ? { color: 'var(--amber, #D97706)' } : undefined}>
+            <span className="pulse" style={pendingWrites > 0 ? { background: '#D97706' } : undefined}></span>
+            {pendingWrites > 0 ? 'SAVING...' : 'SYSTEM STATUS: ONLINE'}
+          </div>
           <button
             type="button"
             onClick={onInstallClick}
@@ -2845,17 +2865,23 @@ function useFirestoreCollection(collectionName, seedData) {
     return () => { cancelled = true; clearTimeout(timeout); unsub(); };
   }, [collectionName]);
 
+  function trackWrite(promise) {
+    window.__pendingFirestoreWrites += 1;
+    promise.finally(() => { window.__pendingFirestoreWrites = Math.max(0, window.__pendingFirestoreWrites - 1); });
+    return promise;
+  }
+
   function setData(updater) {
     const prev = dataRef.current;
     const next = typeof updater === 'function' ? updater(prev) : updater;
     const nextIds = new Set(next.map(r => r.id));
     prev.forEach(r => {
-      if (!nextIds.has(r.id)) db.collection(collectionName).doc(r.id).delete().catch(err => console.error('Delete failed:', err));
+      if (!nextIds.has(r.id)) trackWrite(db.collection(collectionName).doc(r.id).delete()).catch(err => console.error('Delete failed:', err));
     });
     next.forEach(r => {
       const old = prev.find(p => p.id === r.id);
       if (!old || JSON.stringify(old) !== JSON.stringify(r)) {
-        db.collection(collectionName).doc(r.id).set(r).catch(err => console.error('Save failed:', err));
+        trackWrite(db.collection(collectionName).doc(r.id).set(r)).catch(err => console.error('Save failed:', err));
       }
     });
   }
@@ -2901,6 +2927,14 @@ function App() {
   const errorBackupFiredRef = useRef(false);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [pendingWrites, setPendingWrites] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPendingWrites(window.__pendingFirestoreWrites || 0);
+    }, 300);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     function onBeforeInstallPrompt(e) {
@@ -3047,6 +3081,7 @@ function App() {
         lastBackupAt={lastBackupAt}
         backupFormat={backupFormat}
         onBackupFormatChange={setBackupFormat}
+        pendingWrites={pendingWrites}
       />
       <div className="main">
         <Header
