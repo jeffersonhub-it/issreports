@@ -64,6 +64,14 @@
   button:focus-visible,.nav-item:focus-visible,.icon-btn:focus-visible,.page-btn:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;}
   a{color:var(--accent-2-dark);}
 
+  /* ---------- minimal scrollbars (global) ---------- */
+  *{scrollbar-width:thin;scrollbar-color:rgba(15,23,42,.15) transparent;}
+  *::-webkit-scrollbar{width:5px;height:5px;}
+  *::-webkit-scrollbar-track{background:transparent;}
+  *::-webkit-scrollbar-corner{background:transparent;}
+  *::-webkit-scrollbar-thumb{background:rgba(15,23,42,.15);border-radius:20px;}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(15,23,42,.28);}
+
   /* ---------- layout ---------- */
   .app-shell{display:flex;min-height:100vh;}
   .overlay{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:39;display:none;}
