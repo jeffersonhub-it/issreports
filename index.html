@@ -2711,13 +2711,21 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
 
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
-      <div className="sidebar-brand">
+      <button
+        type="button"
+        className="sidebar-brand"
+        onClick={() => onSelect('dashboard')}
+        title="Go to Dashboard"
+        style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', transition: 'background .15s' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-2)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      >
         <div className="brand-mark">ISS</div>
         <div className="brand-text">
           <h2>ISS Department</h2>
           <span>MONITORING SYSTEM</span>
         </div>
-      </div>
+      </button>
       <nav className="sidebar-nav">
         {NAV_GROUPS.map((group, gi) => {
           const isCollapsed = group.collapsible && collapsedGroups[group.label];
