@@ -2817,21 +2817,34 @@ function useFirestoreCollection(collectionName, seedData) {
 
     (async () => {
       try {
-        const snap = await db.collection(collectionName).get();
-        if (!cancelled && snap.empty) {
-          const batch = db.batch();
-          seedData.forEach(item => batch.set(db.collection(collectionName).doc(item.id), item));
-          await batch.commit();
-        } else if (!cancelled && collectionName === 'posInventory' && snap.docs.some(d => !('section' in d.data()))) {
-          // One-time migration: legacy POS Monitoring records (old CTR/Monitor Serial/BIR-MIN-TIN schema)
-          // don't have a `section` field, so they no longer match the Department Store / Supermarket tabs.
-          // Replace them with the current schema so counts and tables stay accurate.
-          const delBatch = db.batch();
-          snap.docs.forEach(d => delBatch.delete(d.ref));
-          await delBatch.commit();
-          const addBatch = db.batch();
-          seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
-          await addBatch.commit();
+        const metaRef = db.collection('_meta').doc(collectionName);
+        const metaSnap = await metaRef.get();
+        if (!cancelled && !metaSnap.exists) {
+          // First time this collection has ever been touched — seed it once and
+          // permanently mark it as seeded, so future full deletions by the user
+          // are respected instead of being "refilled" with old demo data.
+          const snap = await db.collection(collectionName).get();
+          if (snap.empty) {
+            const batch = db.batch();
+            seedData.forEach(item => batch.set(db.collection(collectionName).doc(item.id), item));
+            batch.set(metaRef, { seeded: true, seededAt: new Date().toISOString() });
+            await batch.commit();
+          } else {
+            await metaRef.set({ seeded: true, seededAt: new Date().toISOString() });
+          }
+        } else if (!cancelled && collectionName === 'posInventory') {
+          const snap = await db.collection(collectionName).get();
+          if (snap.docs.some(d => !('section' in d.data()))) {
+            // One-time migration: legacy POS Monitoring records (old CTR/Monitor Serial/BIR-MIN-TIN schema)
+            // don't have a `section` field, so they no longer match the Department Store / Supermarket tabs.
+            // Replace them with the current schema so counts and tables stay accurate.
+            const delBatch = db.batch();
+            snap.docs.forEach(d => delBatch.delete(d.ref));
+            await delBatch.commit();
+            const addBatch = db.batch();
+            seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
+            await addBatch.commit();
+          }
         }
         unsub = db.collection(collectionName).onSnapshot(
           snapshot => {
