@@ -2672,15 +2672,23 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
         })}
       </nav>
       <div className="sidebar-footer">
-        <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-2-dark)', marginTop: '14px' }}
-          onClick={onInstallClick}
-        >
-          <Icon name="download" size={14} /> Install App / Add to Home Screen
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
+          <button
+            type="button"
+            onClick={onInstallClick}
+            title="Install App / Add to Home Screen"
+            style={{
+              background: 'transparent', border: 'none', color: 'var(--text-faint)',
+              padding: '4px', borderRadius: '6px', display: 'flex', cursor: 'pointer',
+              transition: 'color .15s, background .15s', flex: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.background = 'var(--ink-2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Icon name="download" size={14} />
+          </button>
+        </div>
         <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
           <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-faint)', marginBottom: '8px' }}>Data Backup</div>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
