@@ -409,6 +409,7 @@ const SELLING_AREAS = ["DEPARTMENT STORE","SUPERMARKET"];
 const TECHNICIANS = ["Mark Villanueva","Jenny Cruz","Paolo Santos","Angela Reyes","Kevin Tan"];
 const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancelled"];
 const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
+const DEVICE_TYPES = ["System Unit","Micro PC"];
 const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
 const POS_SECTIONS = ["Department Store","Supermarket"];
 function flatbedFieldLabel(section) { return section === 'Department Store' ? 'Vertical Scanner Serial' : 'Flatbed Serial'; }
@@ -468,18 +469,18 @@ const SEED_SA_REPORTS = [
 
 
 const SEED_PC_INVENTORY = [
-  { id:'PCM-1', department:'ICT', pcName:'IT-PC01', user:'Mark Villanueva', ipAddress:'10.10.1.10', macAddress:'00:1A:2B:3C:4D:01', windowsVersion:'Windows 11 Pro', productKey:'W11P-A1B2C-D3E4F-88213', motherboardModel:'ASUS PRIME B460M-A', motherboardSN:'MB-SN-88213', ramModel:'Kingston 16GB DDR4 3200MHz', ramSN:'RAM-88213X', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11001', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22001', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-10400', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
-  { id:'PCM-2', department:'AUDIT', pcName:'AUDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.11', macAddress:'00:1A:2B:3C:4D:02', windowsVersion:'Windows 10 Pro', productKey:'W10P-B2C3D-E4F5G-77012', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-77012', ramModel:'HyperX 8GB DDR4 2666MHz', ramSN:'RAM-77012Y', storageModel:'Western Digital 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11002', monitorModel:'LG 20" LED', monitor:'MON-SN-22002', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30021', processor:'Intel Core i3-10100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
-  { id:'PCM-3', department:'HRD', pcName:'HR-PC02', user:'Paolo Santos', ipAddress:'10.10.3.12', macAddress:'00:1A:2B:3C:4D:03', windowsVersion:'Windows 11 Pro', productKey:'W11P-C3D4E-F5G6H-65210', motherboardModel:'ASRock B450M', motherboardSN:'MB-SN-65210', ramModel:'Corsair 8GB DDR4 3200MHz', ramSN:'RAM-65210Z', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11003', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22003', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 3400G', gpu:'AMD Radeon Vega 11', projector:'-', status:'Active' },
-  { id:'PCM-4', department:'DS WAREHOUSE', pcName:'WHS-PC01', user:'Kevin Tan', ipAddress:'10.10.4.13', macAddress:'00:1A:2B:3C:4D:04', windowsVersion:'Windows 10 Pro', productKey:'W10P-D4E5F-G6H7I-44018', motherboardModel:'MSI H310M PRO', motherboardSN:'MB-SN-44018', ramModel:'Kingston 4GB DDR4 2400MHz', ramSN:'RAM-44018A', storageModel:'Seagate 500GB', storageType:'HDD', printerModel:'-', printer:'-', monitorModel:'AOC 19" LED', monitor:'MON-SN-22004', scannerModel:'-', scannerSN:'-', processor:'Intel Pentium Gold G5400', gpu:'Intel UHD Graphics 610', projector:'-', status:'Under Repair' },
-  { id:'PCM-5', department:'REVENUE', pcName:'REV-PC01', user:'Angela Reyes', ipAddress:'10.10.5.14', macAddress:'00:1A:2B:3C:4D:05', windowsVersion:'Windows 11 Pro', productKey:'W11P-E5F6G-H7I8J-33771', motherboardModel:'ASUS TUF B550M-Plus', motherboardSN:'MB-SN-33771', ramModel:'Corsair Vengeance 16GB DDR4 3600MHz', ramSN:'RAM-33771B', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11005', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22005', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 5600G', gpu:'AMD Radeon Vega 7', projector:'-', status:'Active' },
-  { id:'PCM-6', department:'BILLING', pcName:'BILL-PC01', user:'Mark Villanueva', ipAddress:'10.10.6.15', macAddress:'00:1A:2B:3C:4D:06', windowsVersion:'Windows 10 Pro', productKey:'W10P-F6G7H-I8J9K-51290', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-51290', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-51290C', storageModel:'Adata 256GB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11006', monitorModel:'LG 20" LED', monitor:'MON-SN-22006', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-9100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
-  { id:'PCM-7', department:'CREDIT', pcName:'CREDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.7.16', macAddress:'00:1A:2B:3C:4D:07', windowsVersion:'Windows 11 Pro', productKey:'W11P-G7H8I-J9K0L-91002', motherboardModel:'ASRock H510M-HVS', motherboardSN:'MB-SN-91002', ramModel:'HyperX 8GB DDR4 3200MHz', ramSN:'RAM-91002D', storageModel:'Kingston 480GB', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22007', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-11400', gpu:'Intel UHD Graphics 730', projector:'-', status:'Active' },
-  { id:'PCM-8', department:'ADMIN', pcName:'ADM-PC01', user:'Paolo Santos', ipAddress:'10.10.8.17', macAddress:'00:1A:2B:3C:4D:08', windowsVersion:'Windows 10 Pro', productKey:'W10P-H8I9J-K0L1M-22981', motherboardModel:'Biostar H310MHP', motherboardSN:'MB-SN-22981', ramModel:'Kingston 4GB DDR4 2133MHz', ramSN:'RAM-22981E', storageModel:'Toshiba 500GB', storageType:'HDD', printerModel:'Epson L3210', printer:'PRT-SN-11008', monitorModel:'AOC 19" LED', monitor:'MON-SN-22008', scannerModel:'-', scannerSN:'-', processor:'Intel Celeron G4930', gpu:'Intel UHD Graphics 610', projector:'-', status:'Inactive' },
-  { id:'PCM-9', department:'GA', pcName:'GA-PC01', user:'Kevin Tan', ipAddress:'10.10.9.18', macAddress:'00:1A:2B:3C:4D:09', windowsVersion:'Windows 11 Pro', productKey:'W11P-I9J0K-L1M2N-10938', motherboardModel:'ASUS ProArt B560-Creator', motherboardSN:'MB-SN-10938', ramModel:'Corsair 16GB DDR4 3200MHz', ramSN:'RAM-10938F', storageModel:'Samsung 1TB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11009', monitorModel:'LG 24" LED', monitor:'MON-SN-22009', scannerModel:'-', scannerSN:'-', processor:'Intel Core i7-11700', gpu:'Intel UHD Graphics 750', projector:'Epson EB-X06', status:'Active' },
-  { id:'PCM-10', department:'PAYROLL', pcName:'PAYROLL-PC01', user:'Angela Reyes', ipAddress:'10.10.10.19', macAddress:'00:1A:2B:3C:4D:0A', windowsVersion:'Windows 10 Pro', productKey:'W10P-J0K1L-M2N3O-30021', motherboardModel:'MSI B450M PRO-VDH', motherboardSN:'MB-SN-30021', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-30021G', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22010', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 3 3200G', gpu:'AMD Radeon Vega 8', projector:'-', status:'Active' },
-  { id:'PCM-11', department:'ICT', pcName:'IT-PC02', user:'Mark Villanueva', ipAddress:'10.10.1.20', macAddress:'00:1A:2B:3C:4D:0B', windowsVersion:'Windows 11 Pro', productKey:'W11P-K1L2M-N3O4P-40982', motherboardModel:'ASUS ROG STRIX B550-F', motherboardSN:'MB-SN-40982', ramModel:'Corsair Dominator 32GB DDR4 3600MHz', ramSN:'RAM-40982H', storageModel:'Western Digital 1TB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11011', monitorModel:'Dell 24" LED', monitor:'MON-SN-22011', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30022', processor:'Intel Core i9-11900K', gpu:'NVIDIA GTX 1660', projector:'-', status:'Active' },
-  { id:'PCM-12', department:'PAYABLES', pcName:'PAYABLES-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.21', macAddress:'00:1A:2B:3C:4D:0C', windowsVersion:'Windows 10 Pro', productKey:'W10P-L2M3N-O4P5Q-50871', motherboardModel:'Gigabyte H310M-S2', motherboardSN:'MB-SN-50871', ramModel:'Kingston 8GB DDR4 2400MHz', ramSN:'RAM-50871I', storageModel:'Seagate 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11012', monitorModel:'LG 20" LED', monitor:'MON-SN-22012', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-8100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Decommissioned' },
+  { id:'PCM-1', department:'ICT', deviceType:'System Unit', pcName:'IT-PC01', user:'Mark Villanueva', ipAddress:'10.10.1.10', macAddress:'00:1A:2B:3C:4D:01', windowsVersion:'Windows 11 Pro', productKey:'W11P-A1B2C-D3E4F-88213', motherboardModel:'ASUS PRIME B460M-A', motherboardSN:'MB-SN-88213', ramModel:'Kingston 16GB DDR4 3200MHz', ramSN:'RAM-88213X', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11001', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22001', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-10400', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-2', department:'AUDIT', deviceType:'System Unit', pcName:'AUDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.11', macAddress:'00:1A:2B:3C:4D:02', windowsVersion:'Windows 10 Pro', productKey:'W10P-B2C3D-E4F5G-77012', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-77012', ramModel:'HyperX 8GB DDR4 2666MHz', ramSN:'RAM-77012Y', storageModel:'Western Digital 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11002', monitorModel:'LG 20" LED', monitor:'MON-SN-22002', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30021', processor:'Intel Core i3-10100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-3', department:'HRD', deviceType:'System Unit', pcName:'HR-PC02', user:'Paolo Santos', ipAddress:'10.10.3.12', macAddress:'00:1A:2B:3C:4D:03', windowsVersion:'Windows 11 Pro', productKey:'W11P-C3D4E-F5G6H-65210', motherboardModel:'ASRock B450M', motherboardSN:'MB-SN-65210', ramModel:'Corsair 8GB DDR4 3200MHz', ramSN:'RAM-65210Z', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11003', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22003', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 3400G', gpu:'AMD Radeon Vega 11', projector:'-', status:'Active' },
+  { id:'PCM-4', department:'DS WAREHOUSE', deviceType:'Micro PC', pcName:'WHS-PC01', user:'Kevin Tan', ipAddress:'10.10.4.13', macAddress:'00:1A:2B:3C:4D:04', windowsVersion:'Windows 10 Pro', productKey:'W10P-D4E5F-G6H7I-44018', motherboardModel:'MSI H310M PRO', motherboardSN:'MB-SN-44018', ramModel:'Kingston 4GB DDR4 2400MHz', ramSN:'RAM-44018A', storageModel:'Seagate 500GB', storageType:'HDD', printerModel:'-', printer:'-', monitorModel:'AOC 19" LED', monitor:'MON-SN-22004', scannerModel:'-', scannerSN:'-', processor:'Intel Pentium Gold G5400', gpu:'Intel UHD Graphics 610', projector:'-', status:'Under Repair' },
+  { id:'PCM-5', department:'REVENUE', deviceType:'System Unit', pcName:'REV-PC01', user:'Angela Reyes', ipAddress:'10.10.5.14', macAddress:'00:1A:2B:3C:4D:05', windowsVersion:'Windows 11 Pro', productKey:'W11P-E5F6G-H7I8J-33771', motherboardModel:'ASUS TUF B550M-Plus', motherboardSN:'MB-SN-33771', ramModel:'Corsair Vengeance 16GB DDR4 3600MHz', ramSN:'RAM-33771B', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11005', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22005', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 5600G', gpu:'AMD Radeon Vega 7', projector:'-', status:'Active' },
+  { id:'PCM-6', department:'BILLING', deviceType:'System Unit', pcName:'BILL-PC01', user:'Mark Villanueva', ipAddress:'10.10.6.15', macAddress:'00:1A:2B:3C:4D:06', windowsVersion:'Windows 10 Pro', productKey:'W10P-F6G7H-I8J9K-51290', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-51290', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-51290C', storageModel:'Adata 256GB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11006', monitorModel:'LG 20" LED', monitor:'MON-SN-22006', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-9100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-7', department:'CREDIT', deviceType:'System Unit', pcName:'CREDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.7.16', macAddress:'00:1A:2B:3C:4D:07', windowsVersion:'Windows 11 Pro', productKey:'W11P-G7H8I-J9K0L-91002', motherboardModel:'ASRock H510M-HVS', motherboardSN:'MB-SN-91002', ramModel:'HyperX 8GB DDR4 3200MHz', ramSN:'RAM-91002D', storageModel:'Kingston 480GB', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22007', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-11400', gpu:'Intel UHD Graphics 730', projector:'-', status:'Active' },
+  { id:'PCM-8', department:'ADMIN', deviceType:'System Unit', pcName:'ADM-PC01', user:'Paolo Santos', ipAddress:'10.10.8.17', macAddress:'00:1A:2B:3C:4D:08', windowsVersion:'Windows 10 Pro', productKey:'W10P-H8I9J-K0L1M-22981', motherboardModel:'Biostar H310MHP', motherboardSN:'MB-SN-22981', ramModel:'Kingston 4GB DDR4 2133MHz', ramSN:'RAM-22981E', storageModel:'Toshiba 500GB', storageType:'HDD', printerModel:'Epson L3210', printer:'PRT-SN-11008', monitorModel:'AOC 19" LED', monitor:'MON-SN-22008', scannerModel:'-', scannerSN:'-', processor:'Intel Celeron G4930', gpu:'Intel UHD Graphics 610', projector:'-', status:'Inactive' },
+  { id:'PCM-9', department:'GA', deviceType:'Micro PC', pcName:'GA-PC01', user:'Kevin Tan', ipAddress:'10.10.9.18', macAddress:'00:1A:2B:3C:4D:09', windowsVersion:'Windows 11 Pro', productKey:'W11P-I9J0K-L1M2N-10938', motherboardModel:'ASUS ProArt B560-Creator', motherboardSN:'MB-SN-10938', ramModel:'Corsair 16GB DDR4 3200MHz', ramSN:'RAM-10938F', storageModel:'Samsung 1TB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11009', monitorModel:'LG 24" LED', monitor:'MON-SN-22009', scannerModel:'-', scannerSN:'-', processor:'Intel Core i7-11700', gpu:'Intel UHD Graphics 750', projector:'Epson EB-X06', status:'Active' },
+  { id:'PCM-10', department:'PAYROLL', deviceType:'System Unit', pcName:'PAYROLL-PC01', user:'Angela Reyes', ipAddress:'10.10.10.19', macAddress:'00:1A:2B:3C:4D:0A', windowsVersion:'Windows 10 Pro', productKey:'W10P-J0K1L-M2N3O-30021', motherboardModel:'MSI B450M PRO-VDH', motherboardSN:'MB-SN-30021', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-30021G', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22010', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 3 3200G', gpu:'AMD Radeon Vega 8', projector:'-', status:'Active' },
+  { id:'PCM-11', department:'ICT', deviceType:'Micro PC', pcName:'IT-PC02', user:'Mark Villanueva', ipAddress:'10.10.1.20', macAddress:'00:1A:2B:3C:4D:0B', windowsVersion:'Windows 11 Pro', productKey:'W11P-K1L2M-N3O4P-40982', motherboardModel:'ASUS ROG STRIX B550-F', motherboardSN:'MB-SN-40982', ramModel:'Corsair Dominator 32GB DDR4 3600MHz', ramSN:'RAM-40982H', storageModel:'Western Digital 1TB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11011', monitorModel:'Dell 24" LED', monitor:'MON-SN-22011', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30022', processor:'Intel Core i9-11900K', gpu:'NVIDIA GTX 1660', projector:'-', status:'Active' },
+  { id:'PCM-12', department:'PAYABLES', deviceType:'System Unit', pcName:'PAYABLES-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.21', macAddress:'00:1A:2B:3C:4D:0C', windowsVersion:'Windows 10 Pro', productKey:'W10P-L2M3N-O4P5Q-50871', motherboardModel:'Gigabyte H310M-S2', motherboardSN:'MB-SN-50871', ramModel:'Kingston 8GB DDR4 2400MHz', ramSN:'RAM-50871I', storageModel:'Seagate 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11012', monitorModel:'LG 20" LED', monitor:'MON-SN-22012', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-8100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Decommissioned' },
 ];
 
 const SEED_POS_INVENTORY = [
@@ -596,7 +597,7 @@ function generateBackupPdf(collections) {
     { title: 'NTT Reports', columns: GHL_COLUMNS, rows: collections.ghlReports },
     { title: 'NTT Terminal Registry', columns: [['ctr','CTR'],['terminal','Terminal'],['serialNumber','Serial Number']], rows: collections.ghlTerminals },
     { title: 'Back Office — Device & Specifications', columns: [
-        ['department','Department'],['pcName','PC Name'],['user','User'],['ipAddress','IP Address'],['macAddress','MAC Address'],
+        ['department','Department'],['deviceType','Device Type'],['pcName','PC Name'],['user','User'],['ipAddress','IP Address'],['macAddress','MAC Address'],
         ['windowsVersion','Windows Version'],['motherboardModel','Motherboard Model'],['motherboardSN','Motherboard SN'],
         ['ramModel','RAM Model'],['ramSN','RAM SN'],['storageModel','Storage Model'],['storageType','Storage Type'],
         ['printerModel','Printer Model'],['printer','Printer SN'],['monitorModel','Monitor Model'],['monitor','Monitor SN'],
@@ -850,11 +851,23 @@ function Legend({ data }) {
 /* =========================================================
    KPI / PANEL COMPONENTS
    ========================================================= */
-function KpiCard({ icon, label, value, accentBg, accentColor }) {
+function KpiCard({ icon, label, value, accentBg, accentColor, onIconClick }) {
   return (
     <div className="card kpi-card">
       <div className="kpi-top">
-        <div className="kpi-icon" style={{ background: accentBg, color: accentColor }}><Icon name={icon} size={17} /></div>
+        {onIconClick ? (
+          <button
+            type="button"
+            className="kpi-icon"
+            style={{ background: accentBg, color: accentColor, border: 'none', cursor: 'pointer' }}
+            onClick={onIconClick}
+            title="Click to switch view"
+          >
+            <Icon name={icon} size={17} />
+          </button>
+        ) : (
+          <div className="kpi-icon" style={{ background: accentBg, color: accentColor }}><Icon name={icon} size={17} /></div>
+        )}
       </div>
       <div className="kpi-value">{value}</div>
       <div className="kpi-label">{label}</div>
@@ -914,17 +927,35 @@ function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
     return combined.slice(0, 6);
   }, [pcReports]);
 
+  // System Unit Count KPI: cycles Total -> Micro PC -> System Unit -> Total
+  const [pcModeIdx, setPcModeIdx] = useState(0);
+  const pcModes = useMemo(() => ([
+    { label: 'System Unit Count', value: pcInventory.length },
+    { label: 'Micro PC', value: pcInventory.filter(p => p.deviceType === 'Micro PC').length },
+    { label: 'System Unit', value: pcInventory.filter(p => p.deviceType === 'System Unit').length },
+  ]), [pcInventory]);
+  const pcMode = pcModes[pcModeIdx % pcModes.length];
+
+  // POS Count KPI: cycles Total -> SP -> DS -> Total
+  const [posModeIdx, setPosModeIdx] = useState(0);
+  const posModes = useMemo(() => ([
+    { label: 'POS Count', value: posInventory.length },
+    { label: 'SP', value: posInventory.filter(p => p.section === 'Supermarket').length },
+    { label: 'DS', value: posInventory.filter(p => p.section === 'Department Store').length },
+  ]), [posInventory]);
+  const posMode = posModes[posModeIdx % posModes.length];
+
   return (
     <div>
       <div className="kpi-row">
         <KpiCard icon="pc" label="Total PC Reports" value={pcReports.length} accentBg="var(--accent-soft)" accentColor="var(--accent-dark)" />
         <KpiCard icon="store" label="Selling Area Reports" value={saReports.length} accentBg="var(--accent-2-soft)" accentColor="var(--accent-2-dark)" />
-        <KpiCard icon="server" label="PCs Monitored" value={pcInventory.length} accentBg="var(--violet-bg)" accentColor="var(--violet-text)" />
-        <KpiCard icon="pos" label="POS Terminals Monitored" value={posInventory.length} accentBg="var(--orange-bg)" accentColor="var(--orange-text)" />
+        <KpiCard icon="server" label={pcMode.label} value={pcMode.value} accentBg="var(--violet-bg)" accentColor="var(--violet-text)" onIconClick={() => setPcModeIdx(i => i + 1)} />
+        <KpiCard icon="pos" label={posMode.label} value={posMode.value} accentBg="var(--orange-bg)" accentColor="var(--orange-text)" onIconClick={() => setPosModeIdx(i => i + 1)} />
       </div>
 
       <div className="panel-grid">
-        <SectionPanel variant="pc" icon="pc" title="PC Reports Monitoring" subtitle="Trouble reports logged for back-office & admin department computers">
+        <SectionPanel variant="pc" icon="pc" title="Back Office Reports" subtitle="Trouble reports logged for back-office & admin department computers">
           <div className="mini-kpi-row">
             <MiniKpi label="Total Reports" value={pcReports.length} />
             <MiniKpi label="This Month" value={pcThisMonth} />
@@ -1168,7 +1199,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
    ========================================================= */
 function PcFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    department: DEPARTMENTS[0], pcName: '', user: '', ipAddress: '', macAddress: '',
+    department: DEPARTMENTS[0], deviceType: DEVICE_TYPES[0], pcName: '', user: '', ipAddress: '', macAddress: '',
     windowsVersion: OS_VERSIONS[0], productKey: '',
     motherboardModel: '', motherboardSN: '',
     ramModel: '', ramSN: '',
@@ -1192,6 +1223,11 @@ function PcFormModal({ record, onClose, onSave }) {
         <Field label="Department" required>
           <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
             {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Device Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.deviceType} onChange={e => update('deviceType', e.target.value)}>
+            {DEVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </Field>
         <Field label="PC Name" required><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. ADMIN-PC01" required /></Field>
@@ -1251,6 +1287,7 @@ function PcFormModal({ record, onClose, onSave }) {
 
 function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
   const [deptFilter, setDeptFilter] = useState('All');
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortKey, setSortKey] = useState('pcName');
   const [sortDir, setSortDir] = useState('asc');
@@ -1265,8 +1302,9 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       const q = query.trim().toLowerCase();
       const matches = !q || r.pcName.toLowerCase().includes(q) || r.ipAddress.toLowerCase().includes(q) || r.department.toLowerCase().includes(q) || r.macAddress.toLowerCase().includes(q) || (r.user || '').toLowerCase().includes(q);
       const md = deptFilter === 'All' || r.department === deptFilter;
+      const mdt = deviceTypeFilter === 'All' || r.deviceType === deviceTypeFilter;
       const ms = statusFilter === 'All' || r.status === statusFilter;
-      return matches && md && ms;
+      return matches && md && mdt && ms;
     });
     rows = rows.slice().sort((a, b) => {
       let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
@@ -1275,9 +1313,9 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       return 0;
     });
     return rows;
-  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+  }, [data, query, deptFilter, deviceTypeFilter, statusFilter, sortKey, sortDir]);
 
-  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  useEffect(() => { setPage(1); }, [query, deptFilter, deviceTypeFilter, statusFilter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -1310,6 +1348,10 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
           <option value="All">All Departments</option>
           {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
+        <select className="select" value={deviceTypeFilter} onChange={e => setDeviceTypeFilter(e.target.value)}>
+          <option value="All">All Device Types</option>
+          {DEVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
           {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -1323,6 +1365,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
             <thead>
               <tr>
                 <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Device Type" sortKey="deviceType" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <SortableTh label="PC Name" sortKey="pcName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <th>User</th>
                 <SortableTh label="IP Address" sortKey="ipAddress" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -1342,10 +1385,11 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan="16" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan="17" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td>{r.department}</td>
+                  <td>{r.deviceType || '-'}</td>
                   <td style={{ fontWeight: 600 }}>{r.pcName}</td>
                   <td>{r.user || '-'}</td>
                   <td className="mono">{r.ipAddress}</td>
@@ -2604,15 +2648,15 @@ function App() {
           <div className="ticker-track">
             <span className="tick-item"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
             <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
-            <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
-            <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} System Unit Count</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
             <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
             <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
-            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} PCs Monitored</span>
-            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Terminals</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} System Unit Count</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
