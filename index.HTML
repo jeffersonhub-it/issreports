@@ -350,6 +350,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCfOeFsru1RpbxQ_oGpFpyEKM6Iv_FQETk",
@@ -582,16 +583,8 @@ function pdfCell(v) {
   return String(v);
 }
 
-function generateBackupPdf(collections) {
-  if (!window.jspdf || !window.jspdf.jsPDF) {
-    throw new Error('PDF library not loaded');
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  const now = new Date();
-  const stamp = now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  const sections = [
+function buildBackupSections(collections) {
+  return [
     { title: 'Back Office Reports', columns: REPORT_COLUMNS, rows: collections.pcReports },
     { title: 'Selling Area Reports', columns: SA_REPORT_COLUMNS, rows: collections.saReports },
     { title: 'NTT Reports', columns: GHL_COLUMNS, rows: collections.ghlReports },
@@ -610,6 +603,22 @@ function generateBackupPdf(collections) {
       ], rows: collections.posInventory },
     { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
   ];
+}
+
+function backupFilenameBase(now) {
+  return 'ISS_Backup_' + now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 8).replace(/:/g, '');
+}
+
+function generateBackupPdf(collections) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error('PDF library not loaded');
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const now = new Date();
+  const stamp = now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const sections = buildBackupSections(collections);
 
   // Cover page
   doc.setFontSize(20);
@@ -652,8 +661,54 @@ function generateBackupPdf(collections) {
     });
   });
 
-  const filename = 'ISS_Backup_' + now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 8).replace(/:/g, '') + '.pdf';
+  const filename = backupFilenameBase(now) + '.pdf';
   doc.save(filename);
+  return filename;
+}
+
+function generateBackupExcel(collections) {
+  if (!window.XLSX) {
+    throw new Error('Excel library not loaded');
+  }
+  const now = new Date();
+  const sections = buildBackupSections(collections);
+  const wb = XLSX.utils.book_new();
+
+  // Cover / summary sheet
+  const summaryRows = [
+    ['ISS Department Monitoring System'],
+    ['Full Data Backup'],
+    ['Generated: ' + now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })],
+    [],
+    ['Contents', 'Records'],
+  ];
+  sections.forEach(s => summaryRows.push([s.title, s.rows.length]));
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+  summarySheet['!cols'] = [{ wch: 38 }, { wch: 12 }];
+  XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+
+  // One sheet per section
+  const usedNames = {};
+  sections.forEach(sec => {
+    const header = sec.columns.map(c => c[1]);
+    const rows = sec.rows.map(r => sec.columns.map(c => {
+      const v = r[c[0]];
+      return (v === undefined || v === null) ? '' : v;
+    }));
+    const sheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+    sheet['!cols'] = sec.columns.map(() => ({ wch: 18 }));
+    let name = sec.title.replace(/[\\/*?:\[\]]/g, '').slice(0, 31) || 'Sheet';
+    if (usedNames[name]) {
+      usedNames[name] += 1;
+      name = (name.slice(0, 28) + ' ' + usedNames[name]).slice(0, 31);
+    } else {
+      usedNames[name] = 1;
+    }
+    XLSX.utils.book_append_sheet(wb, sheet, name);
+  });
+
+  const filename = backupFilenameBase(now) + '.xlsx';
+  XLSX.writeFile(wb, filename);
   return filename;
 }
 
@@ -2319,7 +2374,13 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt }) {
+function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange }) {
+  const FORMAT_CHOICES = [
+    { key: 'pdf', label: 'PDF' },
+    { key: 'excel', label: 'Excel' },
+    { key: 'both', label: 'Both' },
+  ];
+  const backupLabel = { pdf: 'PDF', excel: 'Excel', both: 'PDF + Excel' }[backupFormat] || 'PDF';
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand">
@@ -2353,13 +2414,32 @@ function Sidebar({ active, activeLoc, onSelect, open, pcCount, posCount, locCoun
         <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
         <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
           <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-faint)', marginBottom: '8px' }}>Data Backup</div>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+            {FORMAT_CHOICES.map(f => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => onBackupFormatChange(f.key)}
+                disabled={backupBusy}
+                style={{
+                  flex: 1, textAlign: 'center', fontSize: '11px', fontWeight: 600, padding: '6px 4px', borderRadius: '7px',
+                  border: '1px solid ' + (backupFormat === f.key ? 'var(--accent)' : 'var(--ink-border)'),
+                  background: backupFormat === f.key ? 'var(--accent-dark)' : 'var(--ink-2)',
+                  color: backupFormat === f.key ? '#fff' : '#B7C2D6',
+                  cursor: backupBusy ? 'default' : 'pointer',
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           <button
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-dark)', marginBottom: '8px' }}
             onClick={onBackupNow}
             disabled={backupBusy}
           >
-            <Icon name="box" size={14} /> {backupBusy ? 'Generating PDF…' : 'Backup All Data (PDF)'}
+            <Icon name="box" size={14} /> {backupBusy ? 'Generating ' + backupLabel + '…' : 'Backup All Data (' + backupLabel + ')'}
           </button>
           <select
             className="select"
@@ -2528,6 +2608,7 @@ function App() {
   const [clock, setClock] = useState(new Date());
   const [backupBusy, setBackupBusy] = useState(false);
   const [autoBackupMinutes, setAutoBackupMinutes] = useState(0);
+  const [backupFormat, setBackupFormat] = useState('pdf');
   const [lastBackupAt, setLastBackupAt] = useState(null);
   const errorBackupFiredRef = useRef(false);
 
@@ -2549,15 +2630,20 @@ function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
   }
 
-  function runBackup(silent) {
+  function runBackup(silent, format) {
+    const fmt = format || backupFormat;
     setBackupBusy(true);
     try {
-      generateBackupPdf({ pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory });
+      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory };
+      const labels = [];
+      if (fmt === 'pdf' || fmt === 'both') { generateBackupPdf(collections); labels.push('PDF'); }
+      if (fmt === 'excel' || fmt === 'both') { generateBackupExcel(collections); labels.push('Excel'); }
       setLastBackupAt(new Date());
-      addToast(silent ? 'Auto-backup PDF downloaded' : 'Backup PDF downloaded successfully', 'success');
+      const what = labels.join(' & ');
+      addToast(silent ? `Auto-backup ${what} downloaded` : `Backup ${what} downloaded successfully`, 'success');
     } catch (err) {
       console.error('Backup failed:', err);
-      addToast('Backup failed — PDF library did not load. Check your internet connection.', 'danger');
+      addToast('Backup failed — a required library did not load. Check your internet connection.', 'danger');
     } finally {
       setBackupBusy(false);
     }
@@ -2567,7 +2653,7 @@ function App() {
     if (!autoBackupMinutes) return;
     const t = setInterval(() => runBackup(true), autoBackupMinutes * 60 * 1000);
     return () => clearInterval(t);
-  }, [autoBackupMinutes, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory]);
+  }, [autoBackupMinutes, backupFormat, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory]);
 
   useEffect(() => {
     if (connectionError && !errorBackupFiredRef.current && allReady) {
@@ -2633,6 +2719,8 @@ function App() {
         autoBackupMinutes={autoBackupMinutes}
         onAutoBackupChange={(mins) => { setAutoBackupMinutes(mins); addToast(mins ? `Auto-backup enabled — every ${mins} min` : 'Auto-backup disabled', 'success'); }}
         lastBackupAt={lastBackupAt}
+        backupFormat={backupFormat}
+        onBackupFormatChange={setBackupFormat}
       />
       <div className="main">
         <Header
