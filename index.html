@@ -1,0 +1,3108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ISS Department Monitoring System</title>
+
+<!-- PWA / Add to Home Screen -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0B1220" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="ISS Monitoring" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220;
+    --ink-2:#151F35;
+    --ink-3:#1E2A44;
+    --ink-border:#26314A;
+    --accent:#2DD4BF;
+    --accent-dark:#0D9488;
+    --accent-soft:#CCFBF1;
+    --accent-2:#3B82F6;
+    --accent-2-dark:#1D4ED8;
+    --accent-2-soft:#DBEAFE;
+    --canvas:#EEF2F7;
+    --surface:#FFFFFF;
+    --border:#E2E8F0;
+    --text:#0F172A;
+    --text-muted:#64748B;
+    --text-faint:#94A3B8;
+    --green:#16A34A;--green-bg:#DCFCE7;--green-text:#166534;
+    --amber:#D97706;--amber-bg:#FEF3C7;--amber-text:#92400E;
+    --blue:#2563EB;--blue-bg:#DBEAFE;--blue-text:#1E40AF;
+    --violet:#7C3AED;--violet-bg:#EDE9FE;--violet-text:#5B21B6;
+    --red:#DC2626;--red-bg:#FEE2E2;--red-text:#991B1B;
+    --orange:#EA580C;--orange-bg:#FFEDD5;--orange-text:#9A3412;
+    --gray-bg:#F1F5F9;--gray-text:#475569;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 6px 16px rgba(15,23,42,.06);
+    --shadow-md:0 4px 10px rgba(15,23,42,.06), 0 10px 24px rgba(15,23,42,.08);
+    --shadow-lg:0 20px 60px rgba(2,6,23,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--canvas);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  button:focus-visible,.nav-item:focus-visible,.icon-btn:focus-visible,.page-btn:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;}
+  a{color:var(--accent-2-dark);}
+
+  /* ---------- layout ---------- */
+  .app-shell{display:flex;min-height:100vh;}
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:39;display:none;}
+  .main{flex:1;display:flex;flex-direction:column;min-height:100vh;margin-left:264px;min-width:0;}
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    width:264px;background:var(--ink);color:#CBD5E1;position:fixed;top:0;left:0;bottom:0;
+    display:flex;flex-direction:column;z-index:40;border-right:1px solid var(--ink-border);
+  }
+  .sidebar-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ink-border);}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:#04120F;font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:15px;flex:none;
+  }
+  .brand-text h2{color:#fff;font-size:15px;line-height:1.2;}
+  .brand-text span{font-size:11px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
+  .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent;}
+  .sidebar-nav::-webkit-scrollbar{width:5px;}
+  .sidebar-nav::-webkit-scrollbar-track{background:transparent;}
+  .sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:20px;}
+  .sidebar-nav::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.32);}
+  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:10px 12px 6px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;border:none;background:transparent;width:100%;
+    color:#B7C2D6;text-align:left;font-size:13.5px;font-weight:500;position:relative;transition:background .15s,color .15s;
+  }
+  .nav-item .nav-ic{display:flex;color:#7C8AA8;transition:color .15s;}
+  .nav-item:hover{background:var(--ink-2);color:#fff;}
+  .nav-item:hover .nav-ic{color:var(--accent);}
+  .nav-item.active{background:var(--ink-3);color:#fff;}
+  .nav-item.active .nav-ic{color:var(--accent);}
+  .nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--accent);}
+  .nav-item-badge{margin-left:auto;font-size:10.5px;font-family:'IBM Plex Mono',monospace;background:var(--ink-2);color:var(--text-faint);padding:2px 7px;border-radius:20px;}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--ink-border);}
+  .status-pill{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8DF0D8;}
+  .status-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(45,212,191,.6);animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,212,191,.55);}70%{box-shadow:0 0 0 7px rgba(45,212,191,0);}100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}}
+  .sidebar-footer .meta{margin-top:6px;font-size:10.5px;color:var(--text-faint);}
+
+  /* ---------- header ---------- */
+  .header{
+    background:var(--surface);border-bottom:1px solid var(--border);padding:14px 26px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;position:sticky;top:0;z-index:20;flex-wrap:wrap;
+  }
+  .header-left{display:flex;align-items:center;gap:14px;min-width:0;}
+  .menu-btn{display:none;background:var(--gray-bg);border:none;border-radius:8px;padding:8px;color:var(--text);}
+  .header-icon{width:38px;height:38px;border-radius:10px;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;}
+  .header-title-wrap{display:flex;align-items:center;gap:12px;min-width:0;}
+  .header h1{font-size:18px;color:var(--text);white-space:nowrap;}
+  .header p{margin:1px 0 0;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .header-search{width:280px;}
+  .clock-chip,.user-chip{
+    display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);background:var(--gray-bg);
+    padding:7px 11px;border-radius:20px;white-space:nowrap;font-family:'IBM Plex Mono',monospace;
+  }
+  .user-chip{font-family:'Inter',sans-serif;font-weight:600;color:var(--text);}
+
+  /* ---------- ticker ---------- */
+  .ticker{
+    background:var(--ink);color:#CBD5E1;padding:7px 0;display:flex;align-items:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;overflow:hidden;position:relative;
+  }
+  .ticker-track{display:flex;gap:22px;align-items:center;flex:none;padding-left:26px;animation:tickerScroll 26s linear infinite;}
+  .ticker:hover .ticker-track{animation-play-state:paused;}
+  @keyframes tickerScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .tick-item{display:flex;align-items:center;gap:7px;color:#D6DEEC;flex:none;}
+  .tick-item .dot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .tick-item.muted{color:var(--text-faint);}
+
+  /* ---------- content ---------- */
+  .content{padding:24px 26px 60px;flex:1;min-width:0;}
+
+  /* ---------- generic components ---------- */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);transition:box-shadow .15s,border-color .15s;}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+  .kpi-card{padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+  .kpi-card:hover{box-shadow:var(--shadow-md);border-color:#D7DEE8;}
+  .kpi-top{display:flex;align-items:center;justify-content:space-between;}
+  .kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .kpi-value{font-family:'Space Grotesk',sans-serif;font-size:27px;font-weight:700;color:var(--text);line-height:1.1;}
+  .kpi-label{font-size:12.5px;color:var(--text-muted);font-weight:500;}
+
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head-bar{height:4px;width:100%;background:var(--accent);}
+  .panel.sa .panel-head-bar{background:var(--accent-2);}
+  .panel-body{padding:20px 22px 22px;}
+  .panel-title-row{display:flex;align-items:center;gap:11px;margin-bottom:2px;}
+  .panel-ic{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;flex:none;}
+  .panel.sa .panel-ic{background:var(--accent-2-soft);color:var(--accent-2-dark);}
+  .panel-title-row h3{font-size:15.5px;}
+  .panel-sub{font-size:12px;color:var(--text-muted);margin:2px 0 16px 43px;}
+
+  .mini-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .mini-kpi{background:var(--gray-bg);border-radius:9px;padding:11px 13px;}
+  .mini-kpi .mv{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .mini-kpi .ml{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .trend-up{color:var(--green);}
+  .trend-down{color:var(--red);}
+  .trend-flat{color:var(--text-muted);}
+
+  .chart-row{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;}
+  .chart-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:10px;font-weight:600;}
+  .chart-col{min-width:0;}
+  .donut-col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .legend{display:flex;flex-direction:column;gap:6px;width:100%;}
+  .legend-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);}
+  .legend-row .sw{width:9px;height:9px;border-radius:2px;flex:none;}
+  .legend-row .lv{margin-left:auto;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace;}
+
+  .recent-card{padding:0;margin-bottom:6px;}
+  .card-header{padding:16px 22px;border-bottom:1px solid var(--border);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;}
+  .recent-row{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--border);font-size:13px;transition:background .15s;}
+  .recent-row:hover{background:#FAFBFD;}
+  .recent-row:last-child{border-bottom:none;}
+  .recent-tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;flex:none;}
+  .recent-tag.pc{background:var(--accent-soft);color:var(--accent-dark);}
+  .recent-tag.sa{background:var(--accent-2-soft);color:var(--accent-2-dark);}
+  .recent-dept{font-weight:600;flex:none;width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .recent-problem{color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .recent-date{color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:11.5px;flex:none;}
+
+  /* ---------- toolbar / table ---------- */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);}
+  .toolbar .select{min-width:170px;}
+  .input-wrap{position:relative;display:flex;align-items:center;}
+  .input-wrap .ic-search{position:absolute;left:11px;color:var(--text-faint);pointer-events:none;}
+  .input-wrap input{padding:9px 12px 9px 34px;width:100%;}
+  .input,.select,.textarea{
+    border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:#fff;color:var(--text);
+    outline:none;transition:border-color .15s, box-shadow .15s;
+  }
+  .input:hover,.select:hover,.textarea:hover{border-color:#CBD5E1;}
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .textarea{resize:vertical;width:100%;font-family:inherit;}
+  .select{
+    min-width:150px;appearance:none;-webkit-appearance:none;padding-right:32px;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
+  .header-search input{border-color:var(--border);}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;}
+  .btn-primary{background:var(--ink);color:#fff;box-shadow:0 1px 2px rgba(11,18,32,.15);}
+  .btn-primary:hover{background:var(--ink-3);}
+  .btn-secondary{background:#fff;color:var(--text);border-color:var(--border);}
+  .btn-secondary:hover{background:var(--gray-bg);border-color:#CBD5E1;}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#B91C1C;}
+  .confirm-actions .btn-danger:focus{outline:3px solid #B91C1C;outline-offset:2px;box-shadow:0 0 0 4px rgba(220,38,38,.22);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .table-card{padding:0;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px;}
+  table.table-compact{min-width:680px;}
+
+  /* ---------- inventory location tabs ---------- */
+  .loc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .loc-tab{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);}
+  .loc-tab:hover{border-color:#CBD5E1;color:var(--text);}
+  .loc-tab.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .loc-tab .loc-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:var(--gray-bg);color:var(--text-muted);padding:1px 7px;border-radius:20px;}
+  .loc-tab.active .loc-count{background:rgba(255,255,255,.16);color:#fff;}
+  thead th{
+    text-align:left;padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);
+    cursor:pointer;user-select:none;white-space:nowrap;font-weight:700;position:sticky;top:0;z-index:1;
+  }
+  thead th:hover{color:var(--text);background:#F1F5F9;}
+  thead th:last-child{cursor:default;}
+  thead th:last-child:hover{color:var(--text-muted);background:#F8FAFC;}
+  .th-inner{display:inline-flex;align-items:center;gap:5px;}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text);line-height:1.4;}
+  tbody tr:nth-child(even) td{background:#FBFCFE;}
+  tbody tr:hover td{background:var(--accent-soft);}
+  tbody tr:last-child td{border-bottom:none;}
+  .truncate{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .truncate-sm{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cell-sub{font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .empty-row{text-align:center;color:var(--text-faint);padding:44px 16px !important;font-size:13px;}
+  .empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .empty-state .empty-ic{width:36px;height:36px;border-radius:10px;background:var(--gray-bg);color:var(--text-faint);display:flex;align-items:center;justify-content:center;}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{background:var(--gray-bg);border:none;border-radius:7px;padding:6px;color:var(--text-muted);display:flex;transition:background .15s,color .15s;}
+  .icon-btn:hover{background:var(--accent-dark);color:#fff;}
+  .icon-btn.danger:hover{background:var(--red);color:#fff;}
+
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+  .pagination .info{font-size:12px;color:var(--text-muted);}
+  .pagination .controls{display:flex;gap:6px;align-items:center;}
+  .page-btn{border:1px solid var(--border);background:#fff;border-radius:7px;padding:6px 11px;font-size:12.5px;color:var(--text);transition:background .15s,border-color .15s;}
+  .page-btn:hover:not(:disabled):not(.current){background:var(--gray-bg);border-color:#CBD5E1;}
+  .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .page-btn.current{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* ---------- badges ---------- */
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .badge .bdot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .status-select{
+    appearance:none;-webkit-appearance:none;border:1px solid transparent;border-radius:999px;
+    padding:4px 26px 4px 10px;font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    background-repeat:no-repeat;background-position:right 8px center;background-size:11px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    transition:box-shadow .15s,border-color .15s;
+  }
+  .status-select:hover{border-color:rgba(15,23,42,.18);}
+  .status-select:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px var(--accent-2-soft);}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:2;}
+  .modal-head h3{font-size:16.5px;}
+  .modal-close{background:var(--gray-bg);border:none;border-radius:8px;padding:7px;color:var(--text-muted);}
+  .modal-close:hover{background:var(--red-bg);color:var(--red);}
+  .modal-body{padding:20px 22px 22px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .field-full{grid-column:1/-1;}
+  .field label{font-size:12px;font-weight:600;color:var(--text-muted);}
+  .field .req{color:var(--red);margin-left:3px;}
+  .key-field{display:flex;gap:6px;align-items:center;}
+  .key-field .input{flex:1;min-width:0;}
+  .form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;margin-top:6px;padding-top:14px;border-top:1px solid var(--border);}
+  .form-section-label{grid-column:1/-1;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-faint);margin:4px 0 -4px;}
+  .form-section-label:first-child{margin-top:0;}
+
+  /* ---------- confirm dialog ---------- */
+  .confirm-box{max-width:400px;padding:24px;text-align:left;}
+  .confirm-icon{width:44px;height:44px;border-radius:12px;background:var(--red-bg);color:var(--red);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .confirm-box h3{font-size:16px;margin-bottom:8px;}
+  .confirm-box p{font-size:13.5px;color:var(--text-muted);line-height:1.5;margin:0 0 20px;}
+  .confirm-actions{display:flex;justify-content:flex-end;gap:10px;}
+
+  /* ---------- toast ---------- */
+  .toast-wrap{position:fixed;bottom:22px;right:22px;left:22px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:200;pointer-events:none;}
+  .toast{
+    background:var(--ink);color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;
+    box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;min-width:230px;max-width:100%;animation:toastIn .2s ease;border-left:3px solid var(--accent);pointer-events:auto;
+  }
+  .toast.danger{border-left-color:var(--red);}
+  .toast.success{border-left-color:var(--accent);}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1180px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .panel-grid{grid-template-columns:1fr;}
+    .chart-row{grid-template-columns:1fr;}
+  }
+  @media (max-width:960px){
+    .sidebar{transform:translateX(-100%);transition:transform .22s ease;}
+    .sidebar.open{transform:translateX(0);}
+    .overlay.show{display:block;}
+    .main{margin-left:0;}
+    .menu-btn{display:flex;}
+    .header-search{width:200px;}
+  }
+  @media (max-width:640px){
+    .kpi-row{grid-template-columns:1fr;}
+    .mini-kpi-row{grid-template-columns:1fr;}
+    .header-search{display:none;}
+    .content{padding:16px 12px 50px;}
+    .header{padding:12px 14px;}
+    .header-right{gap:8px;width:100%;justify-content:space-between;}
+    .ticker{padding:7px 0;}
+    .ticker-track{gap:16px;padding-left:14px;}
+    .toolbar{padding:10px;}
+    .toolbar .select{flex:1 1 140px;min-width:0;}
+    .form-grid{grid-template-columns:1fr;}
+    .modal-overlay{padding:0;align-items:flex-end;}
+    .modal{border-radius:16px 16px 0 0;max-height:92vh;}
+    .modal-body{padding:16px 16px 18px;}
+    .pagination{flex-direction:column;align-items:flex-start;}
+    .kpi-value{font-size:23px;}
+    .clock-chip{display:none;}
+    .recent-row{flex-wrap:wrap;row-gap:4px;}
+    .recent-dept{width:auto;}
+    .recent-problem{width:100%;order:3;white-space:normal;}
+    .recent-date{margin-left:auto;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfOeFsru1RpbxQ_oGpFpyEKM6Iv_FQETk",
+    authDomain: "issreport.firebaseapp.com",
+    projectId: "issreport",
+    storageBucket: "issreport.firebasestorage.app",
+    messagingSenderId: "591812103536",
+    appId: "1:591812103536:web:07dbd24b145b439168d3b5",
+    measurementId: "G-EMTQD3G1PS"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+/* =========================================================
+   ICONS
+   ========================================================= */
+function Icon({ name, size = 18, className = '' }) {
+  const c = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", className };
+  switch (name) {
+    case 'dashboard': return <svg {...c}><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>;
+    case 'pc': return <svg {...c}><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>;
+    case 'store': return <svg {...c}><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M9 20v-6h6v6"/><path d="M3 9h18"/></svg>;
+    case 'activity': return <svg {...c}><polyline points="3 12 8 12 10 5 14 19 16 12 21 12"/></svg>;
+    case 'pos': return <svg {...c}><rect x="2" y="6" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="14.5" x2="10" y2="14.5"/><line x1="6" y1="17" x2="8" y2="17"/></svg>;
+    case 'search': return <svg {...c}><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>;
+    case 'plus': return <svg {...c}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+    case 'edit': return <svg {...c}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>;
+    case 'trash': return <svg {...c}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>;
+    case 'x': return <svg {...c}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+    case 'chevronUp': return <svg {...c}><polyline points="6 15 12 9 18 15"/></svg>;
+    case 'chevronDown': return <svg {...c}><polyline points="6 9 12 15 18 9"/></svg>;
+    case 'chevronsUpDown': return <svg {...c}><polyline points="7 9 12 4 17 9"/><polyline points="7 15 12 20 17 15"/></svg>;
+    case 'trendUp': return <svg {...c}><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>;
+    case 'trendDown': return <svg {...c}><polyline points="3 7 9 13 13 9 21 18"/><polyline points="15 18 21 18 21 12"/></svg>;
+    case 'trendFlat': return <svg {...c}><line x1="4" y1="12" x2="20" y2="12"/></svg>;
+    case 'alert': return <svg {...c}><path d="M10.3 3.86L1.8 18a1 1 0 00.86 1.5h18.7a1 1 0 00.86-1.5L13.7 3.86a1 1 0 00-1.72 0z"/><line x1="12" y1="9" x2="12" y2="13.5"/><line x1="12" y1="16.5" x2="12" y2="16.6"/></svg>;
+    case 'check': return <svg {...c}><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>;
+    case 'clock': return <svg {...c}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>;
+    case 'menu': return <svg {...c}><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>;
+    case 'user': return <svg {...c}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>;
+    case 'server': return <svg {...c}><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><line x1="7" y1="7" x2="7" y2="7.1"/><line x1="7" y1="17" x2="7" y2="17.1"/></svg>;
+    case 'eye': return <svg {...c}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>;
+    case 'box': return <svg {...c}><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="M3 8l9 5 9-5"/></svg>;
+    case 'download': return <svg {...c}><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>;
+    default: return null;
+  }
+}
+
+/* =========================================================
+   CONSTANTS / DEMO DATA
+   ========================================================= */
+const DEPARTMENTS = ["DSRS","RFID","FOREX","DSCS","SPCS","COUNTERING","DS WAREHOUSE","DSO","FCCON","REVENUE","DSCON","GA","PAYROLL","PAYABLES","ADMIN","CREDIT","AUDIT","ICT","DEO","HRD","SCO","CLINIC","BILLING","TREASURY A","TREASURY B","SP WAREHOUSE","IS WAREHOUSE","PRICING","SP OFFICE","PRODUCE","SP SELLING AREA","SP RECEIVING","VISUAL"];
+const SELLING_AREAS = ["DEPARTMENT STORE","SUPERMARKET"];
+const TECHNICIANS = ["CE76","CE77","CE78","CE79"];
+const REPORT_STATUSES = ["Pending","In Progress","Completed","Replaced","Cancelled"];
+const PC_STATUSES = ["Active","Under Repair","Inactive","Decommissioned"];
+const DEVICE_TYPES = ["System Unit","Micro PC"];
+const POS_STATUSES = ["Active","Under Repair","Inactive","Replaced"];
+const POS_SECTIONS = ["Department Store","Supermarket"];
+function flatbedFieldLabel(section) { return section === 'Department Store' ? 'Vertical Scanner Serial' : 'Flatbed Serial'; }
+const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Ubuntu 22.04 LTS"];
+const STORAGE_TYPES = ["HDD","SSD","NVMe SSD"];
+const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","Software Issue","Network Issue","Paper Jam","Other"];
+const GHL_REPORT_STATUSES = ["Pending","Reported","Received"];
+
+const STATUS_STYLES = {
+  'Completed': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+  'Active': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+  'Pending': { bg:'var(--amber-bg)', text:'var(--amber-text)', dot:'var(--amber)' },
+  'In Progress': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
+  'Replaced': { bg:'var(--violet-bg)', text:'var(--violet-text)', dot:'var(--violet)' },
+  'Cancelled': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
+  'Under Repair': { bg:'var(--orange-bg)', text:'var(--orange-text)', dot:'var(--orange)' },
+  'Inactive': { bg:'var(--gray-bg)', text:'var(--gray-text)', dot:'#94A3B8' },
+  'Decommissioned': { bg:'var(--red-bg)', text:'var(--red-text)', dot:'var(--red)' },
+  'Reported': { bg:'var(--blue-bg)', text:'var(--blue-text)', dot:'var(--blue)' },
+  'Received': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
+};
+
+let idCounter = 1000;
+function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
+
+const SEED_PC_REPORTS = [
+  { id:'PCR-1', dateReported:'2026-08-15', department:'IT Office', problem:'PC won\u2019t boot / no display', actionTaken:'Replaced faulty power supply unit', replacement:'Power Supply Unit 450W', serialReplacement:'PSU-SN-88213', status:'Completed', remarks:'Tested for 24 hrs, no recurrence', technician:'CE76' },
+  { id:'PCR-2', dateReported:'2026-08-10', department:'Accounting', problem:'Blue screen error (BSOD) on startup', actionTaken:'Replaced failing RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-77012', status:'Completed', remarks:'User confirmed no more crashes', technician:'CE77' },
+  { id:'PCR-3', dateReported:'2026-08-05', department:'Human Resources', problem:'Slow performance / freezing', actionTaken:'Cleared temp files, upgraded to SSD', replacement:'SSD 256GB', serialReplacement:'SSD-SN-65210', status:'Completed', remarks:'Boot time improved to 12s', technician:'CE78' },
+  { id:'PCR-4', dateReported:'2026-07-29', department:'Warehouse & Logistics', problem:'No internet connection', actionTaken:'Replaced network adapter', replacement:'USB Network Adapter', serialReplacement:'NIC-SN-44018', status:'Completed', remarks:'Connectivity restored', technician:'CE79' },
+  { id:'PCR-5', dateReported:'2026-07-22', department:'Marketing', problem:'Printer not detected', actionTaken:'Reinstalled printer drivers', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Printer working normally', technician:'CE76' },
+  { id:'PCR-6', dateReported:'2026-07-18', department:'Customer Service', problem:'Application crashes on launch', actionTaken:'Reinstalled application, patched OS', replacement:'None', serialReplacement:'-', status:'In Progress', remarks:'Awaiting vendor patch confirmation', technician:'CE76' },
+  { id:'PCR-7', dateReported:'2026-07-10', department:'Loss Prevention', problem:'Keyboard/mouse not responding', actionTaken:'Replaced USB keyboard and mouse set', replacement:'Keyboard & Mouse Combo', serialReplacement:'PERIPH-SN-33771', status:'Completed', remarks:'Issue resolved', technician:'CE77' },
+  { id:'PCR-8', dateReported:'2026-06-27', department:'Admin Office', problem:'Overheating and auto shutdown', actionTaken:'Cleaned dust, reapplied thermal paste', replacement:'Thermal Paste', serialReplacement:'-', status:'Completed', remarks:'Temp reduced from 85\u00b0C to 55\u00b0C', technician:'CE79' },
+  { id:'PCR-9', dateReported:'2026-06-15', department:'Executive Office', problem:'Windows update failure', actionTaken:'Ran troubleshooter, manually installed update', replacement:'None', serialReplacement:'-', status:'Pending', remarks:'Waiting for scheduled downtime', technician:'CE78' },
+  { id:'PCR-10', dateReported:'2026-06-02', department:'Merchandising', problem:'Virus/malware detected', actionTaken:'Ran full malware scan and removal', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'System clean, monitoring for recurrence', technician:'CE76' },
+  { id:'PCR-11', dateReported:'2026-05-20', department:'IT Office', problem:'Monitor no signal', actionTaken:'Replaced HDMI cable and tested port', replacement:'HDMI Cable', serialReplacement:'-', status:'Replaced', remarks:'New cable issued from stock', technician:'CE76' },
+  { id:'PCR-12', dateReported:'2026-05-05', department:'Accounting', problem:'RAM upgrade requested', actionTaken:'Installed additional RAM module', replacement:'RAM Module 8GB DDR4', serialReplacement:'RAM-SN-51290', status:'Completed', remarks:'Upgraded from 8GB to 16GB', technician:'CE77' },
+  { id:'PCR-13', dateReported:'2026-04-18', department:'Customer Service', problem:'PC won\u2019t boot / no display', actionTaken:'Diagnosed motherboard failure, escalated to vendor', replacement:'Motherboard', serialReplacement:'-', status:'Pending', remarks:'Awaiting replacement unit from supplier', technician:'CE79' },
+  { id:'PCR-14', dateReported:'2026-04-02', department:'Warehouse & Logistics', problem:'Slow performance / freezing', actionTaken:'Uninstalled unnecessary startup programs', replacement:'None', serialReplacement:'-', status:'Completed', remarks:'Performance normalized', technician:'CE78' },
+];
+
+const SA_ISSUE_TYPES = ["Terminal Malfunction","Network Connectivity","Printer Issue","Scanner Issue","Display Issue","Power Issue","Software Glitch","Card Reader Issue","Cash Drawer Issue","Other"];
+
+const SEED_SA_REPORTS = [
+  { id:'SAR-1', date:'2026-08-16', supermarket:'SUPERMARKET', counter:'Counter 1', terminal:'POS-01', issueType:'Terminal Malfunction', problemDescription:'Terminal freezes when scanning barcoded items', troubleshootingSteps:'Restarted terminal, updated POS software to latest build', status:'Completed', technician:'CE76', dateResolved:'2026-08-16' },
+  { id:'SAR-2', date:'2026-08-15', supermarket:'DEPARTMENT STORE', counter:'Counter 2', terminal:'POS-02', issueType:'Printer Issue', problemDescription:'Receipt printer not printing, blank receipts', troubleshootingSteps:'Replaced printer ribbon and cleaned print head', status:'Completed', technician:'CE77', dateResolved:'2026-08-15' },
+  { id:'SAR-3', date:'2026-08-14', supermarket:'DEPARTMENT STORE', counter:'Counter 3', terminal:'POS-03', issueType:'Network Connectivity', problemDescription:'Terminal intermittently loses connection to server', troubleshootingSteps:'Checked LAN cable, replaced with new Cat6 cable, monitoring for recurrence', status:'In Progress', technician:'CE78', dateResolved:'' },
+  { id:'SAR-4', date:'2026-08-13', supermarket:'SUPERMARKET', counter:'Counter 4', terminal:'POS-04', issueType:'Scanner Issue', problemDescription:'Handheld scanner not reading barcodes properly', troubleshootingSteps:'Recalibrated scanner, cleaned lens', status:'Completed', technician:'CE79', dateResolved:'2026-08-13' },
+  { id:'SAR-5', date:'2026-08-11', supermarket:'DEPARTMENT STORE', counter:'Counter 5', terminal:'POS-05', issueType:'Display Issue', problemDescription:'Second customer-facing display shows no image', troubleshootingSteps:'Checked cable connection, replacement display ordered', status:'Pending', technician:'CE76', dateResolved:'' },
+  { id:'SAR-6', date:'2026-08-09', supermarket:'DEPARTMENT STORE', counter:'Counter 6', terminal:'POS-06', issueType:'Power Issue', problemDescription:'Terminal randomly shuts down during transactions', troubleshootingSteps:'Replaced power supply unit', status:'Completed', technician:'CE76', dateResolved:'2026-08-10' },
+  { id:'SAR-7', date:'2026-08-07', supermarket:'SUPERMARKET', counter:'Counter 7', terminal:'POS-07', issueType:'Software Glitch', problemDescription:'POS application crashes when applying discounts', troubleshootingSteps:'Reinstalled POS application, cleared cache', status:'Completed', technician:'CE77', dateResolved:'2026-08-08' },
+  { id:'SAR-8', date:'2026-08-05', supermarket:'DEPARTMENT STORE', counter:'Counter 8', terminal:'POS-08', issueType:'Card Reader Issue', problemDescription:'GHL card terminal not reading chip cards', troubleshootingSteps:'Cleaned card reader slot, tested with multiple cards', status:'Completed', technician:'CE78', dateResolved:'2026-08-05' },
+  { id:'SAR-9', date:'2026-08-02', supermarket:'DEPARTMENT STORE', counter:'Counter 9', terminal:'POS-09', issueType:'Cash Drawer Issue', problemDescription:'Cash drawer does not open after transaction', troubleshootingSteps:'Checked solenoid connection, replacement part requested', status:'Cancelled', technician:'CE79', dateResolved:'' },
+  { id:'SAR-10', date:'2026-07-30', supermarket:'SUPERMARKET', counter:'Counter 10', terminal:'POS-10', issueType:'Terminal Malfunction', problemDescription:'Touchscreen unresponsive on left side of screen', troubleshootingSteps:'Recalibrated touchscreen driver', status:'Completed', technician:'CE76', dateResolved:'2026-07-31' },
+];
+
+
+const SEED_PC_INVENTORY = [
+  { id:'PCM-1', department:'ICT', deviceType:'System Unit', pcName:'IT-PC01', user:'Mark Villanueva', ipAddress:'10.10.1.10', macAddress:'00:1A:2B:3C:4D:01', windowsVersion:'Windows 11 Pro', productKey:'W11P-A1B2C-D3E4F-88213', motherboardModel:'ASUS PRIME B460M-A', motherboardSN:'MB-SN-88213', ramModel:'Kingston 16GB DDR4 3200MHz', ramSN:'RAM-88213X', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11001', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22001', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-10400', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-2', department:'AUDIT', deviceType:'System Unit', pcName:'AUDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.11', macAddress:'00:1A:2B:3C:4D:02', windowsVersion:'Windows 10 Pro', productKey:'W10P-B2C3D-E4F5G-77012', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-77012', ramModel:'HyperX 8GB DDR4 2666MHz', ramSN:'RAM-77012Y', storageModel:'Western Digital 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11002', monitorModel:'LG 20" LED', monitor:'MON-SN-22002', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30021', processor:'Intel Core i3-10100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-3', department:'HRD', deviceType:'System Unit', pcName:'HR-PC02', user:'Paolo Santos', ipAddress:'10.10.3.12', macAddress:'00:1A:2B:3C:4D:03', windowsVersion:'Windows 11 Pro', productKey:'W11P-C3D4E-F5G6H-65210', motherboardModel:'ASRock B450M', motherboardSN:'MB-SN-65210', ramModel:'Corsair 8GB DDR4 3200MHz', ramSN:'RAM-65210Z', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11003', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22003', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 3400G', gpu:'AMD Radeon Vega 11', projector:'-', status:'Active' },
+  { id:'PCM-4', department:'DS WAREHOUSE', deviceType:'Micro PC', pcName:'WHS-PC01', user:'Kevin Tan', ipAddress:'10.10.4.13', macAddress:'00:1A:2B:3C:4D:04', windowsVersion:'Windows 10 Pro', productKey:'W10P-D4E5F-G6H7I-44018', motherboardModel:'MSI H310M PRO', motherboardSN:'MB-SN-44018', ramModel:'Kingston 4GB DDR4 2400MHz', ramSN:'RAM-44018A', storageModel:'Seagate 500GB', storageType:'HDD', printerModel:'-', printer:'-', monitorModel:'AOC 19" LED', monitor:'MON-SN-22004', scannerModel:'-', scannerSN:'-', processor:'Intel Pentium Gold G5400', gpu:'Intel UHD Graphics 610', projector:'-', status:'Under Repair' },
+  { id:'PCM-5', department:'REVENUE', deviceType:'System Unit', pcName:'REV-PC01', user:'Angela Reyes', ipAddress:'10.10.5.14', macAddress:'00:1A:2B:3C:4D:05', windowsVersion:'Windows 11 Pro', productKey:'W11P-E5F6G-H7I8J-33771', motherboardModel:'ASUS TUF B550M-Plus', motherboardSN:'MB-SN-33771', ramModel:'Corsair Vengeance 16GB DDR4 3600MHz', ramSN:'RAM-33771B', storageModel:'Samsung 512GB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11005', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22005', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 5 5600G', gpu:'AMD Radeon Vega 7', projector:'-', status:'Active' },
+  { id:'PCM-6', department:'BILLING', deviceType:'System Unit', pcName:'BILL-PC01', user:'Mark Villanueva', ipAddress:'10.10.6.15', macAddress:'00:1A:2B:3C:4D:06', windowsVersion:'Windows 10 Pro', productKey:'W10P-F6G7H-I8J9K-51290', motherboardModel:'Gigabyte H410M-H', motherboardSN:'MB-SN-51290', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-51290C', storageModel:'Adata 256GB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11006', monitorModel:'LG 20" LED', monitor:'MON-SN-22006', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-9100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Active' },
+  { id:'PCM-7', department:'CREDIT', deviceType:'System Unit', pcName:'CREDIT-PC01', user:'Jenny Cruz', ipAddress:'10.10.7.16', macAddress:'00:1A:2B:3C:4D:07', windowsVersion:'Windows 11 Pro', productKey:'W11P-G7H8I-J9K0L-91002', motherboardModel:'ASRock H510M-HVS', motherboardSN:'MB-SN-91002', ramModel:'HyperX 8GB DDR4 3200MHz', ramSN:'RAM-91002D', storageModel:'Kingston 480GB', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22007', scannerModel:'-', scannerSN:'-', processor:'Intel Core i5-11400', gpu:'Intel UHD Graphics 730', projector:'-', status:'Active' },
+  { id:'PCM-8', department:'ADMIN', deviceType:'System Unit', pcName:'ADM-PC01', user:'Paolo Santos', ipAddress:'10.10.8.17', macAddress:'00:1A:2B:3C:4D:08', windowsVersion:'Windows 10 Pro', productKey:'W10P-H8I9J-K0L1M-22981', motherboardModel:'Biostar H310MHP', motherboardSN:'MB-SN-22981', ramModel:'Kingston 4GB DDR4 2133MHz', ramSN:'RAM-22981E', storageModel:'Toshiba 500GB', storageType:'HDD', printerModel:'Epson L3210', printer:'PRT-SN-11008', monitorModel:'AOC 19" LED', monitor:'MON-SN-22008', scannerModel:'-', scannerSN:'-', processor:'Intel Celeron G4930', gpu:'Intel UHD Graphics 610', projector:'-', status:'Inactive' },
+  { id:'PCM-9', department:'GA', deviceType:'Micro PC', pcName:'GA-PC01', user:'Kevin Tan', ipAddress:'10.10.9.18', macAddress:'00:1A:2B:3C:4D:09', windowsVersion:'Windows 11 Pro', productKey:'W11P-I9J0K-L1M2N-10938', motherboardModel:'ASUS ProArt B560-Creator', motherboardSN:'MB-SN-10938', ramModel:'Corsair 16GB DDR4 3200MHz', ramSN:'RAM-10938F', storageModel:'Samsung 1TB NVMe', storageType:'SSD', printerModel:'Canon G2010', printer:'PRT-SN-11009', monitorModel:'LG 24" LED', monitor:'MON-SN-22009', scannerModel:'-', scannerSN:'-', processor:'Intel Core i7-11700', gpu:'Intel UHD Graphics 750', projector:'Epson EB-X06', status:'Active' },
+  { id:'PCM-10', department:'PAYROLL', deviceType:'System Unit', pcName:'PAYROLL-PC01', user:'Angela Reyes', ipAddress:'10.10.10.19', macAddress:'00:1A:2B:3C:4D:0A', windowsVersion:'Windows 10 Pro', productKey:'W10P-J0K1L-M2N3O-30021', motherboardModel:'MSI B450M PRO-VDH', motherboardSN:'MB-SN-30021', ramModel:'Kingston 8GB DDR4 2666MHz', ramSN:'RAM-30021G', storageModel:'Crucial 256GB NVMe', storageType:'SSD', printerModel:'-', printer:'-', monitorModel:'Samsung 22" LED', monitor:'MON-SN-22010', scannerModel:'-', scannerSN:'-', processor:'AMD Ryzen 3 3200G', gpu:'AMD Radeon Vega 8', projector:'-', status:'Active' },
+  { id:'PCM-11', department:'ICT', deviceType:'Micro PC', pcName:'IT-PC02', user:'Mark Villanueva', ipAddress:'10.10.1.20', macAddress:'00:1A:2B:3C:4D:0B', windowsVersion:'Windows 11 Pro', productKey:'W11P-K1L2M-N3O4P-40982', motherboardModel:'ASUS ROG STRIX B550-F', motherboardSN:'MB-SN-40982', ramModel:'Corsair Dominator 32GB DDR4 3600MHz', ramSN:'RAM-40982H', storageModel:'Western Digital 1TB NVMe', storageType:'SSD', printerModel:'Epson L3210', printer:'PRT-SN-11011', monitorModel:'Dell 24" LED', monitor:'MON-SN-22011', scannerModel:'Canon LiDE 300', scannerSN:'SCN-SN-30022', processor:'Intel Core i9-11900K', gpu:'NVIDIA GTX 1660', projector:'-', status:'Active' },
+  { id:'PCM-12', department:'PAYABLES', deviceType:'System Unit', pcName:'PAYABLES-PC01', user:'Jenny Cruz', ipAddress:'10.10.2.21', macAddress:'00:1A:2B:3C:4D:0C', windowsVersion:'Windows 10 Pro', productKey:'W10P-L2M3N-O4P5Q-50871', motherboardModel:'Gigabyte H310M-S2', motherboardSN:'MB-SN-50871', ramModel:'Kingston 8GB DDR4 2400MHz', ramSN:'RAM-50871I', storageModel:'Seagate 1TB', storageType:'HDD', printerModel:'Canon G2010', printer:'PRT-SN-11012', monitorModel:'LG 20" LED', monitor:'MON-SN-22012', scannerModel:'-', scannerSN:'-', processor:'Intel Core i3-8100', gpu:'Intel UHD Graphics 630', projector:'-', status:'Decommissioned' },
+];
+
+const SEED_POS_INVENTORY = [
+  { id:'POS-1', section:'Department Store', counter:'Counter 1', terminal:'DS-POS-01', serial:'TERM-SN-DS0011', display1:'DISP1-SN-DS0021', display2:'DISP2-SN-DS0031', printerSerial:'PRT-SN-DS0041', scannerSerial:'SCN-SN-DS0051', flatbedSerial:'VSC-SN-DS0061', ghlSerial:'GHL-SN-DS0071', status:'Active' },
+  { id:'POS-2', section:'Department Store', counter:'Counter 2', terminal:'DS-POS-02', serial:'TERM-SN-DS0012', display1:'DISP1-SN-DS0022', display2:'DISP2-SN-DS0032', printerSerial:'PRT-SN-DS0042', scannerSerial:'SCN-SN-DS0052', flatbedSerial:'VSC-SN-DS0062', ghlSerial:'GHL-SN-DS0072', status:'Active' },
+  { id:'POS-3', section:'Department Store', counter:'Counter 3', terminal:'DS-POS-03', serial:'TERM-SN-DS0013', display1:'DISP1-SN-DS0023', display2:'DISP2-SN-DS0033', printerSerial:'PRT-SN-DS0043', scannerSerial:'SCN-SN-DS0053', flatbedSerial:'VSC-SN-DS0063', ghlSerial:'GHL-SN-DS0073', status:'Under Repair' },
+  { id:'POS-4', section:'Department Store', counter:'Counter 4', terminal:'DS-POS-04', serial:'TERM-SN-DS0014', display1:'DISP1-SN-DS0024', display2:'DISP2-SN-DS0034', printerSerial:'PRT-SN-DS0044', scannerSerial:'SCN-SN-DS0054', flatbedSerial:'VSC-SN-DS0064', ghlSerial:'GHL-SN-DS0074', status:'Active' },
+  { id:'POS-5', section:'Department Store', counter:'Counter 5', terminal:'DS-POS-05', serial:'TERM-SN-DS0015', display1:'DISP1-SN-DS0025', display2:'DISP2-SN-DS0035', printerSerial:'PRT-SN-DS0045', scannerSerial:'SCN-SN-DS0055', flatbedSerial:'VSC-SN-DS0065', ghlSerial:'GHL-SN-DS0075', status:'Active' },
+  { id:'POS-6', section:'Department Store', counter:'Counter 6', terminal:'DS-POS-06', serial:'TERM-SN-DS0016', display1:'DISP1-SN-DS0026', display2:'DISP2-SN-DS0036', printerSerial:'PRT-SN-DS0046', scannerSerial:'SCN-SN-DS0056', flatbedSerial:'VSC-SN-DS0066', ghlSerial:'GHL-SN-DS0076', status:'Inactive' },
+  { id:'POS-7', section:'Department Store', counter:'Counter 7', terminal:'DS-POS-07', serial:'TERM-SN-DS0017', display1:'DISP1-SN-DS0027', display2:'DISP2-SN-DS0037', printerSerial:'PRT-SN-DS0047', scannerSerial:'SCN-SN-DS0057', flatbedSerial:'VSC-SN-DS0067', ghlSerial:'GHL-SN-DS0077', status:'Active' },
+  { id:'POS-8', section:'Department Store', counter:'Counter 8', terminal:'DS-POS-08', serial:'TERM-SN-DS0018', display1:'DISP1-SN-DS0028', display2:'DISP2-SN-DS0038', printerSerial:'PRT-SN-DS0048', scannerSerial:'SCN-SN-DS0058', flatbedSerial:'VSC-SN-DS0068', ghlSerial:'GHL-SN-DS0078', status:'Active' },
+  { id:'POS-9', section:'Supermarket', counter:'Counter 1', terminal:'SP-POS-01', serial:'TERM-SN-SP0011', display1:'DISP1-SN-SP0021', display2:'DISP2-SN-SP0031', printerSerial:'PRT-SN-SP0041', scannerSerial:'SCN-SN-SP0051', flatbedSerial:'FLB-SN-SP0061', ghlSerial:'GHL-SN-SP0071', status:'Replaced' },
+  { id:'POS-10', section:'Supermarket', counter:'Counter 2', terminal:'SP-POS-02', serial:'TERM-SN-SP0012', display1:'DISP1-SN-SP0022', display2:'DISP2-SN-SP0032', printerSerial:'PRT-SN-SP0042', scannerSerial:'SCN-SN-SP0052', flatbedSerial:'FLB-SN-SP0062', ghlSerial:'GHL-SN-SP0072', status:'Active' },
+  { id:'POS-11', section:'Supermarket', counter:'Counter 3', terminal:'SP-POS-03', serial:'TERM-SN-SP0013', display1:'DISP1-SN-SP0023', display2:'DISP2-SN-SP0033', printerSerial:'PRT-SN-SP0043', scannerSerial:'SCN-SN-SP0053', flatbedSerial:'FLB-SN-SP0063', ghlSerial:'GHL-SN-SP0073', status:'Active' },
+  { id:'POS-12', section:'Supermarket', counter:'Counter 4', terminal:'SP-POS-04', serial:'TERM-SN-SP0014', display1:'DISP1-SN-SP0024', display2:'DISP2-SN-SP0034', printerSerial:'PRT-SN-SP0044', scannerSerial:'SCN-SN-SP0054', flatbedSerial:'FLB-SN-SP0064', ghlSerial:'GHL-SN-SP0074', status:'Active' },
+  { id:'POS-13', section:'Supermarket', counter:'Counter 5', terminal:'SP-POS-05', serial:'TERM-SN-SP0015', display1:'DISP1-SN-SP0025', display2:'DISP2-SN-SP0035', printerSerial:'PRT-SN-SP0045', scannerSerial:'SCN-SN-SP0055', flatbedSerial:'FLB-SN-SP0065', ghlSerial:'GHL-SN-SP0075', status:'Under Repair' },
+  { id:'POS-14', section:'Supermarket', counter:'Counter 6', terminal:'SP-POS-06', serial:'TERM-SN-SP0016', display1:'DISP1-SN-SP0026', display2:'DISP2-SN-SP0036', printerSerial:'PRT-SN-SP0046', scannerSerial:'SCN-SN-SP0056', flatbedSerial:'FLB-SN-SP0066', ghlSerial:'GHL-SN-SP0076', status:'Active' },
+  { id:'POS-15', section:'Supermarket', counter:'Counter 7', terminal:'SP-POS-07', serial:'TERM-SN-SP0017', display1:'DISP1-SN-SP0027', display2:'DISP2-SN-SP0037', printerSerial:'PRT-SN-SP0047', scannerSerial:'SCN-SN-SP0057', flatbedSerial:'FLB-SN-SP0067', ghlSerial:'GHL-SN-SP0077', status:'Active' },
+];
+
+/* =========================================================
+   PHYSICAL INVENTORY COUNT
+   ========================================================= */
+const PHYSICAL_COUNT_CATEGORIES = ["PDT", "Tablet", "Charger"];
+
+const SEED_PHYSICAL_COUNT = [
+  { id:'PIC-1', category:'PDT', date:'2026-08-10', itemName:'PDT Unit (Handheld Scanner)', quantity:6, remarks:'Assigned to inventory counting team' },
+  { id:'PIC-2', category:'PDT', date:'2026-08-15', itemName:'PDT Charging Cradle', quantity:2, remarks:'Spare cradles in storage' },
+  { id:'PIC-3', category:'Tablet', date:'2026-08-09', itemName:'Android Tablet 10-inch', quantity:4, remarks:'For selling area terminal use' },
+  { id:'PIC-4', category:'Tablet', date:'2026-08-16', itemName:'Tablet Protective Case', quantity:5, remarks:'For newly issued units' },
+  { id:'PIC-5', category:'Charger', date:'2026-08-11', itemName:'USB-C Fast Charger', quantity:10, remarks:'Standard issue for tablets and PDTs' },
+  { id:'PIC-6', category:'Charger', date:'2026-08-17', itemName:'Charging Dock (Multi-bay)', quantity:3, remarks:'For back office charging station' },
+];
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+const INVENTORY_LOCATIONS = ["Main Office","Second Room","Server","DS1","DS2","DS3","DS4","Cabin"];
+
+const SEED_INVENTORY = [
+  { id:'INV-1', location:'Main Office', date:'2026-08-10', itemName:'Bond Paper A4 (Ream)', quantity:12, remarks:'Stocked for monthly printing needs' },
+  { id:'INV-2', location:'Main Office', date:'2026-08-14', itemName:'Toner Cartridge (Black)', quantity:3, remarks:'For Epson L3210 printers' },
+  { id:'INV-3', location:'Second Room', date:'2026-08-05', itemName:'Ethernet Cable (Cat6, 5m)', quantity:8, remarks:'Spare cables for network setup' },
+  { id:'INV-4', location:'Second Room', date:'2026-08-12', itemName:'USB Flash Drive 32GB', quantity:5, remarks:'For data transfer and backup' },
+  { id:'INV-5', location:'Server', date:'2026-08-02', itemName:'UPS Battery Backup', quantity:2, remarks:'Replacement units for server room' },
+  { id:'INV-6', location:'Server', date:'2026-08-16', itemName:'Rack Screws & Cage Nuts (Set)', quantity:4, remarks:'For server rack mounting' },
+  { id:'INV-7', location:'DS1', date:'2026-08-07', itemName:'Barcode Scanner', quantity:2, remarks:'Backup units for counter use' },
+  { id:'INV-8', location:'DS1', date:'2026-08-11', itemName:'Thermal Paper Roll', quantity:20, remarks:'For POS receipt printers' },
+  { id:'INV-9', location:'DS2', date:'2026-08-09', itemName:'POS Monitor Stand', quantity:3, remarks:'Extra stands in storage' },
+  { id:'INV-10', location:'DS2', date:'2026-08-15', itemName:'Cash Drawer Lock Key', quantity:6, remarks:'Spare keys, labeled by counter' },
+  { id:'INV-11', location:'DS3', date:'2026-08-06', itemName:'Extension Cord (10m)', quantity:4, remarks:'For temporary counter setups' },
+  { id:'INV-12', location:'DS3', date:'2026-08-13', itemName:'Handheld Scanner Battery', quantity:7, remarks:'Rechargeable, for RF scanners' },
+  { id:'INV-13', location:'DS4', date:'2026-08-08', itemName:'Label Printer Ribbon', quantity:10, remarks:'For pricing and tagging' },
+  { id:'INV-14', location:'DS4', date:'2026-08-17', itemName:'Wireless Mouse', quantity:5, remarks:'For replacement stock' },
+  { id:'INV-15', location:'Cabin', date:'2026-08-03', itemName:'First Aid Kit', quantity:1, remarks:'Checked and restocked monthly' },
+  { id:'INV-16', location:'Cabin', date:'2026-08-18', itemName:'Fire Extinguisher (Portable)', quantity:2, remarks:'Inspected, tags up to date' },
+];
+
+const SEED_GHL_REPORTS = [
+  { id:'GHL-1', dateReported:'2026-08-14', section:'SUPERMARKET', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
+  { id:'GHL-2', dateReported:'2026-08-11', section:'DEPARTMENT STORE', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
+  { id:'GHL-3', dateReported:'2026-08-07', section:'DEPARTMENT STORE', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
+  { id:'GHL-4', dateReported:'2026-07-30', section:'SUPERMARKET', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
+  { id:'GHL-5', dateReported:'2026-07-22', section:'DEPARTMENT STORE', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
+  { id:'GHL-6', dateReported:'2026-07-15', section:'SUPERMARKET', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
+];
+
+const SEED_GHL_TERMINALS = [
+  { id:'GHLT-1', ctr:'CTR-01', terminal:'POS-01', serialNumber:'GHL-SN-40051' },
+  { id:'GHLT-2', ctr:'CTR-02', terminal:'POS-02', serialNumber:'GHL-SN-40052' },
+  { id:'GHLT-3', ctr:'CTR-03', terminal:'POS-03', serialNumber:'GHL-SN-40053' },
+  { id:'GHLT-4', ctr:'CTR-04', terminal:'POS-04', serialNumber:'GHL-SN-40054' },
+  { id:'GHLT-5', ctr:'CTR-05', terminal:'POS-05', serialNumber:'GHL-SN-40055' },
+];
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function formatDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  if (isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function monthKey(d) { const dt = new Date(d + 'T00:00:00'); return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); }
+function monthLabelFromKey(k) { const [y, m] = k.split('-'); return MONTHS[parseInt(m, 10) - 1]; }
+function computeMonthlySeries(data, refDate, dateKey = 'dateReported') {
+  const keys = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
+    keys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  return keys.map(k => ({ month: monthLabelFromKey(k), value: data.filter(r => monthKey(r[dateKey]) === k).length }));
+}
+function trendPct(curr, prev) {
+  if (prev === 0 && curr === 0) return { label: '0%', dir: 'flat' };
+  if (prev === 0) return { label: '+100%', dir: 'up' };
+  const pct = Math.round(((curr - prev) / prev) * 100);
+  return { label: (pct >= 0 ? '+' : '') + pct + '%', dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+}
+function statusCounts(data, statuses) {
+  const colorFor = s => (STATUS_STYLES[s] || {}).dot || '#94A3B8';
+  return statuses.map(s => ({ label: s, value: data.filter(r => r.status === s).length, color: colorFor(s) })).filter(x => x.value > 0);
+}
+
+/* =========================================================
+   PDF BACKUP GENERATOR
+   Builds a single PDF containing every data section, so the
+   raw records survive even if the web app / database breaks.
+   ========================================================= */
+function pdfCell(v) {
+  if (v === undefined || v === null || v === '') return '-';
+  return String(v);
+}
+
+function buildBackupSections(collections) {
+  return [
+    { title: 'Back Office Reports', columns: REPORT_COLUMNS, rows: collections.pcReports },
+    { title: 'Selling Area Reports', columns: SA_REPORT_COLUMNS, rows: collections.saReports },
+    { title: 'NTT Reports', columns: GHL_COLUMNS, rows: collections.ghlReports },
+    { title: 'NTT Terminal Registry', columns: [['ctr','CTR'],['terminal','Terminal'],['serialNumber','Serial Number']], rows: collections.ghlTerminals },
+    { title: 'Back Office — Device & Specifications', columns: [
+        ['department','Department'],['deviceType','Device Type'],['pcName','PC Name'],['user','User'],['ipAddress','IP Address'],['macAddress','MAC Address'],
+        ['windowsVersion','Windows Version'],['motherboardModel','Motherboard Model'],['motherboardSN','Motherboard SN'],
+        ['ramModel','RAM Model'],['ramSN','RAM SN'],['storageModel','Storage Model'],['storageType','Storage Type'],
+        ['printerModel','Printer Model'],['printer','Printer SN'],['monitorModel','Monitor Model'],['monitor','Monitor SN'],
+        ['scannerModel','Scanner Model'],['scannerSN','Scanner SN'],['processor','Processor'],['gpu','GPU'],['projector','Projector'],['status','Status'],
+      ], rows: collections.pcInventory },
+    { title: 'Selling Area — Device & Specifications', columns: [
+        ['section','Section'],['counter','Counter'],['terminal','Terminal'],['serial','Serial'],
+        ['display1','1st Display SN'],['display2','2nd Display SN'],['printerSerial','Printer SN'],
+        ['scannerSerial','Scanner SN'],['flatbedSerial','Flatbed/Vertical SN'],['ghlSerial','NTT Terminal SN'],['status','Status'],
+      ], rows: collections.posInventory },
+    { title: 'Physical Inventory Count', columns: [['category','Category'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.physicalCount },
+    { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
+  ];
+}
+
+function backupFilenameBase(now) {
+  return 'ISS_Backup_' + now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 8).replace(/:/g, '');
+}
+
+function generateBackupPdf(collections) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error('PDF library not loaded');
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const now = new Date();
+  const stamp = now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const sections = buildBackupSections(collections);
+
+  // Cover page
+  doc.setFontSize(20);
+  doc.text('ISS Department Monitoring System', 40, 60);
+  doc.setFontSize(13);
+  doc.text('Full Data Backup', 40, 84);
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text('Generated: ' + stamp, 40, 104);
+  doc.setTextColor(20);
+  doc.setFontSize(11);
+  let y = 140;
+  doc.text('Contents:', 40, y);
+  y += 18;
+  sections.forEach(s => {
+    doc.text('- ' + s.title + '  (' + s.rows.length + ' record' + (s.rows.length === 1 ? '' : 's') + ')', 56, y);
+    y += 16;
+  });
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text('This file is a local backup snapshot for recovery purposes. Keep it somewhere safe.', 40, y + 14);
+  doc.setTextColor(20);
+
+  sections.forEach(sec => {
+    doc.addPage();
+    doc.setFontSize(13);
+    doc.text(sec.title, 30, 32);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(sec.rows.length + ' record' + (sec.rows.length === 1 ? '' : 's'), 30, 46);
+    doc.setTextColor(20);
+    doc.autoTable({
+      startY: 56,
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 6.5, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: { fillColor: [11, 18, 32], textColor: 255 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      head: [sec.columns.map(c => c[1])],
+      body: sec.rows.map(r => sec.columns.map(c => pdfCell(r[c[0]]))),
+    });
+  });
+
+  const filename = backupFilenameBase(now) + '.pdf';
+  doc.save(filename);
+  return filename;
+}
+
+function generateBackupExcel(collections) {
+  if (!window.XLSX) {
+    throw new Error('Excel library not loaded');
+  }
+  const now = new Date();
+  const sections = buildBackupSections(collections);
+  const wb = XLSX.utils.book_new();
+
+  // Cover / summary sheet
+  const summaryRows = [
+    ['ISS Department Monitoring System'],
+    ['Full Data Backup'],
+    ['Generated: ' + now.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })],
+    [],
+    ['Contents', 'Records'],
+  ];
+  sections.forEach(s => summaryRows.push([s.title, s.rows.length]));
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+  summarySheet['!cols'] = [{ wch: 38 }, { wch: 12 }];
+  XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+
+  // One sheet per section
+  const usedNames = {};
+  sections.forEach(sec => {
+    const header = sec.columns.map(c => c[1]);
+    const rows = sec.rows.map(r => sec.columns.map(c => {
+      const v = r[c[0]];
+      return (v === undefined || v === null) ? '' : v;
+    }));
+    const sheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+    sheet['!cols'] = sec.columns.map(() => ({ wch: 18 }));
+    let name = sec.title.replace(/[\\/*?:\[\]]/g, '').slice(0, 31) || 'Sheet';
+    if (usedNames[name]) {
+      usedNames[name] += 1;
+      name = (name.slice(0, 28) + ' ' + usedNames[name]).slice(0, 31);
+    } else {
+      usedNames[name] = 1;
+    }
+    XLSX.utils.book_append_sheet(wb, sheet, name);
+  });
+
+  const filename = backupFilenameBase(now) + '.xlsx';
+  XLSX.writeFile(wb, filename);
+  return filename;
+}
+
+/* =========================================================
+   SMALL SHARED UI COMPONENTS
+   ========================================================= */
+function StatusBadge({ status }) {
+  const st = STATUS_STYLES[status] || { bg: 'var(--gray-bg)', text: 'var(--gray-text)', dot: '#94A3B8' };
+  return <span className="badge" style={{ background: st.bg, color: st.text }}><span className="bdot" style={{ background: st.dot }}></span>{status}</span>;
+}
+
+function StatusSelect({ status, options, onChange }) {
+  const st = STATUS_STYLES[status] || { bg: 'var(--gray-bg)', text: 'var(--gray-text)', dot: '#94A3B8' };
+  return (
+    <select
+      className="status-select"
+      value={status}
+      onChange={e => onChange(e.target.value)}
+      style={{ background: st.bg, color: st.text }}
+      title="Click to update status"
+    >
+      {options.map(s => <option key={s} value={s}>{s}</option>)}
+    </select>
+  );
+}
+
+function SearchInput({ value, onChange, placeholder, className = '' }) {
+  return (
+    <div className={"input-wrap " + className}>
+      <span className="ic-search"><Icon name="search" size={15} /></span>
+      <input className="input" style={{ width: '100%' }} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function Modal({ title, onClose, children, maxWidth = '620px' }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth }}>
+        <div className="modal-head">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ message, onCancel, onConfirm, title = "Delete record?" }) {
+  const deleteBtnRef = useRef(null);
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onCancel(); }
+    window.addEventListener('keydown', onKey);
+    deleteBtnRef.current && deleteBtnRef.current.focus();
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="modal confirm-box">
+        <div className="confirm-icon"><Icon name="alert" size={22} /></div>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="confirm-actions">
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button ref={deleteBtnRef} className="btn btn-danger" onClick={onConfirm}><Icon name="trash" size={14} /> Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToastContainer({ toasts }) {
+  return (
+    <div className="toast-wrap">
+      {toasts.map(t => (
+        <div key={t.id} className={"toast " + t.type}>
+          <Icon name={t.type === 'danger' ? 'trash' : 'check'} size={15} />
+          {t.message}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Field({ label, children, full, required }) {
+  return (
+    <div className={"field" + (full ? " field-full" : "")}>
+      <label>{label}{required && <span className="req">*</span>}</label>
+      {children}
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, onChange, total, pageSize }) {
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
+  return (
+    <div className="pagination">
+      <div className="info">Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> records</div>
+      <div className="controls">
+        <button className="page-btn" disabled={page <= 1} onClick={() => onChange(page - 1)}>Prev</button>
+        <span className="page-btn current">{page} / {totalPages}</span>
+        <button className="page-btn" disabled={page >= totalPages} onClick={() => onChange(page + 1)}>Next</button>
+      </div>
+    </div>
+  );
+}
+
+function SortableTh({ label, sortKey, currentKey, dir, onSort }) {
+  const icon = currentKey === sortKey ? (dir === 'asc' ? 'chevronUp' : 'chevronDown') : 'chevronsUpDown';
+  return <th onClick={() => onSort(sortKey)}><span className="th-inner">{label} <Icon name={icon} size={12} /></span></th>;
+}
+
+/* =========================================================
+   CHARTS (custom SVG, no external chart library)
+   ========================================================= */
+function BarTrendChart({ data, color }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  const w = 340, h = 160, padBottom = 26, padTop = 16;
+  const gap = w / data.length;
+  const barWidth = gap * 0.46;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <line x1="0" y1={h - padBottom} x2={w} y2={h - padBottom} stroke="#E2E8F0" strokeWidth="1" />
+      {data.map((d, i) => {
+        const barH = ((h - padBottom - padTop) * d.value) / max;
+        const x = i * gap + (gap - barWidth) / 2;
+        const y = h - padBottom - barH;
+        const isLast = i === data.length - 1;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barWidth} height={Math.max(barH, 1)} rx="4" fill={color} opacity={isLast ? 1 : 0.42} />
+            <text x={x + barWidth / 2} y={h - padBottom + 15} textAnchor="middle" fontSize="9.5" fill="#64748B" fontFamily="'IBM Plex Mono',monospace">{d.month}</text>
+            {d.value > 0 && <text x={x + barWidth / 2} y={y - 5} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#0F172A" fontFamily="'Space Grotesk',sans-serif">{d.value}</text>}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DonutChart({ data, size = 128, strokeWidth = 18 }) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let acc = 0;
+  if (data.length === 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#E2E8F0" strokeWidth={strokeWidth} />
+        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#94A3B8" fontFamily="'Inter',sans-serif">No data</text>
+      </svg>
+    );
+  }
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+        {data.map((d, i) => {
+          const frac = d.value / total;
+          const dash = frac * circumference;
+          const el = (
+            <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={d.color} strokeWidth={strokeWidth}
+              strokeDasharray={`${dash} ${circumference - dash}`} strokeDashoffset={-acc} strokeLinecap="butt" />
+          );
+          acc += dash;
+          return el;
+        })}
+      </g>
+      <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" fontSize="21" fontWeight="700" fill="#0F172A" fontFamily="'Space Grotesk',sans-serif">{total}</text>
+      <text x="50%" y="63%" textAnchor="middle" dominantBaseline="middle" fontSize="9.5" fill="#94A3B8" fontFamily="'Inter',sans-serif">reports</text>
+    </svg>
+  );
+}
+
+function Legend({ data }) {
+  return (
+    <div className="legend">
+      {data.map((d, i) => (
+        <div className="legend-row" key={i}>
+          <span className="sw" style={{ background: d.color }}></span>
+          <span>{d.label}</span>
+          <span className="lv">{d.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   KPI / PANEL COMPONENTS
+   ========================================================= */
+function KpiCard({ icon, label, value, accentBg, accentColor, onIconClick }) {
+  return (
+    <div className="card kpi-card">
+      <div className="kpi-top">
+        {onIconClick ? (
+          <button
+            type="button"
+            className="kpi-icon"
+            style={{ background: accentBg, color: accentColor, border: 'none', cursor: 'pointer' }}
+            onClick={onIconClick}
+            title="Click to switch view"
+          >
+            <Icon name={icon} size={17} />
+          </button>
+        ) : (
+          <div className="kpi-icon" style={{ background: accentBg, color: accentColor }}><Icon name={icon} size={17} /></div>
+        )}
+      </div>
+      <div className="kpi-value">{value}</div>
+      <div className="kpi-label">{label}</div>
+    </div>
+  );
+}
+
+function MiniKpi({ label, value, trendDir }) {
+  return (
+    <div className="mini-kpi">
+      <div className={"mv" + (trendDir ? ' trend-' + trendDir : '')}>
+        {value}
+        {trendDir && <Icon name={trendDir === 'up' ? 'trendUp' : trendDir === 'down' ? 'trendDown' : 'trendFlat'} size={14} />}
+      </div>
+      <div className="ml">{label}</div>
+    </div>
+  );
+}
+
+function SectionPanel({ variant, icon, title, subtitle, children }) {
+  return (
+    <div className={"panel" + (variant === 'sa' ? ' sa' : '')}>
+      <div className="panel-head-bar"></div>
+      <div className="panel-body">
+        <div className="panel-title-row">
+          <div className="panel-ic"><Icon name={icon} size={16} /></div>
+          <h3>{title}</h3>
+        </div>
+        <p className="panel-sub">{subtitle}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+function Dashboard({ pcReports, saReports, pcInventory, posInventory }) {
+  const now = new Date();
+  const pcSeries = useMemo(() => computeMonthlySeries(pcReports, now), [pcReports]);
+  const pcThisMonth = pcSeries[pcSeries.length - 1].value;
+  const pcLastMonth = pcSeries[pcSeries.length - 2].value;
+  const pcTrend = trendPct(pcThisMonth, pcLastMonth);
+  const pcStatusData = useMemo(() => statusCounts(pcReports, REPORT_STATUSES), [pcReports]);
+  const saStatusData = useMemo(() => statusCounts(saReports, REPORT_STATUSES), [saReports]);
+  const saSeries = useMemo(() => computeMonthlySeries(saReports, now, 'date'), [saReports]);
+  const saThisMonth = saSeries[saSeries.length - 1].value;
+  const saLastMonth = saSeries[saSeries.length - 2].value;
+  const saTrend = trendPct(saThisMonth, saLastMonth);
+  const saResolvedCount = useMemo(() => saReports.filter(r => r.status === 'Completed').length, [saReports]);
+  const saAttentionCount = useMemo(() => saReports.filter(r => r.status === 'Pending' || r.status === 'In Progress').length, [saReports]);
+
+  const recent = useMemo(() => {
+    const combined = pcReports.map(r => ({ ...r, kind: 'pc' }));
+    combined.sort((a, b) => new Date(b.dateReported) - new Date(a.dateReported));
+    return combined.slice(0, 6);
+  }, [pcReports]);
+
+  // System Unit Count KPI: cycles Total -> Micro PC -> System Unit -> Total
+  const [pcModeIdx, setPcModeIdx] = useState(0);
+  const pcModes = useMemo(() => ([
+    { label: 'System Unit Count', value: pcInventory.length },
+    { label: 'Micro PC', value: pcInventory.filter(p => p.deviceType === 'Micro PC').length },
+    { label: 'System Unit', value: pcInventory.filter(p => p.deviceType === 'System Unit').length },
+  ]), [pcInventory]);
+  const pcMode = pcModes[pcModeIdx % pcModes.length];
+
+  // POS Count KPI: cycles Total -> SP -> DS -> Total
+  const [posModeIdx, setPosModeIdx] = useState(0);
+  const posModes = useMemo(() => ([
+    { label: 'POS Count', value: posInventory.length },
+    { label: 'SP', value: posInventory.filter(p => p.section === 'Supermarket').length },
+    { label: 'DS', value: posInventory.filter(p => p.section === 'Department Store').length },
+  ]), [posInventory]);
+  const posMode = posModes[posModeIdx % posModes.length];
+
+  return (
+    <div>
+      <div className="kpi-row">
+        <KpiCard icon="pc" label="Total PC Reports" value={pcReports.length} accentBg="var(--accent-soft)" accentColor="var(--accent-dark)" />
+        <KpiCard icon="store" label="Selling Area Reports" value={saReports.length} accentBg="var(--accent-2-soft)" accentColor="var(--accent-2-dark)" />
+        <KpiCard icon="server" label={pcMode.label} value={pcMode.value} accentBg="var(--violet-bg)" accentColor="var(--violet-text)" onIconClick={() => setPcModeIdx(i => i + 1)} />
+        <KpiCard icon="pos" label={posMode.label} value={posMode.value} accentBg="var(--orange-bg)" accentColor="var(--orange-text)" onIconClick={() => setPosModeIdx(i => i + 1)} />
+      </div>
+
+      <div className="panel-grid">
+        <SectionPanel variant="pc" icon="pc" title="Back Office Reports" subtitle="Trouble reports logged for back-office & admin department computers">
+          <div className="mini-kpi-row">
+            <MiniKpi label="Total Reports" value={pcReports.length} />
+            <MiniKpi label="This Month" value={pcThisMonth} />
+            <MiniKpi label="Monthly Trend" value={pcTrend.label} trendDir={pcTrend.dir} />
+          </div>
+          <div className="chart-row">
+            <div className="chart-col">
+              <div className="chart-title">Monthly Report Volume</div>
+              <BarTrendChart data={pcSeries} color="var(--accent-dark)" />
+            </div>
+            <div className="chart-col donut-col">
+              <div className="chart-title">Status Breakdown</div>
+              <DonutChart data={pcStatusData} />
+              <Legend data={pcStatusData} />
+            </div>
+          </div>
+        </SectionPanel>
+
+        <SectionPanel variant="sa" icon="store" title="Selling Area Reports" subtitle="Trouble reports for supermarket & department store counters and terminals">
+          <div className="mini-kpi-row">
+            <MiniKpi label="Total Reports" value={saReports.length} />
+            <MiniKpi label="Resolved" value={saResolvedCount} />
+            <MiniKpi label="Needs Attention" value={saAttentionCount} />
+          </div>
+          <div className="chart-row">
+            <div className="chart-col">
+              <div className="chart-title">Monthly Report Volume</div>
+              <BarTrendChart data={saSeries} color="var(--accent-2-dark)" />
+            </div>
+            <div className="chart-col donut-col">
+              <div className="chart-title">Status Breakdown</div>
+              <DonutChart data={saStatusData} />
+              <Legend data={saStatusData} />
+            </div>
+          </div>
+        </SectionPanel>
+      </div>
+
+      <div className="card recent-card">
+        <div className="card-header">Recent Activity</div>
+        {recent.length === 0 && <div className="recent-row" style={{ justifyContent: 'center', color: 'var(--text-faint)' }}>No activity yet.</div>}
+        {recent.map(r => (
+          <div className="recent-row" key={r.kind + '-' + r.id}>
+            <span className={"recent-tag " + r.kind}>PC</span>
+            <span className="recent-dept">{r.department}</span>
+            <span className="recent-problem">{r.problem}</span>
+            <StatusBadge status={r.status} />
+            <span className="recent-date">{formatDate(r.dateReported)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   REPORT FORM MODAL (shared by PC Reports & Selling Area Reports)
+   ========================================================= */
+function ReportFormModal({ record, departmentOptions, onClose, onSave, titleLabel }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    dateReported: new Date().toISOString().slice(0, 10),
+    department: departmentOptions[0],
+    problem: '', actionTaken: '', replacement: 'None', serialReplacement: '',
+    status: 'Pending', remarks: '', technician: TECHNICIANS[0],
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.problem.trim() || !form.dateReported) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={(record ? 'Edit ' : 'Add ') + titleLabel} onClose={onClose} maxWidth="700px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Technician" required>
+          <select className="select" style={{ width: '100%' }} value={form.technician} onChange={e => update('technician', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Problem" full required>
+          <textarea className="textarea" rows="2" value={form.problem} onChange={e => update('problem', e.target.value)} placeholder="Describe the reported issue" required />
+        </Field>
+        <Field label="Action Taken" full>
+          <textarea className="textarea" rows="2" value={form.actionTaken} onChange={e => update('actionTaken', e.target.value)} placeholder="Describe the resolution steps" />
+        </Field>
+        <Field label="Replacement"><input className="input" style={{ width: '100%' }} value={form.replacement} onChange={e => update('replacement', e.target.value)} placeholder="e.g. RAM Module 8GB" /></Field>
+        <Field label="Serial (Replacement)"><input className="input mono" style={{ width: '100%' }} value={form.serialReplacement} onChange={e => update('serialReplacement', e.target.value)} placeholder="e.g. RAM-SN-12345" /></Field>
+        <Field label="Remarks" full>
+          <textarea className="textarea" rows="2" value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Additional notes" />
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* =========================================================
+   REPORTS PAGE (shared: PC Reports & Selling Area Reports)
+   ========================================================= */
+const REPORT_COLUMNS = [
+  ['dateReported', 'Date Reported'], ['department', 'Department'], ['problem', 'Problem'],
+  ['actionTaken', 'Action Taken'], ['replacement', 'Replacement'], ['serialReplacement', 'Serial No.'],
+  ['status', 'Status'], ['remarks', 'Remarks'], ['technician', 'Technician'],
+];
+
+function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('dateReported');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.problem, r.actionTaken, r.remarks, r.department, r.technician, r.replacement].join(' ').toLowerCase().includes(q);
+      const matchesDept = deptFilter === 'All' || r.department === deptFilter;
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesDept && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'dateReported') { av = new Date(av).getTime(); bv = new Date(bv).getTime(); }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId(idPrefix) }, ...prev]);
+      addToast('Report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Report deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {REPORT_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.dateReported)}</td>
+                  <td>{r.department}</td>
+                  <td className="truncate" title={r.problem}>{r.problem}</td>
+                  <td className="truncate" title={r.actionTaken}>{r.actionTaken}</td>
+                  <td className="truncate" title={r.replacement}>{r.replacement}</td>
+                  <td className="mono">{r.serialReplacement}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td className="truncate" title={r.remarks}>{r.remarks}</td>
+                  <td>{r.technician}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <ReportFormModal record={editingRecord} departmentOptions={departmentOptions} onClose={() => setModalOpen(false)} onSave={handleSave} titleLabel={titleLabel} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete this ${titleLabel.toLowerCase()} for "${confirmState.department}" dated ${formatDate(confirmState.dateReported)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   PC MONITORING
+   ========================================================= */
+function PcFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    department: DEPARTMENTS[0], deviceType: DEVICE_TYPES[0], pcName: '', user: '', ipAddress: '', macAddress: '',
+    windowsVersion: OS_VERSIONS[0], productKey: '',
+    motherboardModel: '', motherboardSN: '',
+    ramModel: '', ramSN: '',
+    storageModel: '', storageType: STORAGE_TYPES[1],
+    printerModel: '', printer: '',
+    monitorModel: '', monitor: '',
+    scannerModel: '', scannerSN: '',
+    processor: '', gpu: '', projector: '', status: 'Active',
+  });
+  const [showKey, setShowKey] = useState(false);
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.pcName.trim() || !form.ipAddress.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit PC Record' : 'Add PC Record'} onClose={onClose} maxWidth="760px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Identification</div>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Device Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.deviceType} onChange={e => update('deviceType', e.target.value)}>
+            {DEVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="PC Name" required><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. ADMIN-PC01" required /></Field>
+        <Field label="User"><input className="input" style={{ width: '100%' }} value={form.user} onChange={e => update('user', e.target.value)} placeholder="Assigned user" /></Field>
+        <Field label="IP Address" required><input className="input mono" style={{ width: '100%' }} value={form.ipAddress} onChange={e => update('ipAddress', e.target.value)} placeholder="10.10.x.x" required /></Field>
+        <Field label="MAC Address"><input className="input mono" style={{ width: '100%' }} value={form.macAddress} onChange={e => update('macAddress', e.target.value)} placeholder="00:1A:2B:3C:4D:00" /></Field>
+        <Field label="Status">
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Operating System</div>
+        <Field label="Windows Version">
+          <select className="select" style={{ width: '100%' }} value={form.windowsVersion} onChange={e => update('windowsVersion', e.target.value)}>
+            {OS_VERSIONS.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
+        <Field label="Product Key" full>
+          <div className="key-field">
+            <input className="input mono" type={showKey ? 'text' : 'password'} value={form.productKey} onChange={e => update('productKey', e.target.value)} placeholder="XXXXX-XXXXX-XXXXX-XXXXX" />
+            <button type="button" className="icon-btn" onClick={() => setShowKey(s => !s)} title={showKey ? 'Hide key' : 'Show key'}><Icon name="eye" size={15} /></button>
+          </div>
+        </Field>
+
+        <div className="form-section-label">Hardware</div>
+        <Field label="Motherboard Model"><input className="input" style={{ width: '100%' }} value={form.motherboardModel} onChange={e => update('motherboardModel', e.target.value)} /></Field>
+        <Field label="Motherboard SN"><input className="input mono" style={{ width: '100%' }} value={form.motherboardSN} onChange={e => update('motherboardSN', e.target.value)} /></Field>
+        <Field label="Processor"><input className="input" style={{ width: '100%' }} value={form.processor} onChange={e => update('processor', e.target.value)} /></Field>
+        <Field label="GPU"><input className="input" style={{ width: '100%' }} value={form.gpu} onChange={e => update('gpu', e.target.value)} /></Field>
+        <Field label="RAM Model"><input className="input" style={{ width: '100%' }} value={form.ramModel} onChange={e => update('ramModel', e.target.value)} placeholder="e.g. Kingston 8GB DDR4 2666MHz" /></Field>
+        <Field label="RAM SN"><input className="input mono" style={{ width: '100%' }} value={form.ramSN} onChange={e => update('ramSN', e.target.value)} /></Field>
+        <Field label="HDD / SSD Model"><input className="input" style={{ width: '100%' }} value={form.storageModel} onChange={e => update('storageModel', e.target.value)} placeholder="e.g. Samsung 512GB NVMe" /></Field>
+        <Field label="Storage: HDD or SSD">
+          <select className="select" style={{ width: '100%' }} value={form.storageType} onChange={e => update('storageType', e.target.value)}>
+            {STORAGE_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Peripherals</div>
+        <Field label="Printer Model"><input className="input" style={{ width: '100%' }} value={form.printerModel} onChange={e => update('printerModel', e.target.value)} /></Field>
+        <Field label="Printer"><input className="input mono" style={{ width: '100%' }} value={form.printer} onChange={e => update('printer', e.target.value)} placeholder="Serial / asset tag" /></Field>
+        <Field label="Monitor Model"><input className="input" style={{ width: '100%' }} value={form.monitorModel} onChange={e => update('monitorModel', e.target.value)} /></Field>
+        <Field label="Monitor"><input className="input mono" style={{ width: '100%' }} value={form.monitor} onChange={e => update('monitor', e.target.value)} placeholder="Serial / asset tag" /></Field>
+        <Field label="Scanner Model"><input className="input" style={{ width: '100%' }} value={form.scannerModel} onChange={e => update('scannerModel', e.target.value)} /></Field>
+        <Field label="Scanner SN"><input className="input mono" style={{ width: '100%' }} value={form.scannerSN} onChange={e => update('scannerSN', e.target.value)} /></Field>
+        <Field label="Projector"><input className="input" style={{ width: '100%' }} value={form.projector} onChange={e => update('projector', e.target.value)} placeholder="Model / asset tag, if any" /></Field>
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add PC Record'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('pcName');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || r.pcName.toLowerCase().includes(q) || r.ipAddress.toLowerCase().includes(q) || r.department.toLowerCase().includes(q) || r.macAddress.toLowerCase().includes(q) || (r.user || '').toLowerCase().includes(q);
+      const md = deptFilter === 'All' || r.department === deptFilter;
+      const mdt = deviceTypeFilter === 'All' || r.deviceType === deviceTypeFilter;
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && md && mdt && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, deviceTypeFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, deviceTypeFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('PC record updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('PCM') }, ...prev]);
+      addToast('PC record added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('PC record deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={deviceTypeFilter} onChange={e => setDeviceTypeFilter(e.target.value)}>
+          <option value="All">All Device Types</option>
+          {DEVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {PC_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add PC Record</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Device Type" sortKey="deviceType" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="PC Name" sortKey="pcName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>User</th>
+                <SortableTh label="IP Address" sortKey="ipAddress" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>MAC Address</th>
+                <th>Windows Version</th>
+                <th>Motherboard</th>
+                <th>RAM</th>
+                <th>Storage</th>
+                <th>Printer</th>
+                <th>Monitor</th>
+                <th>Scanner</th>
+                <th>Processor</th>
+                <th>GPU</th>
+                <th>Projector</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="17" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td>{r.department}</td>
+                  <td>{r.deviceType || '-'}</td>
+                  <td style={{ fontWeight: 600 }}>{r.pcName}</td>
+                  <td>{r.user || '-'}</td>
+                  <td className="mono">{r.ipAddress}</td>
+                  <td className="mono truncate-sm" title={r.macAddress}>{r.macAddress}</td>
+                  <td>{r.windowsVersion}</td>
+                  <td>
+                    <div>{r.motherboardModel}</div>
+                    <div className="cell-sub mono">{r.motherboardSN}</div>
+                  </td>
+                  <td>
+                    <div>{r.ramModel}</div>
+                    <div className="cell-sub mono">{r.ramSN}</div>
+                  </td>
+                  <td>
+                    <div>{r.storageModel} &middot; {r.storageType}</div>
+                  </td>
+                  <td>
+                    <div>{r.printerModel}</div>
+                    <div className="cell-sub mono">{r.printer}</div>
+                  </td>
+                  <td>
+                    <div>{r.monitorModel}</div>
+                    <div className="cell-sub mono">{r.monitor}</div>
+                  </td>
+                  <td>
+                    <div>{r.scannerModel}</div>
+                    <div className="cell-sub mono">{r.scannerSN}</div>
+                  </td>
+                  <td>{r.processor}</td>
+                  <td>{r.gpu}</td>
+                  <td>{r.projector}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="View / Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PcFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete PC record "${confirmState.pcName}" (${confirmState.ipAddress})? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   POS MONITORING
+   ========================================================= */
+function PosFormModal({ record, onClose, onSave, defaultSection }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    section: defaultSection || POS_SECTIONS[0], counter: '', terminal: '', serial: '',
+    display1: '', display2: '', printerSerial: '', scannerSerial: '', flatbedSerial: '',
+    ghlSerial: '', status: 'Active',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.counter.trim() || !form.terminal.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit POS Terminal' : 'Add POS Terminal'} onClose={onClose} maxWidth="680px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Terminal Identification</div>
+        <Field label="Section" required>
+          <select className="select" style={{ width: '100%' }} value={form.section} onChange={e => update('section', e.target.value)}>
+            {POS_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. Counter 11" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. DS-POS-11" required /></Field>
+        <Field label="Serial"><input className="input mono" style={{ width: '100%' }} value={form.serial} onChange={e => update('serial', e.target.value)} /></Field>
+        <Field label="Status">
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Hardware Serials</div>
+        <Field label="1st Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.display1} onChange={e => update('display1', e.target.value)} /></Field>
+        <Field label="2nd Display Serial"><input className="input mono" style={{ width: '100%' }} value={form.display2} onChange={e => update('display2', e.target.value)} /></Field>
+        <Field label="Printer Serial"><input className="input mono" style={{ width: '100%' }} value={form.printerSerial} onChange={e => update('printerSerial', e.target.value)} /></Field>
+        <Field label="Handheld Scanner Serial"><input className="input mono" style={{ width: '100%' }} value={form.scannerSerial} onChange={e => update('scannerSerial', e.target.value)} /></Field>
+        <Field label={flatbedFieldLabel(form.section)}><input className="input mono" style={{ width: '100%' }} value={form.flatbedSerial} onChange={e => update('flatbedSerial', e.target.value)} /></Field>
+        <Field label="GHL Terminal Serial"><input className="input mono" style={{ width: '100%' }} value={form.ghlSerial} onChange={e => update('ghlSerial', e.target.value)} /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Terminal'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
+  const [activeSection, setActiveSection] = useState(POS_SECTIONS[0]);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('counter');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const sectionCounts = useMemo(() => {
+    const m = {};
+    POS_SECTIONS.forEach(s => { m[s] = 0; });
+    data.forEach(r => { if (m[r.section] !== undefined) m[r.section] += 1; });
+    return m;
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => r.section === activeSection);
+    rows = rows.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || [r.counter, r.terminal, r.serial, r.display1, r.display2, r.printerSerial, r.scannerSerial, r.flatbedSerial, r.ghlSerial].join(' ').toLowerCase().includes(q);
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, activeSection, query, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, statusFilter, activeSection]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('POS terminal updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('POS') }, ...prev]);
+      addToast('POS terminal added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('POS terminal deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="loc-tabs">
+        {POS_SECTIONS.map(s => (
+          <button key={s} className={"loc-tab" + (activeSection === s ? " active" : "")} onClick={() => setActiveSection(s)}>
+            {s}
+            <span className="loc-count">{sectionCounts[s] || 0}</span>
+          </button>
+        ))}
+      </div>
+      <div className="toolbar">
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add POS Terminal</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="Counter" sortKey="counter" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Terminal" sortKey="terminal" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Serial</th>
+                <th>1st Display</th>
+                <th>2nd Display</th>
+                <th>Printer Serial</th>
+                <th>Handheld Scanner Serial</th>
+                <th>{flatbedFieldLabel(activeSection)}</th>
+                <th>GHL Terminal Serial</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No POS terminals match your search or filters for {activeSection}.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
+                  <td>{r.terminal}</td>
+                  <td className="mono truncate-sm" title={r.serial}>{r.serial}</td>
+                  <td className="mono truncate-sm" title={r.display1}>{r.display1}</td>
+                  <td className="mono truncate-sm" title={r.display2}>{r.display2}</td>
+                  <td className="mono truncate-sm" title={r.printerSerial}>{r.printerSerial}</td>
+                  <td className="mono truncate-sm" title={r.scannerSerial}>{r.scannerSerial}</td>
+                  <td className="mono truncate-sm" title={r.flatbedSerial}>{r.flatbedSerial}</td>
+                  <td className="mono truncate-sm" title={r.ghlSerial}>{r.ghlSerial}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PosFormModal record={editingRecord} defaultSection={activeSection} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete POS terminal "${confirmState.terminal}" at ${confirmState.counter}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   SELLING AREA REPORTS
+   ========================================================= */
+const SA_REPORT_COLUMNS = [
+  ['date', 'Date'], ['supermarket', 'Supermarket'], ['counter', 'Counter'], ['terminal', 'Terminal'],
+  ['issueType', 'Issue Type'], ['problemDescription', 'Problem Description'], ['troubleshootingSteps', 'Troubleshooting Steps'],
+  ['status', 'Status'], ['technician', 'Technician Assigned'], ['dateResolved', 'Date Resolved'],
+];
+
+function SaReportFormModal({ record, departmentOptions, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), supermarket: departmentOptions[0],
+    counter: '', terminal: '', issueType: SA_ISSUE_TYPES[0],
+    problemDescription: '', troubleshootingSteps: '',
+    status: 'Pending', technician: TECHNICIANS[0], dateResolved: '',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.counter.trim() || !form.terminal.trim() || !form.problemDescription.trim() || !form.date) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Selling Area Report' : 'Add Selling Area Report'} onClose={onClose} maxWidth="720px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Identification</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Supermarket" required>
+          <select className="select" style={{ width: '100%' }} value={form.supermarket} onChange={e => update('supermarket', e.target.value)}>
+            {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Counter" required><input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. Counter 1" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-01" required /></Field>
+        <Field label="Issue Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.issueType} onChange={e => update('issueType', e.target.value)}>
+            {SA_ISSUE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Technician Assigned" required>
+          <select className="select" style={{ width: '100%' }} value={form.technician} onChange={e => update('technician', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+
+        <div className="form-section-label">Details</div>
+        <Field label="Problem Description" full required>
+          <textarea className="textarea" rows="2" value={form.problemDescription} onChange={e => update('problemDescription', e.target.value)} placeholder="Describe the reported issue" required />
+        </Field>
+        <Field label="Troubleshooting Steps" full>
+          <textarea className="textarea" rows="2" value={form.troubleshootingSteps} onChange={e => update('troubleshootingSteps', e.target.value)} placeholder="Describe the steps taken to resolve the issue" />
+        </Field>
+
+        <div className="form-section-label">Resolution</div>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Date Resolved"><input type="date" className="input" style={{ width: '100%' }} value={form.dateResolved} onChange={e => update('dateResolved', e.target.value)} /></Field>
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState(() => departmentOptions[0] || 'All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matches = !q || [r.counter, r.terminal, r.issueType, r.problemDescription, r.troubleshootingSteps, r.technician].join(' ').toLowerCase().includes(q);
+      const md = deptFilter === 'All' || r.supermarket === deptFilter;
+      const ms = statusFilter === 'All' || r.status === statusFilter;
+      return matches && md && ms;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date' || sortKey === 'dateResolved') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('SAR') }, ...prev]);
+      addToast('Report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Report deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {SA_REPORT_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={SA_REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td>{r.supermarket}</td>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
+                  <td>{r.terminal}</td>
+                  <td>{r.issueType}</td>
+                  <td className="truncate" title={r.problemDescription}>{r.problemDescription}</td>
+                  <td className="truncate" title={r.troubleshootingSteps}>{r.troubleshootingSteps || '-'}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>{r.technician}</td>
+                  <td className="mono">{r.dateResolved ? formatDate(r.dateResolved) : '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <SaReportFormModal record={editingRecord} departmentOptions={departmentOptions} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete report for "${confirmState.terminal}" at ${confirmState.counter}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   GHL REPORTS
+   ========================================================= */
+const GHL_COLUMNS = [
+  ['dateReported', 'Date Reported'], ['section', 'Section'], ['counter', 'Counter'], ['type', 'Type'], ['sn', 'SN'],
+  ['reportCount', 'Report Count'], ['requestNumber', 'Request Number'], ['dateReceived', 'Date Received'], ['status', 'Status'],
+];
+
+function GhlReportFormModal({ record, terminals, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    dateReported: new Date().toISOString().slice(0, 10), section: SELLING_AREAS[0], counter: '', type: GHL_TYPES[0], sn: '',
+    reportCount: 1, requestNumber: '', dateReceived: '', status: 'Pending',
+  });
+  const [snAuto, setSnAuto] = useState(true);
+  const counterOptions = useMemo(() => {
+    const seen = new Set();
+    return terminals.map(t => t.ctr).filter(c => c && !seen.has(c) && seen.add(c)).sort();
+  }, [terminals]);
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function updateCounter(ctr) {
+    const match = terminals.find(t => t.ctr === ctr);
+    setForm(f => ({ ...f, counter: ctr, sn: (snAuto && match) ? match.serialNumber : f.sn }));
+  }
+  function updateSn(v) { setSnAuto(false); update('sn', v); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.counter.trim() || !form.dateReported) return;
+    onSave({ ...form, reportCount: Number(form.reportCount) || 0, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit GHL Report' : 'Add GHL Report'} onClose={onClose} maxWidth="700px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date Reported" required><input type="date" className="input" value={form.dateReported} onChange={e => update('dateReported', e.target.value)} required /></Field>
+        <Field label="Section" required>
+          <select className="select" style={{ width: '100%' }} value={form.section} onChange={e => update('section', e.target.value)}>
+            {SELLING_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Counter" required>
+          {counterOptions.length > 0 ? (
+            <select className="select" style={{ width: '100%' }} value={form.counter} onChange={e => updateCounter(e.target.value)} required>
+              <option value="" disabled>Select counter...</option>
+              {counterOptions.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          ) : (
+            <input className="input" style={{ width: '100%' }} value={form.counter} onChange={e => update('counter', e.target.value)} placeholder="e.g. CTR-01" required />
+          )}
+        </Field>
+        <Field label="Type" required>
+          <select className="select" style={{ width: '100%' }} value={form.type} onChange={e => update('type', e.target.value)}>
+            {GHL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="SN">
+          <input className="input mono" style={{ width: '100%' }} value={form.sn} onChange={e => updateSn(e.target.value)} placeholder="Auto-filled from Terminal, or type manually" />
+          <span className="cell-sub">Auto-filled from the Terminal list based on the selected Counter. You can still edit it.</span>
+        </Field>
+        <Field label="Report Count" required><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.reportCount} onChange={e => update('reportCount', e.target.value)} required /></Field>
+        <Field label="Request Number"><input className="input mono" style={{ width: '100%' }} value={form.requestNumber} onChange={e => update('requestNumber', e.target.value)} placeholder="e.g. REQ-20260814-01" /></Field>
+        <Field label="Date Received"><input type="date" className="input" style={{ width: '100%' }} value={form.dateReceived} onChange={e => update('dateReceived', e.target.value)} /></Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {GHL_REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Report'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function TerminalFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : { ctr: '', terminal: '', serialNumber: '' });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.ctr.trim() || !form.terminal.trim()) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Terminal' : 'Add Terminal'} onClose={onClose} maxWidth="520px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="CTR" required><input className="input" style={{ width: '100%' }} value={form.ctr} onChange={e => update('ctr', e.target.value)} placeholder="e.g. CTR-01" required /></Field>
+        <Field label="Terminal" required><input className="input" style={{ width: '100%' }} value={form.terminal} onChange={e => update('terminal', e.target.value)} placeholder="e.g. POS-01" required /></Field>
+        <Field label="Serial Number" full><input className="input mono" style={{ width: '100%' }} value={form.serialNumber} onChange={e => update('serialNumber', e.target.value)} placeholder="e.g. GHL-SN-40051" /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Terminal'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function TerminalsList({ data, setData, addToast, onBack }) {
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState('ctr');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      return !q || [r.ctr, r.terminal, r.serialNumber].join(' ').toLowerCase().includes(q);
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Terminal updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('GHLT') }, ...prev]);
+      addToast('Terminal added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Terminal deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <button className="btn btn-secondary" onClick={onBack}><Icon name="chevronUp" size={14} style={{ transform: 'rotate(-90deg)' }} /> Back to Reports</button>
+        <SearchInput value={query} onChange={setQuery} placeholder="Search terminals (CTR, terminal, serial)..." />
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Terminal</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <SortableTh label="CTR" sortKey="ctr" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Terminal" sortKey="terminal" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Serial Number" sortKey="serialNumber" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="4" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No terminals match your search.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 600 }}>{r.ctr}</td>
+                  <td>{r.terminal}</td>
+                  <td className="mono">{r.serialNumber}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <TerminalFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete terminal "${confirmState.terminal}" at ${confirmState.ctr}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, query, setQuery }) {
+  const [view, setView] = useState('reports');
+  const [sectionFilter, setSectionFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('dateReported');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.section, r.counter, r.type, r.sn, r.requestNumber, r.status].join(' ').toLowerCase().includes(q);
+      const matchesSection = sectionFilter === 'All' || r.section === sectionFilter;
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesSection && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'dateReported' || sortKey === 'dateReceived') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else if (sortKey === 'reportCount') { av = Number(av) || 0; bv = Number(bv) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, sectionFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, sectionFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('GHL report updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('GHL') }, ...prev]);
+      addToast('GHL report added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('GHL report deleted', 'danger');
+    setConfirmState(null);
+  }
+  function handleStatusChange(record, newStatus) {
+    if (newStatus === record.status) return;
+    setData(prev => prev.map(r => r.id === record.id ? { ...r, status: newStatus } : r));
+    addToast(`Status updated to "${newStatus}"`, 'success');
+  }
+
+  if (view === 'terminals') {
+    return <TerminalsList data={terminals} setData={setTerminals} addToast={addToast} onBack={() => setView('reports')} />;
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={sectionFilter} onChange={e => setSectionFilter(e.target.value)}>
+          <option value="All">All Sections</option>
+          {SELLING_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {GHL_REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-secondary" onClick={() => setView('terminals')}><Icon name="pos" size={15} /> Terminals</button>
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {GHL_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={GHL_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No GHL reports match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.dateReported)}</td>
+                  <td>{r.section}</td>
+                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
+                  <td>{r.type}</td>
+                  <td className="mono">{r.sn}</td>
+                  <td>{r.reportCount}</td>
+                  <td className="mono">{r.requestNumber}</td>
+                  <td className="mono">{r.dateReceived ? formatDate(r.dateReceived) : '-'}</td>
+                  <td><StatusSelect status={r.status} options={GHL_REPORT_STATUSES} onChange={s => handleStatusChange(r, s)} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <GhlReportFormModal record={editingRecord} terminals={terminals} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete GHL report for "${confirmState.counter}" dated ${formatDate(confirmState.dateReported)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+function InventoryFormModal({ record, location, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), itemName: '', quantity: '', remarks: '', location,
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.itemName.trim() || !form.date || form.quantity === '') return;
+    onSave({ ...form, quantity: Number(form.quantity), id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Inventory Item' : `Add Inventory Item — ${location}`} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Item Details &middot; {location}</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Quantity" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Item Name" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. Bond Paper A4" required /></Field>
+        <Field label="Remarks" full><textarea className="textarea" rows="3" style={{ width: '100%' }} value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Optional notes..." /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Item'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, setActiveLoc }) {
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const locCounts = useMemo(() => {
+    const m = {};
+    INVENTORY_LOCATIONS.forEach(l => { m[l] = 0; });
+    data.forEach(r => { if (m[r.location] !== undefined) m[r.location] += 1; });
+    return m;
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => r.location === activeLoc);
+    const q = query.trim().toLowerCase();
+    if (q) rows = rows.filter(r => [r.itemName, r.remarks].join(' ').toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'quantity') { av = Number(a.quantity) || 0; bv = Number(b.quantity) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, activeLoc, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, activeLoc]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalQty = filtered.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Inventory item updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('INV'), location: activeLoc }, ...prev]);
+      addToast('Inventory item added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Inventory item deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="loc-tabs">
+        {INVENTORY_LOCATIONS.map(loc => (
+          <button key={loc} className={"loc-tab" + (activeLoc === loc ? " active" : "")} onClick={() => setActiveLoc(loc)}>
+            {loc}
+            <span className="loc-count">{locCounts[loc] || 0}</span>
+          </button>
+        ))}
+      </div>
+      <div className="toolbar">
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {activeLoc} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
+        </div>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Item</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="table-compact">
+            <thead>
+              <tr>
+                <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Item Name" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Quantity" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No inventory items found for {activeLoc}.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
+                  <td className="mono">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <InventoryFormModal record={editingRecord} location={activeLoc} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete inventory item "${confirmState.itemName}" from ${confirmState.location}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+function PhysicalCountFormModal({ record, category, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10), itemName: '', quantity: '', remarks: '', category,
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.itemName.trim() || !form.date || form.quantity === '') return;
+    onSave({ ...form, quantity: Number(form.quantity), id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Physical Count Item' : `Add Physical Count Item — ${category}`} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <div className="form-section-label">Item Details &middot; {category}</div>
+        <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Quantity" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Item Name" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. PDT Unit (Handheld Scanner)" required /></Field>
+        <Field label="Remarks" full><textarea className="textarea" rows="3" style={{ width: '100%' }} value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Optional notes..." /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Item'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCategory, setActiveCategory }) {
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const catCounts = useMemo(() => {
+    const m = {};
+    PHYSICAL_COUNT_CATEGORIES.forEach(c => { m[c] = 0; });
+    data.forEach(r => { if (m[r.category] !== undefined) m[r.category] += 1; });
+    return m;
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => r.category === activeCategory);
+    const q = query.trim().toLowerCase();
+    if (q) rows = rows.filter(r => [r.itemName, r.remarks].join(' ').toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'quantity') { av = Number(a.quantity) || 0; bv = Number(b.quantity) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, activeCategory, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, activeCategory]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalQty = filtered.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Physical count item updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('PIC'), category: activeCategory }, ...prev]);
+      addToast('Physical count item added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Physical count item deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="loc-tabs">
+        {PHYSICAL_COUNT_CATEGORIES.map(cat => (
+          <button key={cat} className={"loc-tab" + (activeCategory === cat ? " active" : "")} onClick={() => setActiveCategory(cat)}>
+            {cat}
+            <span className="loc-count">{catCounts[cat] || 0}</span>
+          </button>
+        ))}
+      </div>
+      <div className="toolbar">
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {activeCategory} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
+        </div>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Item</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="table-compact">
+            <thead>
+              <tr>
+                <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Item Name" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Quantity" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No physical count items found for {activeCategory}.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
+                  <td className="mono">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <PhysicalCountFormModal record={editingRecord} category={activeCategory} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete physical count item "${confirmState.itemName}" from ${confirmState.category}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   INSTALL APP (Add to Home Screen)
+   ========================================================= */
+function detectPlatform() {
+  const ua = (navigator.userAgent || '') + '';
+  if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
+  if (/android/i.test(ua)) return 'android';
+  return 'desktop';
+}
+
+function InstallHelpModal({ onClose }) {
+  const platform = detectPlatform();
+  return (
+    <Modal title="I-install ang App" onClose={onClose} maxWidth="480px">
+      <div style={{ fontSize: '13.5px', color: 'var(--text)', lineHeight: 1.65 }}>
+        {platform === 'ios' && (
+          <ol style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <li>Buksan ang site na ito gamit ang <strong>Safari</strong> (hindi Chrome).</li>
+            <li>Pindutin ang <strong>Share</strong> button (kahong may pataas na arrow) sa ibaba ng screen.</li>
+            <li>I-scroll pababa at piliin ang <strong>"Add to Home Screen"</strong>.</li>
+            <li>Pindutin ang <strong>"Add"</strong> sa kanang-itaas.</li>
+          </ol>
+        )}
+        {platform === 'android' && (
+          <ol style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <li>Pindutin ang <strong>3-dot menu</strong> (⋮) sa kanang-itaas ng Chrome.</li>
+            <li>Piliin ang <strong>"Install app"</strong> o <strong>"Add to Home screen"</strong>.</li>
+            <li>Kumpirmahin sa lalabas na prompt.</li>
+          </ol>
+        )}
+        {platform === 'desktop' && (
+          <ol style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <li>Hanapin ang <strong>install icon</strong> (⊕) sa address bar ng Chrome / Edge.</li>
+            <li>Kung wala, pindutin ang <strong>3-dot menu</strong> &rarr; <strong>"Install ISS Monitoring..."</strong>.</li>
+            <li>Pindutin ang <strong>"Install"</strong> sa lalabas na dialog.</li>
+          </ol>
+        )}
+        <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: '12.5px', background: 'var(--gray-bg)', padding: '10px 12px', borderRadius: '9px' }}>
+          Paalala: kailangang naka-host ang app sa isang secure (https) na address para gumana ang install / add-to-home-screen — hindi ito gagana kung binuksan lamang bilang lokal na file sa iyong computer.
+        </p>
+      </div>
+      <div className="form-actions" style={{ border: 'none', paddingTop: '16px', marginTop: 0 }}>
+        <button className="btn btn-primary" onClick={onClose}>OK, Got it</button>
+      </div>
+    </Modal>
+  );
+}
+
+/* =========================================================
+   SIDEBAR / HEADER
+   ========================================================= */
+const NAV_GROUPS = [
+  { label: null, items: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    ] },
+  { label: 'Operations Monitoring', items: [
+      { key: 'pcReports', label: 'Back Office Reports', icon: 'pc' },
+      { key: 'saReports', label: 'Selling Area Reports', icon: 'store' },
+      { key: 'ghlReports', label: 'NTT Reports', icon: 'server' },
+    ] },
+  { label: 'Device & Specifications', items: [
+      { key: 'pcMonitoring', label: 'Back Office', icon: 'activity' },
+      { key: 'posMonitoring', label: 'Selling Area', icon: 'pos' },
+    ] },
+  { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
+  { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
+];
+
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick }) {
+  const FORMAT_CHOICES = [
+    { key: 'pdf', label: 'PDF' },
+    { key: 'excel', label: 'Excel' },
+    { key: 'both', label: 'Both' },
+  ];
+  const backupLabel = { pdf: 'PDF', excel: 'Excel', both: 'PDF + Excel' }[backupFormat] || 'PDF';
+
+  const [collapsedGroups, setCollapsedGroups] = useState(() => {
+    const initial = {};
+    NAV_GROUPS.forEach(g => {
+      if (!g.collapsible) return;
+      const hasActiveChild = g.items.some(item => {
+        const isInv = item.key.indexOf('inventory:') === 0;
+        return isInv ? (active === 'inventory' && activeLoc === item.loc) : (active === item.key);
+      });
+      initial[g.label] = !hasActiveChild;
+    });
+    return initial;
+  });
+  function toggleGroup(label) {
+    setCollapsedGroups(s => ({ ...s, [label]: !s[label] }));
+  }
+
+  return (
+    <aside className={"sidebar" + (open ? " open" : "")}>
+      <div className="sidebar-brand">
+        <div className="brand-mark">ISS</div>
+        <div className="brand-text">
+          <h2>ISS Department</h2>
+          <span>MONITORING SYSTEM</span>
+        </div>
+      </div>
+      <nav className="sidebar-nav">
+        {NAV_GROUPS.map((group, gi) => {
+          const isCollapsed = group.collapsible && collapsedGroups[group.label];
+          return (
+          <React.Fragment key={group.label || 'top'}>
+            {group.label && (
+              group.collapsible ? (
+                <button
+                  type="button"
+                  className="nav-label"
+                  onClick={() => toggleGroup(group.label)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  <span>{group.label}</span>
+                  <Icon name="chevronDown" size={12} style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform .15s' }} />
+                </button>
+              ) : (
+                <div className="nav-label">{group.label}</div>
+              )
+            )}
+            {!isCollapsed && group.items.map(item => {
+              const isInv = item.key.indexOf('inventory:') === 0;
+              const isPhys = item.key.indexOf('physicalCount:') === 0;
+              const isActive = isInv ? (active === 'inventory' && activeLoc === item.loc)
+                : isPhys ? (active === 'physicalCount' && activePhysCat === item.cat)
+                : (active === item.key);
+              return (
+                <button key={item.key} className={"nav-item" + (isActive ? " active" : "")} onClick={() => onSelect(item.key)}>
+                  <span className="nav-ic"><Icon name={item.icon} size={17} /></span>
+                  {item.label}
+                  {item.key === 'pcMonitoring' && <span className="nav-item-badge">{pcCount}</span>}
+                  {item.key === 'posMonitoring' && <span className="nav-item-badge">{posCount}</span>}
+                  {isInv && <span className="nav-item-badge">{locCounts[item.loc] || 0}</span>}
+                  {isPhys && <span className="nav-item-badge">{physCatCounts[item.cat] || 0}</span>}
+                </button>
+              );
+            })}
+          </React.Fragment>
+          );
+        })}
+      </nav>
+      <div className="sidebar-footer">
+        <div className="status-pill"><span className="pulse"></span> SYSTEM STATUS: ONLINE</div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-2-dark)', marginTop: '14px' }}
+          onClick={onInstallClick}
+        >
+          <Icon name="download" size={14} /> Install App / Add to Home Screen
+        </button>
+        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--ink-border)' }}>
+          <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-faint)', marginBottom: '8px' }}>Data Backup</div>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+            {FORMAT_CHOICES.map(f => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => onBackupFormatChange(f.key)}
+                disabled={backupBusy}
+                style={{
+                  flex: 1, textAlign: 'center', fontSize: '11px', fontWeight: 600, padding: '6px 4px', borderRadius: '7px',
+                  border: '1px solid ' + (backupFormat === f.key ? 'var(--accent)' : 'var(--ink-border)'),
+                  background: backupFormat === f.key ? 'var(--accent-dark)' : 'var(--ink-2)',
+                  color: backupFormat === f.key ? '#fff' : '#B7C2D6',
+                  cursor: backupBusy ? 'default' : 'pointer',
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-dark)', marginBottom: '8px' }}
+            onClick={onBackupNow}
+            disabled={backupBusy}
+          >
+            <Icon name="box" size={14} /> {backupBusy ? 'Generating ' + backupLabel + '…' : 'Backup All Data (' + backupLabel + ')'}
+          </button>
+          <select
+            className="select"
+            style={{ width: '100%', background: 'var(--ink-2)', color: '#CBD5E1', borderColor: 'var(--ink-border)', fontSize: '12px' }}
+            value={autoBackupMinutes}
+            onChange={e => onAutoBackupChange(Number(e.target.value))}
+          >
+            <option value="0">Auto-backup: Off</option>
+            <option value="5">Auto-backup: every 5 min</option>
+            <option value="15">Auto-backup: every 15 min</option>
+            <option value="30">Auto-backup: every 30 min</option>
+            <option value="60">Auto-backup: every 60 min</option>
+          </select>
+          <div className="meta" style={{ marginTop: '8px' }}>
+            {lastBackupAt ? 'Last backup: ' + lastBackupAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No backup yet this session'}
+          </div>
+        </div>
+        <div className="meta" style={{ marginTop: '10px' }}>ISS Department &middot; Internal Use Only</div>
+      </div>
+    </aside>
+  );
+}
+
+function Header({ current, onMenu, clock, query, setQuery, searchPlaceholder, showSearch }) {
+  return (
+    <header className="header">
+      <div className="header-left">
+        <button className="menu-btn" onClick={onMenu}><Icon name="menu" size={18} /></button>
+        <div className="header-title-wrap">
+          <div className="header-icon"><Icon name={current.icon} size={18} /></div>
+          <div>
+            <h1>{current.title}</h1>
+            <p>{current.subtitle}</p>
+          </div>
+        </div>
+      </div>
+      <div className="header-right">
+        {showSearch && <SearchInput value={query} onChange={setQuery} placeholder={searchPlaceholder} className="header-search" />}
+        <div className="clock-chip">
+          <Icon name="clock" size={13} />
+          {clock.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} &middot; {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+        <div className="user-chip"><Icon name="user" size={15} /> ISS Admin</div>
+      </div>
+    </header>
+  );
+}
+
+/* =========================================================
+   FIRESTORE SYNC HOOK
+   Keeps a collection in sync in real-time across devices.
+   Auto-seeds the collection with demo data on first run only.
+   Exposes a setData(updater) that behaves like React's setState
+   so existing page components (ReportsPage, PcMonitoringPage,
+   PosMonitoringPage) don't need to change at all.
+   ========================================================= */
+function useFirestoreCollection(collectionName, seedData) {
+  const [data, setDataState] = useState(seedData);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
+  const dataRef = useRef(seedData);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
+  useEffect(() => {
+    let unsub = () => {};
+    let cancelled = false;
+
+    // Safety net: never let the UI hang forever, even if Firestore never responds.
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        console.warn('Firestore (' + collectionName + ') took too long to respond. Showing local data instead.');
+        setError('timeout');
+        setReady(true);
+      }
+    }, 10000);
+
+    (async () => {
+      try {
+        const snap = await db.collection(collectionName).get();
+        if (!cancelled && snap.empty) {
+          const batch = db.batch();
+          seedData.forEach(item => batch.set(db.collection(collectionName).doc(item.id), item));
+          await batch.commit();
+        } else if (!cancelled && collectionName === 'posInventory' && snap.docs.some(d => !('section' in d.data()))) {
+          // One-time migration: legacy POS Monitoring records (old CTR/Monitor Serial/BIR-MIN-TIN schema)
+          // don't have a `section` field, so they no longer match the Department Store / Supermarket tabs.
+          // Replace them with the current schema so counts and tables stay accurate.
+          const delBatch = db.batch();
+          snap.docs.forEach(d => delBatch.delete(d.ref));
+          await delBatch.commit();
+          const addBatch = db.batch();
+          seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
+          await addBatch.commit();
+        }
+        unsub = db.collection(collectionName).onSnapshot(
+          snapshot => {
+            const rows = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            setDataState(rows);
+            setError(null);
+            setReady(true);
+            clearTimeout(timeout);
+          },
+          err => {
+            console.error('Firestore sync error (' + collectionName + '):', err);
+            setError(err.code || err.message || 'sync-error');
+            setReady(true);
+            clearTimeout(timeout);
+          }
+        );
+      } catch (err) {
+        console.error('Firestore connection error (' + collectionName + '):', err);
+        setError(err.code || err.message || 'connection-error');
+        setReady(true);
+        clearTimeout(timeout);
+      }
+    })();
+
+    return () => { cancelled = true; clearTimeout(timeout); unsub(); };
+  }, [collectionName]);
+
+  function setData(updater) {
+    const prev = dataRef.current;
+    const next = typeof updater === 'function' ? updater(prev) : updater;
+    const nextIds = new Set(next.map(r => r.id));
+    prev.forEach(r => {
+      if (!nextIds.has(r.id)) db.collection(collectionName).doc(r.id).delete().catch(err => console.error('Delete failed:', err));
+    });
+    next.forEach(r => {
+      const old = prev.find(p => p.id === r.id);
+      if (!old || JSON.stringify(old) !== JSON.stringify(r)) {
+        db.collection(collectionName).doc(r.id).set(r).catch(err => console.error('Save failed:', err));
+      }
+    });
+  }
+
+  return [data, setData, ready, error];
+}
+
+/* =========================================================
+   APP ROOT
+   ========================================================= */
+const PAGES_META = {
+  dashboard: { title: 'Dashboard', subtitle: 'Monitoring overview across PC & Selling Area operations', icon: 'dashboard' },
+  pcReports: { title: 'Back Office Reports', subtitle: 'Trouble reports for back-office & admin department computers', icon: 'pc' },
+  saReports: { title: 'Selling Area Reports', subtitle: 'Trouble reports for supermarket & department store counters and terminals', icon: 'store' },
+  pcMonitoring: { title: 'Back Office', subtitle: 'Full hardware & software inventory of all monitored PCs', icon: 'activity' },
+  posMonitoring: { title: 'Selling Area', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
+  ghlReports: { title: 'NTT Reports', subtitle: 'NTT card terminal trouble reports and terminal registry', icon: 'server' },
+  physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
+  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
+};
+
+function App() {
+  const [page, setPage] = useState('dashboard');
+  const [invLoc, setInvLoc] = useState(INVENTORY_LOCATIONS[0]);
+  const [physCat, setPhysCat] = useState(PHYSICAL_COUNT_CATEGORIES[0]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pcReports, setPcReports, pcReportsReady, pcReportsErr] = useFirestoreCollection('pcReports', SEED_PC_REPORTS);
+  const [saReports, setSaReports, saReportsReady, saReportsErr] = useFirestoreCollection('saReports', SEED_SA_REPORTS);
+  const [pcInventory, setPcInventory, pcInventoryReady, pcInventoryErr] = useFirestoreCollection('pcInventory', SEED_PC_INVENTORY);
+  const [posInventory, setPosInventory, posInventoryReady, posInventoryErr] = useFirestoreCollection('posInventory', SEED_POS_INVENTORY);
+  const [ghlReports, setGhlReports, ghlReportsReady, ghlReportsErr] = useFirestoreCollection('ghlReports', SEED_GHL_REPORTS);
+  const [ghlTerminals, setGhlTerminals, ghlTerminalsReady, ghlTerminalsErr] = useFirestoreCollection('ghlTerminals', SEED_GHL_TERMINALS);
+  const [inventory, setInventory, inventoryReady, inventoryErr] = useFirestoreCollection('inventory', SEED_INVENTORY);
+  const [physicalCount, setPhysicalCount, physicalCountReady, physicalCountErr] = useFirestoreCollection('physicalCount', SEED_PHYSICAL_COUNT);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr;
+  const [toasts, setToasts] = useState([]);
+  const [clock, setClock] = useState(new Date());
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [autoBackupMinutes, setAutoBackupMinutes] = useState(0);
+  const [backupFormat, setBackupFormat] = useState('pdf');
+  const [lastBackupAt, setLastBackupAt] = useState(null);
+  const errorBackupFiredRef = useRef(false);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+
+  useEffect(() => {
+    function onBeforeInstallPrompt(e) {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+  }, []);
+
+  async function handleInstallClick() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      try { await deferredInstallPrompt.userChoice; } catch (e) {}
+      setDeferredInstallPrompt(null);
+    } else {
+      setShowInstallHelp(true);
+    }
+  }
+
+  const [pcQuery, setPcQuery] = useState('');
+  const [saQuery, setSaQuery] = useState('');
+  const [pcInvQuery, setPcInvQuery] = useState('');
+  const [posInvQuery, setPosInvQuery] = useState('');
+  const [ghlQuery, setGhlQuery] = useState('');
+  const [invQuery, setInvQuery] = useState('');
+  const [physQuery, setPhysQuery] = useState('');
+
+  useEffect(() => {
+    const t = setInterval(() => setClock(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  function addToast(message, type = 'success') {
+    const id = Date.now() + Math.random();
+    setToasts(t => [...t, { id, message, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+  }
+
+  function runBackup(silent, format) {
+    const fmt = format || backupFormat;
+    setBackupBusy(true);
+    try {
+      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount };
+      const labels = [];
+      if (fmt === 'pdf' || fmt === 'both') { generateBackupPdf(collections); labels.push('PDF'); }
+      if (fmt === 'excel' || fmt === 'both') { generateBackupExcel(collections); labels.push('Excel'); }
+      setLastBackupAt(new Date());
+      const what = labels.join(' & ');
+      addToast(silent ? `Auto-backup ${what} downloaded` : `Backup ${what} downloaded successfully`, 'success');
+    } catch (err) {
+      console.error('Backup failed:', err);
+      addToast('Backup failed — a required library did not load. Check your internet connection.', 'danger');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!autoBackupMinutes) return;
+    const t = setInterval(() => runBackup(true), autoBackupMinutes * 60 * 1000);
+    return () => clearInterval(t);
+  }, [autoBackupMinutes, backupFormat, pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount]);
+
+  useEffect(() => {
+    if (connectionError && !errorBackupFiredRef.current && allReady) {
+      errorBackupFiredRef.current = true;
+      runBackup(true);
+    }
+  }, [connectionError, allReady]);
+
+  const invLocCounts = useMemo(() => {
+    const m = {};
+    INVENTORY_LOCATIONS.forEach(l => { m[l] = 0; });
+    inventory.forEach(r => { if (m[r.location] !== undefined) m[r.location] += 1; });
+    return m;
+  }, [inventory]);
+
+  const physCatCounts = useMemo(() => {
+    const m = {};
+    PHYSICAL_COUNT_CATEGORIES.forEach(c => { m[c] = 0; });
+    physicalCount.forEach(r => { if (m[r.category] !== undefined) m[r.category] += 1; });
+    return m;
+  }, [physicalCount]);
+
+  const currentPageMeta = page === 'inventory'
+    ? { title: 'Inventory — ' + invLoc, subtitle: `Stock records for ${invLoc}`, icon: 'box' }
+    : page === 'physicalCount'
+    ? { title: 'Physical Inventory Count — ' + physCat, subtitle: `Stock records for ${physCat}`, icon: 'box' }
+    : PAGES_META[page];
+
+  let searchProps = { show: false, query: '', setQuery: () => {}, placeholder: '' };
+  if (page === 'pcReports') searchProps = { show: true, query: pcQuery, setQuery: setPcQuery, placeholder: 'Search PC reports (problem, dept, technician)...' };
+  if (page === 'saReports') searchProps = { show: true, query: saQuery, setQuery: setSaQuery, placeholder: 'Search by counter, terminal, issue, or technician...' };
+  if (page === 'pcMonitoring') searchProps = { show: true, query: pcInvQuery, setQuery: setPcInvQuery, placeholder: 'Search by PC Name, IP Address, or Department...' };
+  if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, counter, serials...' };
+  if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
+  if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
+  if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search item name or remarks...' };
+
+  if (!allReady) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '10px', background: 'var(--canvas)' }}>
+        <div className="status-pill" style={{ color: 'var(--accent-dark)' }}><span className="pulse"></span></div>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12.5px', color: 'var(--text-muted)' }}>Connecting to database...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-shell">
+      {connectionError && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300, background: 'var(--red)', color: '#fff', fontSize: '12.5px', textAlign: 'center', padding: '8px 14px' }}>
+          Couldn't fully sync with the database (showing local data instead). Check your Firestore setup — see browser console (F12) for details.
+        </div>
+      )}
+      <div className={"overlay" + (sidebarOpen ? " show" : "")} onClick={() => setSidebarOpen(false)}></div>
+      <Sidebar
+        active={page}
+        activeLoc={invLoc}
+        activePhysCat={physCat}
+        onSelect={(k) => {
+          if (k.indexOf('inventory:') === 0) {
+            setInvLoc(k.slice('inventory:'.length));
+            setPage('inventory');
+          } else if (k.indexOf('physicalCount:') === 0) {
+            setPhysCat(k.slice('physicalCount:'.length));
+            setPage('physicalCount');
+          } else {
+            setPage(k);
+          }
+          setSidebarOpen(false);
+        }}
+        open={sidebarOpen}
+        pcCount={pcInventory.length}
+        posCount={posInventory.length}
+        locCounts={invLocCounts}
+        physCatCounts={physCatCounts}
+        onBackupNow={() => runBackup(false)}
+        onInstallClick={handleInstallClick}
+        backupBusy={backupBusy}
+        autoBackupMinutes={autoBackupMinutes}
+        onAutoBackupChange={(mins) => { setAutoBackupMinutes(mins); addToast(mins ? `Auto-backup enabled — every ${mins} min` : 'Auto-backup disabled', 'success'); }}
+        lastBackupAt={lastBackupAt}
+        backupFormat={backupFormat}
+        onBackupFormatChange={setBackupFormat}
+      />
+      <div className="main">
+        <Header
+          current={currentPageMeta}
+          onMenu={() => setSidebarOpen(o => !o)}
+          clock={clock}
+          query={searchProps.query}
+          setQuery={searchProps.setQuery}
+          searchPlaceholder={searchProps.placeholder}
+          showSearch={searchProps.show}
+        />
+        <div className="ticker">
+          <div className="ticker-track">
+            <span className="tick-item"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} System Unit Count</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Count Items</span>
+            <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} PC Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#7C3AED' }}></span>{pcInventory.length} System Unit Count</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{posInventory.length} POS Count</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0D9488' }}></span>{ghlReports.length} GHL Reports</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory Items</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Count Items</span>
+            <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          </div>
+        </div>
+        <div className="content">
+          {page === 'dashboard' && <Dashboard pcReports={pcReports} saReports={saReports} pcInventory={pcInventory} posInventory={posInventory} />}
+          {page === 'pcReports' && (
+            <ReportsPage titleLabel="PC Report" idPrefix="PCR" data={pcReports} setData={setPcReports} departmentOptions={DEPARTMENTS} addToast={addToast} query={pcQuery} setQuery={setPcQuery} />
+          )}
+          {page === 'saReports' && (
+            <SaReportsPage data={saReports} setData={setSaReports} departmentOptions={SELLING_AREAS} addToast={addToast} query={saQuery} setQuery={setSaQuery} />
+          )}
+          {page === 'pcMonitoring' && (
+            <PcMonitoringPage data={pcInventory} setData={setPcInventory} addToast={addToast} query={pcInvQuery} setQuery={setPcInvQuery} />
+          )}
+          {page === 'posMonitoring' && (
+            <PosMonitoringPage data={posInventory} setData={setPosInventory} addToast={addToast} query={posInvQuery} setQuery={setPosInvQuery} />
+          )}
+          {page === 'ghlReports' && (
+            <GhlReportsPage data={ghlReports} setData={setGhlReports} terminals={ghlTerminals} setTerminals={setGhlTerminals} addToast={addToast} query={ghlQuery} setQuery={setGhlQuery} />
+          )}
+          {page === 'inventory' && (
+            <InventoryPage data={inventory} setData={setInventory} addToast={addToast} query={invQuery} setQuery={setInvQuery} activeLoc={invLoc} setActiveLoc={setInvLoc} />
+          )}
+          {page === 'physicalCount' && (
+            <PhysicalCountPage data={physicalCount} setData={setPhysicalCount} addToast={addToast} query={physQuery} setQuery={setPhysQuery} activeCategory={physCat} setActiveCategory={setPhysCat} />
+          )}
+        </div>
+      </div>
+      <ToastContainer toasts={toasts} />
+      {showInstallHelp && <InstallHelpModal onClose={() => setShowInstallHelp(false)} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
