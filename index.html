@@ -437,6 +437,9 @@ function Icon({ name, size = 18, className = '' }) {
     case 'box': return <svg {...c}><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="M3 8l9 5 9-5"/></svg>;
     case 'download': return <svg {...c}><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>;
     case 'repeat': return <svg {...c}><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>;
+    case 'clipboard': return <svg {...c}><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3.2" rx="1"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg>;
+    case 'inbox': return <svg {...c}><path d="M3 13h4l2 3h6l2-3h4"/><path d="M5.5 5h13l2.5 8v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"/></svg>;
+    case 'send': return <svg {...c}><line x1="21" y1="3" x2="10" y2="14"/><polygon points="21 3 14 21 10 14 3 10 21 3"/></svg>;
     default: return null;
   }
 }
@@ -460,6 +463,7 @@ const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","S
 const GHL_REPORT_STATUSES = ["Pending","Reported","Received"];
 const REPLACEMENT_DEPARTMENTS = [...DEPARTMENTS, ...SELLING_AREAS];
 const REPLACEMENT_STATUSES = ["Pending","Done"];
+const TRANSMITTAL_STATUSES = ["Pending","Received"];
 
 const STATUS_STYLES = {
   'Completed': { bg:'var(--green-bg)', text:'var(--green-text)', dot:'var(--green)' },
@@ -484,7 +488,7 @@ function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toStri
    queues writes locally even if the tab closes — no interrupting confirm prompt needed. */
 window.__pendingFirestoreWrites = 0;
 
-const ALL_FIRESTORE_COLLECTIONS = ['pcReports','saReports','pcInventory','posInventory','ghlReports','ghlTerminals','inventory','physicalCount','replacements'];
+const ALL_FIRESTORE_COLLECTIONS = ['pcReports','saReports','pcInventory','posInventory','ghlReports','ghlTerminals','inventory','physicalCount','replacements','rrs','mrsDepartment','transmittals'];
 
 /* Deletes every document in every collection the app uses, and marks each collection's
    _meta flag as "seeded" so the old starter/demo data never gets auto-inserted again. */
@@ -630,6 +634,24 @@ const SEED_REPLACEMENTS = [
   { id:'RPL-4', date:'2026-07-28', department:'SUPERMARKET', itemNameReplacement:'Receipt Printer', replacementDate:'', status:'Pending' },
 ];
 
+const SEED_RRS = [
+  { id:'RRS-1', date:'2026-08-20', rrsNumber:'RRS-2026-001', department:'ICT', pcName:'PC-01', mobo:'Gigabyte B450M', user:'Juan Dela Cruz', request:'Replace faulty motherboard', problem:'System randomly shuts down / no boot', cet:'CE76', status:'Completed' },
+  { id:'RRS-2', date:'2026-08-18', rrsNumber:'RRS-2026-002', department:'ADMIN', pcName:'PC-05', mobo:'ASUS Prime A320M', user:'Maria Santos', request:'Check and repair motherboard slot', problem:'RAM not detected on boot', cet:'CE77', status:'In Progress' },
+  { id:'RRS-3', date:'2026-08-12', rrsNumber:'RRS-2026-003', department:'AUDIT', pcName:'PC-09', mobo:'MSI H310M', user:'Pedro Reyes', request:'Motherboard diagnostic and repair', problem:'PC won\u2019t power on', cet:'CE78', status:'Pending' },
+];
+
+const SEED_MRS = [
+  { id:'MRS-1', date:'2026-08-19', description:'Request for 2 units wireless mouse', department:'ICT', receivedBy:'Anna Cruz', receivedDate:'2026-08-20' },
+  { id:'MRS-2', date:'2026-08-15', description:'Request for replacement keyboard', department:'AUDIT', receivedBy:'', receivedDate:'' },
+  { id:'MRS-3', date:'2026-08-10', description:'Request for extra HDMI cables', department:'ADMIN', receivedBy:'Mark Villanueva', receivedDate:'2026-08-11' },
+];
+
+const SEED_TRANSMITTALS = [
+  { id:'TRN-1', date:'2026-08-21', description:'Transmittal of replaced PSU unit to warehouse', cet:'CE76', status:'Received' },
+  { id:'TRN-2', date:'2026-08-19', description:'Transmittal of defective RAM module for RMA', cet:'CE77', status:'Pending' },
+  { id:'TRN-3', date:'2026-08-14', description:'Transmittal of old monitors to storage', cet:'CE78', status:'Received' },
+];
+
 /* =========================================================
    HELPERS
    ========================================================= */
@@ -691,6 +713,11 @@ function buildBackupSections(collections) {
     { title: 'Physical Inventory Count', columns: [['category','Category'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.physicalCount },
     { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
     { title: 'Replacement — Back Office & Selling Area', columns: REPLACEMENT_COLUMNS, rows: collections.replacements },
+    { title: 'Admin Request — RRS', columns: RRS_COLUMNS, rows: collections.rrs },
+    { title: 'Admin Request — MRS Department', columns: [
+        ['date','Date'], ['description','Description'], ['department','Department'], ['receivedBy','Received By'], ['receivedDate','Received Date'],
+      ], rows: collections.mrsDepartment },
+    { title: 'Admin Request — Transmittal', columns: TRANSMITTAL_COLUMNS, rows: collections.transmittals },
   ];
 }
 
@@ -1546,6 +1573,485 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       {confirmState && (
         <ConfirmDialog
           message={`Delete this replacement record for "${confirmState.department}" dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN REQUEST — RRS
+   ========================================================= */
+const RRS_COLUMNS = [
+  ['date', 'Date'], ['rrsNumber', 'RRS #'], ['department', 'Department'], ['pcName', 'PC Name'], ['mobo', 'Mobo'],
+  ['user', 'User'], ['request', 'Request'], ['problem', 'Problem'], ['cet', 'CET'], ['status', 'Status'],
+];
+
+function RrsFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10),
+    rrsNumber: '', department: DEPARTMENTS[0], pcName: '', mobo: '', user: '',
+    request: '', problem: '', cet: TECHNICIANS[0], status: 'Pending',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.rrsNumber.trim() || !form.date) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit RRS Record' : 'Add RRS Record'} onClose={onClose} maxWidth="720px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="RRS #" required><input className="input mono" style={{ width: '100%' }} value={form.rrsNumber} onChange={e => update('rrsNumber', e.target.value)} placeholder="e.g. RRS-2026-001" required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="PC Name"><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. PC-01" /></Field>
+        <Field label="Mobo"><input className="input" style={{ width: '100%' }} value={form.mobo} onChange={e => update('mobo', e.target.value)} placeholder="Motherboard model" /></Field>
+        <Field label="User"><input className="input" style={{ width: '100%' }} value={form.user} onChange={e => update('user', e.target.value)} placeholder="Requesting user" /></Field>
+        <Field label="CET" required>
+          <select className="select" style={{ width: '100%' }} value={form.cet} onChange={e => update('cet', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Request" full>
+          <textarea className="textarea" rows="2" value={form.request} onChange={e => update('request', e.target.value)} placeholder="What is being requested" />
+        </Field>
+        <Field label="Problem" full>
+          <textarea className="textarea" rows="2" value={form.problem} onChange={e => update('problem', e.target.value)} placeholder="Describe the reported issue" />
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add RRS Record'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function RrsPage({ data, setData, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.rrsNumber, r.department, r.pcName, r.mobo, r.user, r.request, r.problem, r.cet].join(' ').toLowerCase().includes(q);
+      const matchesDept = deptFilter === 'All' || r.department === deptFilter;
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesDept && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('RRS record updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('RRS') }, ...prev]);
+      addToast('RRS record added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('RRS record deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add RRS Record</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {RRS_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={RRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No RRS records match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td className="mono">{r.rrsNumber}</td>
+                  <td>{r.department}</td>
+                  <td>{r.pcName}</td>
+                  <td className="truncate" title={r.mobo}>{r.mobo}</td>
+                  <td>{r.user}</td>
+                  <td className="truncate" title={r.request}>{r.request}</td>
+                  <td className="truncate" title={r.problem}>{r.problem}</td>
+                  <td>{r.cet}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <RrsFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete RRS record "${confirmState.rrsNumber}" dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN REQUEST — MRS DEPARTMENT
+   ========================================================= */
+const MRS_COLUMNS = [
+  ['date', 'Date'], ['description', 'Description'], ['department', 'Department'], ['receivedBy', 'Received By and Date'],
+];
+
+function MrsFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10),
+    description: '', department: DEPARTMENTS[0], receivedBy: '', receivedDate: '',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.description.trim() || !form.date) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit MRS Record' : 'Add MRS Record'} onClose={onClose} maxWidth="600px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Description" full required>
+          <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Describe the request" required />
+        </Field>
+        <Field label="Received By"><input className="input" style={{ width: '100%' }} value={form.receivedBy} onChange={e => update('receivedBy', e.target.value)} placeholder="Name of receiver" /></Field>
+        <Field label="Received Date"><input type="date" className="input" value={form.receivedDate} onChange={e => update('receivedDate', e.target.value)} /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add MRS Record'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
+  const [deptFilter, setDeptFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.description, r.department, r.receivedBy].join(' ').toLowerCase().includes(q);
+      const matchesDept = deptFilter === 'All' || r.department === deptFilter;
+      return matchesQuery && matchesDept;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, deptFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, deptFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('MRS record updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('MRS') }, ...prev]);
+      addToast('MRS record added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('MRS record deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="All">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add MRS Record</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {MRS_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={MRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No MRS records match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td className="truncate" title={r.description}>{r.description}</td>
+                  <td>{r.department}</td>
+                  <td>{r.receivedBy ? r.receivedBy : '-'}{r.receivedDate ? ' \u2014 ' + formatDate(r.receivedDate) : ''}</td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <MrsFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete this MRS record dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN REQUEST — TRANSMITTAL
+   ========================================================= */
+const TRANSMITTAL_COLUMNS = [
+  ['date', 'Date'], ['description', 'Description'], ['cet', 'CET'], ['status', 'Status'],
+];
+
+function TransmittalFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10),
+    description: '', cet: TECHNICIANS[0], status: 'Pending',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.description.trim() || !form.date) return;
+    onSave({ ...form, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Transmittal' : 'Add Transmittal'} onClose={onClose} maxWidth="600px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="CET" required>
+          <select className="select" style={{ width: '100%' }} value={form.cet} onChange={e => update('cet', e.target.value)}>
+            {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Description" full required>
+          <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Describe what is being transmitted" required />
+        </Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {TRANSMITTAL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Transmittal'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function TransmittalPage({ data, setData, addToast, query, setQuery }) {
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      const matchesQuery = !q || [r.description, r.cet, r.status].join(' ').toLowerCase().includes(q);
+      const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+      return matchesQuery && matchesStatus;
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [data, query, statusFilter, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Transmittal updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, id: nextId('TRN') }, ...prev]);
+      addToast('Transmittal added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Transmittal deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Status</option>
+          {TRANSMITTAL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Transmittal</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {TRANSMITTAL_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={TRANSMITTAL_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No transmittal records match your search or filters.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono">{formatDate(r.date)}</td>
+                  <td className="truncate" title={r.description}>{r.description}</td>
+                  <td>{r.cet}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <TransmittalFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete this transmittal record dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
           onCancel={() => setConfirmState(null)}
           onConfirm={handleDeleteConfirmed}
         />
@@ -2880,6 +3386,11 @@ const NAV_GROUPS = [
   { label: 'Replacement', items: [
       { key: 'replacements', label: 'Back Office & Selling Area', icon: 'repeat' },
     ] },
+  { label: 'Admin Request', items: [
+      { key: 'rrs', label: 'RRS', icon: 'clipboard' },
+      { key: 'mrsDepartment', label: 'MRS Department', icon: 'inbox' },
+      { key: 'transmittal', label: 'Transmittal', icon: 'send' },
+    ] },
   { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
@@ -3189,6 +3700,9 @@ const PAGES_META = {
   posMonitoring: { title: 'Selling Area', subtitle: 'Inventory and registration details of POS terminals', icon: 'pos' },
   ghlReports: { title: 'NTT Reports', subtitle: 'NTT card terminal trouble reports and terminal registry', icon: 'server' },
   replacements: { title: 'Replacement', subtitle: 'Item replacement tracking for Back Office & Selling Area', icon: 'repeat' },
+  rrs: { title: 'RRS', subtitle: 'Repair Request Slip records for Back Office units', icon: 'clipboard' },
+  mrsDepartment: { title: 'MRS Department', subtitle: 'Material Request Slip records by department', icon: 'inbox' },
+  transmittal: { title: 'Transmittal', subtitle: 'Transmittal records and receiving status', icon: 'send' },
   physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
   inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
 };
@@ -3207,8 +3721,11 @@ function App() {
   const [inventory, setInventory, inventoryReady, inventoryErr] = useFirestoreCollection('inventory', SEED_INVENTORY);
   const [physicalCount, setPhysicalCount, physicalCountReady, physicalCountErr] = useFirestoreCollection('physicalCount', SEED_PHYSICAL_COUNT);
   const [replacements, setReplacements, replacementsReady, replacementsErr] = useFirestoreCollection('replacements', SEED_REPLACEMENTS);
-  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady;
-  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr;
+  const [rrs, setRrs, rrsReady, rrsErr] = useFirestoreCollection('rrs', SEED_RRS);
+  const [mrsDepartment, setMrsDepartment, mrsDepartmentReady, mrsDepartmentErr] = useFirestoreCollection('mrsDepartment', SEED_MRS);
+  const [transmittals, setTransmittals, transmittalsReady, transmittalsErr] = useFirestoreCollection('transmittals', SEED_TRANSMITTALS);
+  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady && rrsReady && mrsDepartmentReady && transmittalsReady;
+  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr || rrsErr || mrsDepartmentErr || transmittalsErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
   const [backupBusy, setBackupBusy] = useState(false);
@@ -3282,6 +3799,9 @@ function App() {
   const [invQuery, setInvQuery] = useState('');
   const [physQuery, setPhysQuery] = useState('');
   const [replQuery, setReplQuery] = useState('');
+  const [rrsQuery, setRrsQuery] = useState('');
+  const [mrsQuery, setMrsQuery] = useState('');
+  const [transmittalQuery, setTransmittalQuery] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 30000);
@@ -3298,7 +3818,7 @@ function App() {
     const fmt = format || backupFormat;
     setBackupBusy(true);
     try {
-      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount, replacements };
+      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount, replacements, rrs, mrsDepartment, transmittals };
       const labels = [];
       if (fmt === 'pdf' || fmt === 'both') { generateBackupPdf(collections); labels.push('PDF'); }
       if (fmt === 'excel' || fmt === 'both') { generateBackupExcel(collections); labels.push('Excel'); }
@@ -3355,6 +3875,9 @@ function App() {
   if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
   if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search item name or remarks...' };
   if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, item name, or status...' };
+  if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, PC name, or CET...' };
+  if (page === 'mrsDepartment') searchProps = { show: true, query: mrsQuery, setQuery: setMrsQuery, placeholder: 'Search by description, department, or received by...' };
+  if (page === 'transmittal') searchProps = { show: true, query: transmittalQuery, setQuery: setTransmittalQuery, placeholder: 'Search by description, CET, or status...' };
 
   if (!allReady) {
     return (
@@ -3425,6 +3948,9 @@ function App() {
             <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory by Location</span>
             <span className="tick-item"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Inventory Count</span>
             <span className="tick-item"><span className="dot" style={{ background: '#8B5CF6' }}></span>{replacements.length} Replacement Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MRS Department Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} Back Office Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
@@ -3434,6 +3960,9 @@ function App() {
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{inventory.length} Inventory by Location</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Inventory Count</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#8B5CF6' }}></span>{replacements.length} Replacement Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MRS Department Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
         </div>
@@ -3462,6 +3991,15 @@ function App() {
           )}
           {page === 'replacements' && (
             <ReplacementsPage data={replacements} setData={setReplacements} addToast={addToast} query={replQuery} setQuery={setReplQuery} />
+          )}
+          {page === 'rrs' && (
+            <RrsPage data={rrs} setData={setRrs} addToast={addToast} query={rrsQuery} setQuery={setRrsQuery} />
+          )}
+          {page === 'mrsDepartment' && (
+            <MrsDepartmentPage data={mrsDepartment} setData={setMrsDepartment} addToast={addToast} query={mrsQuery} setQuery={setMrsQuery} />
+          )}
+          {page === 'transmittal' && (
+            <TransmittalPage data={transmittals} setData={setTransmittals} addToast={addToast} query={transmittalQuery} setQuery={setTransmittalQuery} />
           )}
         </div>
       </div>
