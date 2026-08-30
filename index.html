@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>ISS Department Monitoring System</title>
 
 <!-- PWA / Add to Home Screen -->
@@ -49,13 +49,16 @@
     --shadow-lg:0 20px 60px rgba(2,6,23,.35);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
     background:var(--canvas);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
+    width:100%;
+    position:relative;
   }
+  #root{overflow-x:hidden;max-width:100%;}
   h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
   .mono{font-family:'IBM Plex Mono',monospace;}
   button{font-family:inherit;cursor:pointer;}
@@ -206,6 +209,11 @@
     border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:#fff;color:var(--text);
     outline:none;transition:border-color .15s, box-shadow .15s;
   }
+  /* iOS Safari force-zooms the whole page when a focused field's font-size is under 16px.
+     Bump every field to 16px on small screens so tapping into search/forms never triggers that zoom. */
+  @media (max-width:768px){
+    .input,.select,.textarea,input,select,textarea{font-size:16px !important;}
+  }
   .input:hover,.select:hover,.textarea:hover{border-color:#CBD5E1;}
   .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
   .textarea{resize:vertical;width:100%;font-family:inherit;}
@@ -296,13 +304,37 @@
   .table-wrap td:not(:has(button)){cursor:pointer;}
   .table-wrap td:not(:has(button)):hover{background:var(--accent-soft);}
   #cellDetailOverlay{z-index:200;}
-  .cell-detail-modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
-  .cell-detail-body{padding:22px;}
-  .cell-detail-row{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border);}
-  .cell-detail-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-  .cell-detail-row-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-faint);margin-bottom:4px;}
-  .cell-detail-row-value{font-size:19px;font-weight:600;line-height:1.4;color:var(--text);word-break:break-word;white-space:pre-wrap;}
-  .cell-detail-row-value.mono{font-family:'IBM Plex Mono',monospace;font-size:16px;}
+  .cell-detail-modal{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;overflow-x:hidden;box-shadow:var(--shadow-lg);box-sizing:border-box;}
+  .cell-detail-modal .modal-head{padding:16px 20px;}
+  .cell-detail-modal .modal-head h3{font-size:15px;}
+  .cell-detail-body{padding:6px 4px;}
+  .cell-detail-row{
+    display:grid;grid-template-columns:36% 1fr;align-items:start;gap:14px;
+    padding:12px 20px;border-bottom:1px solid var(--border);width:100%;box-sizing:border-box;
+  }
+  .cell-detail-row:last-child{border-bottom:none;}
+  .cell-detail-row:nth-child(even){background:#FBFCFE;}
+  .cell-detail-row-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+    color:var(--text-faint);min-width:0;padding-top:2px;line-height:1.4;
+    word-break:break-word;overflow-wrap:anywhere;
+  }
+  .cell-detail-row-value{
+    font-size:14.5px;font-weight:500;line-height:1.5;color:var(--text);
+    min-width:0;word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap;
+    text-align:right;
+  }
+  .cell-detail-row-value.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.01em;}
+  @media (max-width:640px){
+    .modal-overlay:has(.cell-detail-modal){padding:0;align-items:flex-end;}
+    #cellDetailOverlay{padding:0;align-items:flex-end;}
+    .cell-detail-modal{border-radius:16px 16px 0 0;max-height:85vh;max-width:none;}
+    .cell-detail-row{grid-template-columns:40% 1fr;padding:11px 16px;gap:10px;}
+    .cell-detail-row-label{font-size:10px;}
+    .cell-detail-row-value{font-size:13.5px;}
+    .cell-detail-row-value.mono{font-size:11.5px;}
+  }
+
 
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
   .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
@@ -331,6 +363,18 @@
   .toast.danger{border-left-color:var(--red);}
   .toast.success{border-left-color:var(--accent);}
   @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- mobile: horizontal-scroll table + tap-to-expand hint ---------- */
+  @media (max-width:760px){
+    .table-card{ position:relative; }
+    .table-card::before{
+      content:"⇆ I-swipe para makita lahat ng columns  •  I-tap ang row para sa buong detalye";
+      display:block; font-size:11px; color:var(--text-muted); background:var(--gray-bg);
+      padding:8px 14px; border-bottom:1px solid var(--border);
+    }
+    .table-wrap{ -webkit-overflow-scrolling:touch; }
+  }
+
 
   /* ---------- responsive ---------- */
   @media (max-width:1180px){
@@ -459,7 +503,7 @@ const POS_SECTIONS = ["Department Store","Supermarket"];
 function flatbedFieldLabel(section) { return section === 'Department Store' ? 'Vertical Scanner Serial' : 'Flatbed Serial'; }
 const OS_VERSIONS = ["Windows 11 Pro","Windows 10 Pro","Windows 11 Home","Windows 10 Home","Windows 7","Ubuntu 22.04 LTS"];
 const STORAGE_TYPES = ["HDD","SSD","NVMe SSD"];
-const GHL_TYPES = ["Card Reader Error","Communication Error","Hardware Issue","Software Issue","Network Issue","Paper Jam","Other"];
+const GHL_TYPES = ["Terminal","Cable"];
 const GHL_REPORT_STATUSES = ["Pending","Reported","Received"];
 const REPLACEMENT_DEPARTMENTS = [...DEPARTMENTS, ...SELLING_AREAS];
 const REPLACEMENT_STATUSES = ["Pending","Done"];
@@ -611,12 +655,12 @@ const SEED_INVENTORY = [
 ];
 
 const SEED_GHL_REPORTS = [
-  { id:'GHL-1', dateReported:'2026-08-14', section:'SUPERMARKET', counter:'CTR-01', type:'Card Reader Error', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
-  { id:'GHL-2', dateReported:'2026-08-11', section:'DEPARTMENT STORE', counter:'CTR-03', type:'Communication Error', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
-  { id:'GHL-3', dateReported:'2026-08-07', section:'DEPARTMENT STORE', counter:'CTR-05', type:'Hardware Issue', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
-  { id:'GHL-4', dateReported:'2026-07-30', section:'SUPERMARKET', counter:'CTR-02', type:'Software Issue', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
-  { id:'GHL-5', dateReported:'2026-07-22', section:'DEPARTMENT STORE', counter:'CTR-07', type:'Network Issue', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
-  { id:'GHL-6', dateReported:'2026-07-15', section:'SUPERMARKET', counter:'CTR-09', type:'Paper Jam', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
+  { id:'GHL-1', dateReported:'2026-08-14', section:'SUPERMARKET', counter:'CTR-01', type:'Terminal', sn:'GHL-SN-40051', reportCount:2, requestNumber:'REQ-20260814-01', dateReceived:'2026-08-16', status:'Received' },
+  { id:'GHL-2', dateReported:'2026-08-11', section:'DEPARTMENT STORE', counter:'CTR-03', type:'Cable', sn:'GHL-SN-40053', reportCount:1, requestNumber:'REQ-20260811-02', dateReceived:'', status:'Pending' },
+  { id:'GHL-3', dateReported:'2026-08-07', section:'DEPARTMENT STORE', counter:'CTR-05', type:'Terminal', sn:'GHL-SN-40055', reportCount:3, requestNumber:'REQ-20260807-01', dateReceived:'2026-08-09', status:'Received' },
+  { id:'GHL-4', dateReported:'2026-07-30', section:'SUPERMARKET', counter:'CTR-02', type:'Cable', sn:'GHL-SN-40052', reportCount:1, requestNumber:'REQ-20260730-04', dateReceived:'', status:'Reported' },
+  { id:'GHL-5', dateReported:'2026-07-22', section:'DEPARTMENT STORE', counter:'CTR-07', type:'Terminal', sn:'GHL-SN-40057', reportCount:2, requestNumber:'REQ-20260722-01', dateReceived:'2026-07-25', status:'Received' },
+  { id:'GHL-6', dateReported:'2026-07-15', section:'SUPERMARKET', counter:'CTR-09', type:'Cable', sn:'GHL-SN-40059', reportCount:1, requestNumber:'REQ-20260715-03', dateReceived:'', status:'Reported' },
 ];
 
 const SEED_GHL_TERMINALS = [
@@ -1371,7 +1415,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 {REPORT_COLUMNS.map(([key, label]) => (
@@ -1384,17 +1428,17 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
               {pageRows.length === 0 && <tr><td colSpan={REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.dateReported)}</td>
-                  <td>{r.department}</td>
-                  <td>{r.pcName}</td>
-                  <td className="truncate" title={r.problem}>{r.problem}</td>
-                  <td className="truncate" title={r.actionTaken}>{r.actionTaken}</td>
-                  <td className="truncate" title={r.replacement}>{r.replacement}</td>
-                  <td className="mono">{r.serialReplacement}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="truncate" title={r.remarks}>{r.remarks}</td>
-                  <td>{r.technician}</td>
-                  <td>
+                  <td className="mono" data-label="Date Reported">{formatDate(r.dateReported)}</td>
+                  <td data-label="Department">{r.department}</td>
+                  <td data-label="PC Name">{r.pcName}</td>
+                  <td className="truncate" title={r.problem} data-label="Problem">{r.problem}</td>
+                  <td className="truncate" title={r.actionTaken} data-label="Action Taken">{r.actionTaken}</td>
+                  <td className="truncate" title={r.replacement} data-label="Replacement">{r.replacement}</td>
+                  <td className="mono" data-label="Serial No.">{r.serialReplacement}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td className="truncate" title={r.remarks} data-label="Remarks">{r.remarks}</td>
+                  <td data-label="Technician">{r.technician}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -1538,7 +1582,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 {REPLACEMENT_COLUMNS.map(([key, label]) => (
@@ -1551,12 +1595,12 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={REPLACEMENT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No replacement records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td>{r.department}</td>
-                  <td className="truncate" title={r.itemNameReplacement}>{r.itemNameReplacement}</td>
-                  <td className="mono">{r.replacementDate ? formatDate(r.replacementDate) : '-'}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td data-label="Department">{r.department}</td>
+                  <td className="truncate" title={r.itemNameReplacement} data-label="Item Name Replacement">{r.itemNameReplacement}</td>
+                  <td className="mono" data-label="Replacement Date">{r.replacementDate ? formatDate(r.replacementDate) : '-'}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -1711,7 +1755,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 {RRS_COLUMNS.map(([key, label]) => (
@@ -1724,17 +1768,17 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={RRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No RRS records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td className="mono">{r.rrsNumber}</td>
-                  <td>{r.department}</td>
-                  <td>{r.pcName}</td>
-                  <td className="truncate" title={r.mobo}>{r.mobo}</td>
-                  <td>{r.user}</td>
-                  <td className="truncate" title={r.request}>{r.request}</td>
-                  <td className="truncate" title={r.problem}>{r.problem}</td>
-                  <td>{r.cet}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="mono" data-label="RRS #">{r.rrsNumber}</td>
+                  <td data-label="Department">{r.department}</td>
+                  <td data-label="PC Name">{r.pcName}</td>
+                  <td className="truncate" title={r.mobo} data-label="Mobo">{r.mobo}</td>
+                  <td data-label="User">{r.user}</td>
+                  <td className="truncate" title={r.request} data-label="Request">{r.request}</td>
+                  <td className="truncate" title={r.problem} data-label="Problem">{r.problem}</td>
+                  <td data-label="CET">{r.cet}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -1866,7 +1910,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 {MRS_COLUMNS.map(([key, label]) => (
@@ -1879,11 +1923,11 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={MRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No MRS records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td className="truncate" title={r.description}>{r.description}</td>
-                  <td>{r.department}</td>
-                  <td>{r.receivedBy ? r.receivedBy : '-'}{r.receivedDate ? ' \u2014 ' + formatDate(r.receivedDate) : ''}</td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
+                  <td data-label="Department">{r.department}</td>
+                  <td data-label="Received By and Date">{r.receivedBy ? r.receivedBy : '-'}{r.receivedDate ? ' \u2014 ' + formatDate(r.receivedDate) : ''}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2018,7 +2062,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 {TRANSMITTAL_COLUMNS.map(([key, label]) => (
@@ -2031,11 +2075,11 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={TRANSMITTAL_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No transmittal records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td className="truncate" title={r.description}>{r.description}</td>
-                  <td>{r.cet}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
+                  <td data-label="CET">{r.cet}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2230,7 +2274,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable">
             <thead>
               <tr>
                 <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -2257,44 +2301,44 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan="17" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No PCs match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td>{r.department}</td>
-                  <td>{r.deviceType || '-'}</td>
-                  <td style={{ fontWeight: 600 }}>{r.pcName}</td>
-                  <td>{r.user || '-'}</td>
-                  <td className="mono">{r.ipAddress}</td>
-                  <td className="mono truncate-sm" title={r.macAddress}>{r.macAddress}</td>
-                  <td>
+                  <td data-label="Department">{r.department}</td>
+                  <td data-label="Device Type">{r.deviceType || '-'}</td>
+                  <td style={{ fontWeight: 600 }} data-label="PC Name">{r.pcName}</td>
+                  <td data-label="User">{r.user || '-'}</td>
+                  <td className="mono" data-label="IP Address">{r.ipAddress}</td>
+                  <td className="mono truncate-sm" title={r.macAddress} data-label="MAC Address">{r.macAddress}</td>
+                  <td data-label="Windows Version">
                     <div>{r.windowsVersion}</div>
                     {r.windowsBuild && <div className="cell-sub">{r.windowsBuild}</div>}
                   </td>
-                  <td>
+                  <td data-label="Motherboard">
                     <div>{r.motherboardModel}</div>
                     <div className="cell-sub mono">{r.motherboardSN}</div>
                   </td>
-                  <td>
+                  <td data-label="RAM">
                     <div>{r.ramModel}</div>
                     <div className="cell-sub mono">{r.ramSN}</div>
                   </td>
-                  <td>
+                  <td data-label="Storage">
                     <div>{r.storageModel} &middot; {r.storageType}</div>
                   </td>
-                  <td>
+                  <td data-label="Printer">
                     <div>{r.printerModel}</div>
                     <div className="cell-sub mono">{r.printer}</div>
                   </td>
-                  <td>
+                  <td data-label="Monitor">
                     <div>{r.monitorModel}</div>
                     <div className="cell-sub mono">{r.monitor}</div>
                   </td>
-                  <td>
+                  <td data-label="Scanner">
                     <div>{r.scannerModel}</div>
                     <div className="cell-sub mono">{r.scannerSN}</div>
                   </td>
-                  <td>{r.processor}</td>
-                  <td>{r.gpu}</td>
-                  <td>{r.projector}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>
+                  <td data-label="Processor">{r.processor}</td>
+                  <td data-label="GPU">{r.gpu}</td>
+                  <td data-label="Projector">{r.projector}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="View / Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2469,17 +2513,17 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan="11" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No POS terminals match your search or filters for {activeSection}.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
-                  <td>{r.terminal}</td>
-                  <td className="mono truncate-sm" title={r.serial}>{r.serial}</td>
-                  <td className="mono truncate-sm" title={r.display1}>{r.display1}</td>
-                  <td className="mono truncate-sm" title={r.display2}>{r.display2}</td>
-                  <td className="mono truncate-sm" title={r.printerSerial}>{r.printerSerial}</td>
-                  <td className="mono truncate-sm" title={r.scannerSerial}>{r.scannerSerial}</td>
-                  <td className="mono truncate-sm" title={r.flatbedSerial}>{r.flatbedSerial}</td>
-                  <td className="mono truncate-sm" title={r.ghlSerial}>{r.ghlSerial}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>
+                  <td style={{ fontWeight: 600 }} data-label="Counter">{r.counter}</td>
+                  <td data-label="Terminal">{r.terminal}</td>
+                  <td className="mono truncate-sm" title={r.serial} data-label="Serial">{r.serial}</td>
+                  <td className="mono truncate-sm" title={r.display1} data-label="1st Display">{r.display1}</td>
+                  <td className="mono truncate-sm" title={r.display2} data-label="2nd Display">{r.display2}</td>
+                  <td className="mono truncate-sm" title={r.printerSerial} data-label="Printer Serial">{r.printerSerial}</td>
+                  <td className="mono truncate-sm" title={r.scannerSerial} data-label="Handheld Scanner Serial">{r.scannerSerial}</td>
+                  <td className="mono truncate-sm" title={r.flatbedSerial} data-label={flatbedFieldLabel(activeSection)}>{r.flatbedSerial}</td>
+                  <td className="mono truncate-sm" title={r.ghlSerial} data-label="GHL Terminal Serial">{r.ghlSerial}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2658,17 +2702,17 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
               {pageRows.length === 0 && <tr><td colSpan={SA_REPORT_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No reports match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td>{r.supermarket}</td>
-                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
-                  <td>{r.terminal}</td>
-                  <td>{r.issueType}</td>
-                  <td className="truncate" title={r.problemDescription}>{r.problemDescription}</td>
-                  <td className="truncate" title={r.troubleshootingSteps}>{r.troubleshootingSteps || '-'}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td>{r.technician}</td>
-                  <td className="mono">{r.dateResolved ? formatDate(r.dateResolved) : '-'}</td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td data-label="Supermarket">{r.supermarket}</td>
+                  <td style={{ fontWeight: 600 }} data-label="Counter">{r.counter}</td>
+                  <td data-label="Terminal">{r.terminal}</td>
+                  <td data-label="Issue Type">{r.issueType}</td>
+                  <td className="truncate" title={r.problemDescription} data-label="Problem Description">{r.problemDescription}</td>
+                  <td className="truncate" title={r.troubleshootingSteps} data-label="Troubleshooting Steps">{r.troubleshootingSteps || '-'}</td>
+                  <td data-label="Status"><StatusBadge status={r.status} /></td>
+                  <td data-label="Technician Assigned">{r.technician}</td>
+                  <td className="mono" data-label="Date Resolved">{r.dateResolved ? formatDate(r.dateResolved) : '-'}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2863,10 +2907,10 @@ function TerminalsList({ data, setData, addToast, onBack }) {
               {pageRows.length === 0 && <tr><td colSpan="4" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No terminals match your search.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td style={{ fontWeight: 600 }}>{r.ctr}</td>
-                  <td>{r.terminal}</td>
-                  <td className="mono">{r.serialNumber}</td>
-                  <td>
+                  <td style={{ fontWeight: 600 }} data-label="CTR">{r.ctr}</td>
+                  <td data-label="Terminal">{r.terminal}</td>
+                  <td className="mono" data-label="Serial Number">{r.serialNumber}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -2988,16 +3032,16 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
               {pageRows.length === 0 && <tr><td colSpan={GHL_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No GHL reports match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.dateReported)}</td>
-                  <td>{r.section}</td>
-                  <td style={{ fontWeight: 600 }}>{r.counter}</td>
-                  <td>{r.type}</td>
-                  <td className="mono">{r.sn}</td>
-                  <td>{r.reportCount}</td>
-                  <td className="mono">{r.requestNumber}</td>
-                  <td className="mono">{r.dateReceived ? formatDate(r.dateReceived) : '-'}</td>
-                  <td><StatusSelect status={r.status} options={GHL_REPORT_STATUSES} onChange={s => handleStatusChange(r, s)} /></td>
-                  <td>
+                  <td className="mono" data-label="Date Reported">{formatDate(r.dateReported)}</td>
+                  <td data-label="Section">{r.section}</td>
+                  <td style={{ fontWeight: 600 }} data-label="Counter">{r.counter}</td>
+                  <td data-label="Type">{r.type}</td>
+                  <td className="mono" data-label="SN">{r.sn}</td>
+                  <td data-label="Report Count">{r.reportCount}</td>
+                  <td className="mono" data-label="Request Number">{r.requestNumber}</td>
+                  <td className="mono" data-label="Date Received">{r.dateReceived ? formatDate(r.dateReceived) : '-'}</td>
+                  <td data-label="Status"><StatusSelect status={r.status} options={GHL_REPORT_STATUSES} onChange={s => handleStatusChange(r, s)} /></td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -3143,11 +3187,11 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
               {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No inventory items found for {activeLoc}.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
-                  <td className="mono">{r.quantity}</td>
-                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }} data-label="Item Name">{r.itemName}</td>
+                  <td className="mono" data-label="Quantity">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks} data-label="Remarks">{r.remarks || '-'}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
@@ -3290,11 +3334,11 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
               {pageRows.length === 0 && <tr><td colSpan="5" className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No physical count items found for {activeCategory}.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{formatDate(r.date)}</td>
-                  <td style={{ fontWeight: 600 }}>{r.itemName}</td>
-                  <td className="mono">{r.quantity}</td>
-                  <td className="truncate" title={r.remarks}>{r.remarks || '-'}</td>
-                  <td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td style={{ fontWeight: 600 }} data-label="Item Name">{r.itemName}</td>
+                  <td className="mono" data-label="Quantity">{r.quantity}</td>
+                  <td className="truncate" title={r.remarks} data-label="Remarks">{r.remarks || '-'}</td>
+                  <td data-label="Actions">
                     <div className="row-actions">
                       <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
                       <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
