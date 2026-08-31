@@ -679,9 +679,9 @@ const SEED_REPLACEMENTS = [
 ];
 
 const SEED_RRS = [
-  { id:'RRS-1', date:'2026-08-20', rrsNumber:'RRS-2026-001', department:'ICT', pcName:'PC-01', mobo:'Gigabyte B450M', user:'Juan Dela Cruz', request:'Replace faulty motherboard', problem:'System randomly shuts down / no boot', cet:'CE76', status:'Completed' },
-  { id:'RRS-2', date:'2026-08-18', rrsNumber:'RRS-2026-002', department:'ADMIN', pcName:'PC-05', mobo:'ASUS Prime A320M', user:'Maria Santos', request:'Check and repair motherboard slot', problem:'RAM not detected on boot', cet:'CE77', status:'In Progress' },
-  { id:'RRS-3', date:'2026-08-12', rrsNumber:'RRS-2026-003', department:'AUDIT', pcName:'PC-09', mobo:'MSI H310M', user:'Pedro Reyes', request:'Motherboard diagnostic and repair', problem:'PC won\u2019t power on', cet:'CE78', status:'Pending' },
+  { id:'RRS-1', rrsNumber:'RRS-2026-001', department:'ICT', scopeOfWork:'Install network switch', quantity:1, unit:'pc', description:'24-port Gigabit switch for server room', complaints:'', checkBy:'CE76', date:'2026-08-20', dateInstall:'2026-08-22', status:'Completed' },
+  { id:'RRS-2', rrsNumber:'RRS-2026-002', department:'ADMIN', scopeOfWork:'Replace motherboard', quantity:1, unit:'unit', description:'Replacement for PC-05, ASUS Prime A320M', complaints:'RAM not detected on boot', checkBy:'CE77', date:'2026-08-18', dateInstall:'', status:'In Progress' },
+  { id:'RRS-3', rrsNumber:'RRS-2026-003', department:'AUDIT', scopeOfWork:'Motherboard diagnostic and repair', quantity:1, unit:'unit', description:'PC-09, MSI H310M', complaints:'PC won\u2019t power on', checkBy:'CE78', date:'2026-08-12', dateInstall:'', status:'Pending' },
 ];
 
 const SEED_MRS = [
@@ -1629,15 +1629,16 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
    ADMIN REQUEST — RRS
    ========================================================= */
 const RRS_COLUMNS = [
-  ['date', 'Date'], ['rrsNumber', 'RRS #'], ['department', 'Department'], ['pcName', 'PC Name'], ['mobo', 'Mobo'],
-  ['user', 'User'], ['request', 'Request'], ['problem', 'Problem'], ['cet', 'CET'], ['status', 'Status'],
+  ['rrsNumber', 'RRS #'], ['department', 'Dept'], ['scopeOfWork', 'Scope of Work'], ['quantity', 'Quantity'],
+  ['unit', 'Unit'], ['description', 'Description'], ['complaints', 'Complaints'], ['checkBy', 'Check By'],
+  ['date', 'Date'], ['dateInstall', 'Date Install'], ['status', 'Status'],
 ];
 
 function RrsFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    date: new Date().toISOString().slice(0, 10),
-    rrsNumber: '', department: DEPARTMENTS[0], pcName: '', mobo: '', user: '',
-    request: '', problem: '', cet: TECHNICIANS[0], status: 'Pending',
+    rrsNumber: '', department: DEPARTMENTS[0], scopeOfWork: '', quantity: 1, unit: '',
+    description: '', complaints: '', checkBy: TECHNICIANS[0],
+    date: new Date().toISOString().slice(0, 10), dateInstall: '', status: 'Pending',
   });
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
   function submit(e) {
@@ -1648,18 +1649,16 @@ function RrsFormModal({ record, onClose, onSave }) {
   return (
     <Modal title={record ? 'Edit RRS Record' : 'Add RRS Record'} onClose={onClose} maxWidth="720px">
       <form onSubmit={submit} className="form-grid">
-        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
         <Field label="RRS #" required><input className="input mono" style={{ width: '100%' }} value={form.rrsNumber} onChange={e => update('rrsNumber', e.target.value)} placeholder="e.g. RRS-2026-001" required /></Field>
-        <Field label="Department" required>
+        <Field label="Dept" required>
           <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
             {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </Field>
-        <Field label="PC Name"><input className="input" style={{ width: '100%' }} value={form.pcName} onChange={e => update('pcName', e.target.value)} placeholder="e.g. PC-01" /></Field>
-        <Field label="Mobo"><input className="input" style={{ width: '100%' }} value={form.mobo} onChange={e => update('mobo', e.target.value)} placeholder="Motherboard model" /></Field>
-        <Field label="User"><input className="input" style={{ width: '100%' }} value={form.user} onChange={e => update('user', e.target.value)} placeholder="Requesting user" /></Field>
-        <Field label="CET" required>
-          <select className="select" style={{ width: '100%' }} value={form.cet} onChange={e => update('cet', e.target.value)}>
+        <Field label="Quantity"><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} placeholder="e.g. 1" /></Field>
+        <Field label="Unit"><input className="input" style={{ width: '100%' }} value={form.unit} onChange={e => update('unit', e.target.value)} placeholder="e.g. pc, unit, set" /></Field>
+        <Field label="Check By" required>
+          <select className="select" style={{ width: '100%' }} value={form.checkBy} onChange={e => update('checkBy', e.target.value)}>
             {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </Field>
@@ -1668,11 +1667,16 @@ function RrsFormModal({ record, onClose, onSave }) {
             {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </Field>
-        <Field label="Request" full>
-          <textarea className="textarea" rows="2" value={form.request} onChange={e => update('request', e.target.value)} placeholder="What is being requested" />
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Date Install"><input type="date" className="input" value={form.dateInstall} onChange={e => update('dateInstall', e.target.value)} /></Field>
+        <Field label="Scope of Work" full>
+          <textarea className="textarea" rows="2" value={form.scopeOfWork} onChange={e => update('scopeOfWork', e.target.value)} placeholder="What work is being requested" />
         </Field>
-        <Field label="Problem" full>
-          <textarea className="textarea" rows="2" value={form.problem} onChange={e => update('problem', e.target.value)} placeholder="Describe the reported issue" />
+        <Field label="Description" full>
+          <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Additional details" />
+        </Field>
+        <Field label="Complaints" full>
+          <textarea className="textarea" rows="2" value={form.complaints} onChange={e => update('complaints', e.target.value)} placeholder="Reported complaints, if any" />
         </Field>
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
@@ -1697,7 +1701,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matchesQuery = !q || [r.rrsNumber, r.department, r.pcName, r.mobo, r.user, r.request, r.problem, r.cet].join(' ').toLowerCase().includes(q);
+      const matchesQuery = !q || [r.rrsNumber, r.department, r.scopeOfWork, r.unit, r.description, r.complaints, r.checkBy].join(' ').toLowerCase().includes(q);
       const matchesDept = deptFilter === 'All' || r.department === deptFilter;
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
       return matchesQuery && matchesDept && matchesStatus;
@@ -1768,15 +1772,16 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={RRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No RRS records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
-                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
                   <td className="mono" data-label="RRS #">{r.rrsNumber}</td>
-                  <td data-label="Department">{r.department}</td>
-                  <td data-label="PC Name">{r.pcName}</td>
-                  <td className="truncate" title={r.mobo} data-label="Mobo">{r.mobo}</td>
-                  <td data-label="User">{r.user}</td>
-                  <td className="truncate" title={r.request} data-label="Request">{r.request}</td>
-                  <td className="truncate" title={r.problem} data-label="Problem">{r.problem}</td>
-                  <td data-label="CET">{r.cet}</td>
+                  <td data-label="Dept">{r.department}</td>
+                  <td className="truncate" title={r.scopeOfWork} data-label="Scope of Work">{r.scopeOfWork}</td>
+                  <td data-label="Quantity">{r.quantity}</td>
+                  <td data-label="Unit">{r.unit}</td>
+                  <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
+                  <td className="truncate" title={r.complaints} data-label="Complaints">{r.complaints}</td>
+                  <td data-label="Check By">{r.checkBy}</td>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="mono" data-label="Date Install">{r.dateInstall ? formatDate(r.dateInstall) : '—'}</td>
                   <td data-label="Status"><StatusBadge status={r.status} /></td>
                   <td data-label="Actions">
                     <div className="row-actions">
@@ -3682,6 +3687,19 @@ function useFirestoreCollection(collectionName, seedData) {
             seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
             await addBatch.commit();
           }
+        } else if (!cancelled && collectionName === 'rrs') {
+          const snap = await db.collection(collectionName).get();
+          if (snap.docs.some(d => !('scopeOfWork' in d.data()))) {
+            // One-time migration: legacy RRS records (old PC Name/Mobo/User/Request/Problem/CET schema)
+            // are replaced with the current RRS#/Dept/Scope of Work/Quantity/Unit/Description/Complaints/
+            // Check By/Date/Date Install/Status schema used on the form.
+            const delBatch = db.batch();
+            snap.docs.forEach(d => delBatch.delete(d.ref));
+            await delBatch.commit();
+            const addBatch = db.batch();
+            seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
+            await addBatch.commit();
+          }
         } else if (!cancelled && collectionName === 'inventory') {
           // One-time migration: rename existing Inventory location labels only.
           // "Main Office" (old) -> "Storage Server", "Server" (old) -> "Main Office".
@@ -3937,7 +3955,7 @@ function App() {
   if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
   if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search item name or remarks...' };
   if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, item name, or status...' };
-  if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, PC name, or CET...' };
+  if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, scope of work, or check by...' };
   if (page === 'mrsDepartment') searchProps = { show: true, query: mrsQuery, setQuery: setMrsQuery, placeholder: 'Search by description, department, or received by...' };
   if (page === 'transmittal') searchProps = { show: true, query: transmittalQuery, setQuery: setTransmittalQuery, placeholder: 'Search by description, CET, or status...' };
 
