@@ -633,15 +633,15 @@ const SEED_PHYSICAL_COUNT = [
 /* =========================================================
    INVENTORY
    ========================================================= */
-const INVENTORY_LOCATIONS = ["Main Office","Second Room","Server","DS1","DS2","DS3","DS4","Cabin"];
+const INVENTORY_LOCATIONS = ["Storage Server","Second Room","Main Office","DS1","DS2","DS3","DS4","Cabin"];
 
 const SEED_INVENTORY = [
-  { id:'INV-1', location:'Main Office', date:'2026-08-10', itemName:'Bond Paper A4 (Ream)', quantity:12, remarks:'Stocked for monthly printing needs' },
-  { id:'INV-2', location:'Main Office', date:'2026-08-14', itemName:'Toner Cartridge (Black)', quantity:3, remarks:'For Epson L3210 printers' },
+  { id:'INV-1', location:'Storage Server', date:'2026-08-10', itemName:'Bond Paper A4 (Ream)', quantity:12, remarks:'Stocked for monthly printing needs' },
+  { id:'INV-2', location:'Storage Server', date:'2026-08-14', itemName:'Toner Cartridge (Black)', quantity:3, remarks:'For Epson L3210 printers' },
   { id:'INV-3', location:'Second Room', date:'2026-08-05', itemName:'Ethernet Cable (Cat6, 5m)', quantity:8, remarks:'Spare cables for network setup' },
   { id:'INV-4', location:'Second Room', date:'2026-08-12', itemName:'USB Flash Drive 32GB', quantity:5, remarks:'For data transfer and backup' },
-  { id:'INV-5', location:'Server', date:'2026-08-02', itemName:'UPS Battery Backup', quantity:2, remarks:'Replacement units for server room' },
-  { id:'INV-6', location:'Server', date:'2026-08-16', itemName:'Rack Screws & Cage Nuts (Set)', quantity:4, remarks:'For server rack mounting' },
+  { id:'INV-5', location:'Main Office', date:'2026-08-02', itemName:'UPS Battery Backup', quantity:2, remarks:'Replacement units for server room' },
+  { id:'INV-6', location:'Main Office', date:'2026-08-16', itemName:'Rack Screws & Cage Nuts (Set)', quantity:4, remarks:'For server rack mounting' },
   { id:'INV-7', location:'DS1', date:'2026-08-07', itemName:'Barcode Scanner', quantity:2, remarks:'Backup units for counter use' },
   { id:'INV-8', location:'DS1', date:'2026-08-11', itemName:'Thermal Paper Roll', quantity:20, remarks:'For POS receipt printers' },
   { id:'INV-9', location:'DS2', date:'2026-08-09', itemName:'POS Monitor Stand', quantity:3, remarks:'Extra stands in storage' },
@@ -3681,6 +3681,24 @@ function useFirestoreCollection(collectionName, seedData) {
             const addBatch = db.batch();
             seedData.forEach(item => addBatch.set(db.collection(collectionName).doc(item.id), item));
             await addBatch.commit();
+          }
+        } else if (!cancelled && collectionName === 'inventory') {
+          // One-time migration: rename existing Inventory location labels only.
+          // "Main Office" (old) -> "Storage Server", "Server" (old) -> "Main Office".
+          // Only the location field is touched; itemName/quantity/remarks/date/id stay exactly as encoded.
+          const renameMetaRef = db.collection('_meta').doc('inventoryLocRename_v1');
+          const renameSnap = await renameMetaRef.get();
+          if (!renameSnap.exists) {
+            const snap = await db.collection(collectionName).get();
+            const batch = db.batch();
+            let changed = false;
+            snap.docs.forEach(d => {
+              const loc = d.data().location;
+              if (loc === 'Main Office') { batch.update(d.ref, { location: 'Storage Server' }); changed = true; }
+              else if (loc === 'Server') { batch.update(d.ref, { location: 'Main Office' }); changed = true; }
+            });
+            if (changed) await batch.commit();
+            await renameMetaRef.set({ renamed: true, renamedAt: new Date().toISOString() });
           }
         }
         unsub = db.collection(collectionName).onSnapshot(
