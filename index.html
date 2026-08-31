@@ -754,7 +754,7 @@ function buildBackupSections(collections) {
         ['display1','1st Display SN'],['display2','2nd Display SN'],['printerSerial','Printer SN'],
         ['scannerSerial','Scanner SN'],['flatbedSerial','Flatbed/Vertical SN'],['ghlSerial','NTT Terminal SN'],['status','Status'],
       ], rows: collections.posInventory },
-    { title: 'Physical Inventory Count', columns: [['category','Category'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.physicalCount },
+    { title: 'Physical Inventory Count', columns: [['category','Category'],['date','Date'],['itemName','Serial Number'],['quantity','Item Number'],['remarks','Remarks']], rows: collections.physicalCount },
     { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
     { title: 'Replacement — Back Office & Selling Area', columns: REPLACEMENT_COLUMNS, rows: collections.replacements },
     { title: 'Admin Request — RRS', columns: RRS_COLUMNS, rows: collections.rrs },
@@ -3236,8 +3236,8 @@ function PhysicalCountFormModal({ record, category, onClose, onSave }) {
       <form onSubmit={submit} className="form-grid">
         <div className="form-section-label">Item Details &middot; {category}</div>
         <Field label="Date" required><input type="date" className="input" style={{ width: '100%' }} value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
-        <Field label="Quantity" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
-        <Field label="Item Name" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. PDT Unit (Handheld Scanner)" required /></Field>
+        <Field label="Item Number" required><input type="number" min="0" step="1" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Serial Number" full required><input className="input" style={{ width: '100%' }} value={form.itemName} onChange={e => update('itemName', e.target.value)} placeholder="e.g. PDT Unit (Handheld Scanner)" required /></Field>
         <Field label="Remarks" full><textarea className="textarea" rows="3" style={{ width: '100%' }} value={form.remarks} onChange={e => update('remarks', e.target.value)} placeholder="Optional notes..." /></Field>
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
@@ -3329,8 +3329,8 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
             <thead>
               <tr>
                 <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <SortableTh label="Item Name" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <SortableTh label="Quantity" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Serial Number" sortKey="itemName" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortableTh label="Item Number" sortKey="quantity" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
                 <th>Remarks</th>
                 <th>Actions</th>
               </tr>
@@ -3340,8 +3340,8 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td className="mono" data-label="Date">{formatDate(r.date)}</td>
-                  <td style={{ fontWeight: 600 }} data-label="Item Name">{r.itemName}</td>
-                  <td className="mono" data-label="Quantity">{r.quantity}</td>
+                  <td style={{ fontWeight: 600 }} data-label="Serial Number">{r.itemName}</td>
+                  <td className="mono" data-label="Item Number">{r.quantity}</td>
                   <td className="truncate" title={r.remarks} data-label="Remarks">{r.remarks || '-'}</td>
                   <td data-label="Actions">
                     <div className="row-actions">
@@ -3953,7 +3953,7 @@ function App() {
   if (page === 'posMonitoring') searchProps = { show: true, query: posInvQuery, setQuery: setPosInvQuery, placeholder: 'Search POS terminals, counter, serials...' };
   if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
   if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
-  if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search item name or remarks...' };
+  if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search serial number or remarks...' };
   if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, item name, or status...' };
   if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, scope of work, or check by...' };
   if (page === 'mrsDepartment') searchProps = { show: true, query: mrsQuery, setQuery: setMrsQuery, placeholder: 'Search by description, department, or received by...' };
