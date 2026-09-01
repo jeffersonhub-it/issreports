@@ -202,6 +202,7 @@
   /* ---------- toolbar / table ---------- */
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);}
   .toolbar .select{min-width:170px;}
+  .toolbar-search-mobile{display:none;}
   .input-wrap{position:relative;display:flex;align-items:center;}
   .input-wrap .ic-search{position:absolute;left:11px;color:var(--text-faint);pointer-events:none;}
   .input-wrap input{padding:9px 12px 9px 34px;width:100%;}
@@ -394,6 +395,7 @@
     .kpi-row{grid-template-columns:1fr;}
     .mini-kpi-row{grid-template-columns:1fr;}
     .header-search{display:none;}
+    .toolbar-search-mobile{display:block;width:100%;order:-1;}
     .content{padding:16px 12px 50px;}
     .header{padding:12px 14px;}
     .header-right{gap:8px;width:100%;justify-content:space-between;}
@@ -1402,6 +1404,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search reports..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1569,6 +1572,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search replacements..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {REPLACEMENT_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1746,6 +1750,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search RRS records..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1906,6 +1911,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search MRS records..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -2058,6 +2064,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search transmittals..." className="toolbar-search-mobile" />
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
           {TRANSMITTAL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -2262,6 +2269,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search PC monitoring..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {PC_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -2489,6 +2497,7 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
         ))}
       </div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search POS terminals..." className="toolbar-search-mobile" />
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
           {POS_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -2682,6 +2691,7 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search reports..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
@@ -3010,6 +3020,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
   return (
     <div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search GHL reports..." className="toolbar-search-mobile" />
         <select className="select" value={sectionFilter} onChange={e => setSectionFilter(e.target.value)}>
           <option value="All">All Sections</option>
           {SELLING_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -3170,6 +3181,7 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
         ))}
       </div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search inventory..." className="toolbar-search-mobile" />
         <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
           {activeLoc} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
         </div>
@@ -3317,6 +3329,7 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
         ))}
       </div>
       <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search physical count..." className="toolbar-search-mobile" />
         <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
           {activeCategory} &middot; <span className="mono">{filtered.length}</span> item{filtered.length === 1 ? '' : 's'} &middot; <span className="mono">{totalQty}</span> total qty
         </div>
