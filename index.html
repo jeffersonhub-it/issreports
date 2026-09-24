@@ -760,7 +760,7 @@ function buildBackupSections(collections) {
     { title: 'Inventory by Location', columns: [['location','Location'],['date','Date'],['itemName','Item Name'],['quantity','Quantity'],['remarks','Remarks']], rows: collections.inventory },
     { title: 'Replacement — Back Office & Selling Area', columns: REPLACEMENT_COLUMNS, rows: collections.replacements },
     { title: 'Admin Request — RRS', columns: RRS_COLUMNS, rows: collections.rrs },
-    { title: 'Admin Request — MRS Department', columns: [
+    { title: 'Admin Request — MSRS Department', columns: [
         ['date','Date'], ['description','Description'], ['department','Department'], ['receivedBy','Received By'], ['receivedDate','Received Date'],
       ], rows: collections.mrsDepartment },
     { title: 'Admin Request — Transmittal', columns: TRANSMITTAL_COLUMNS, rows: collections.transmittals },
@@ -1814,7 +1814,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
 }
 
 /* =========================================================
-   ADMIN REQUEST — MRS DEPARTMENT
+   ADMIN REQUEST — MSRS DEPARTMENT
    ========================================================= */
 const MRS_COLUMNS = [
   ['date', 'Date'], ['description', 'Description'], ['department', 'Department'], ['receivedBy', 'Received By and Date'],
@@ -1832,7 +1832,7 @@ function MrsFormModal({ record, onClose, onSave }) {
     onSave({ ...form, id: record ? record.id : null });
   }
   return (
-    <Modal title={record ? 'Edit MRS Record' : 'Add MRS Record'} onClose={onClose} maxWidth="600px">
+    <Modal title={record ? 'Edit MSRS Record' : 'Add MSRS Record'} onClose={onClose} maxWidth="600px">
       <form onSubmit={submit} className="form-grid">
         <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
         <Field label="Department" required>
@@ -1847,7 +1847,7 @@ function MrsFormModal({ record, onClose, onSave }) {
         <Field label="Received Date"><input type="date" className="input" value={form.receivedDate} onChange={e => update('receivedDate', e.target.value)} /></Field>
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add MRS Record'}</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add MSRS Record'}</button>
         </div>
       </form>
     </Modal>
@@ -1895,29 +1895,29 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
   function handleSave(record) {
     if (record.id) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
-      addToast('MRS record updated successfully', 'success');
+      addToast('MSRS record updated successfully', 'success');
     } else {
       setData(prev => [{ ...record, id: nextId('MRS') }, ...prev]);
-      addToast('MRS record added successfully', 'success');
+      addToast('MSRS record added successfully', 'success');
     }
     setModalOpen(false);
   }
   function handleDeleteConfirmed() {
     setData(prev => prev.filter(r => r.id !== confirmState.id));
-    addToast('MRS record deleted', 'danger');
+    addToast('MSRS record deleted', 'danger');
     setConfirmState(null);
   }
 
   return (
     <div>
       <div className="toolbar">
-        <SearchInput value={query} onChange={setQuery} placeholder="Search MRS records..." className="toolbar-search-mobile" />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search MSRS records..." className="toolbar-search-mobile" />
         <select className="select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
           <option value="All">All Departments</option>
           {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
         <div style={{ flex: 1 }} />
-        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add MRS Record</button>
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add MSRS Record</button>
       </div>
       <div className="card table-card">
         <div className="table-wrap">
@@ -1931,7 +1931,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && <tr><td colSpan={MRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No MRS records match your search or filters.</div></td></tr>}
+              {pageRows.length === 0 && <tr><td colSpan={MRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No MSRS records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td className="mono" data-label="Date">{formatDate(r.date)}</td>
@@ -1954,7 +1954,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
       {modalOpen && <MrsFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
       {confirmState && (
         <ConfirmDialog
-          message={`Delete this MRS record dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          message={`Delete this MSRS record dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
           onCancel={() => setConfirmState(null)}
           onConfirm={handleDeleteConfirmed}
         />
@@ -3508,7 +3508,7 @@ const NAV_GROUPS = [
     ] },
   { label: 'Admin Request', items: [
       { key: 'rrs', label: 'RRS', icon: 'clipboard' },
-      { key: 'mrsDepartment', label: 'MRS Department', icon: 'inbox' },
+      { key: 'mrsDepartment', label: 'MSRS Department', icon: 'inbox' },
       { key: 'transmittal', label: 'Transmittal', icon: 'send' },
     ] },
   { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
@@ -3852,7 +3852,7 @@ const PAGES_META = {
   ghlReports: { title: 'NTT Reports', subtitle: 'NTT card terminal trouble reports and terminal registry', icon: 'server' },
   replacements: { title: 'Replacement', subtitle: 'Item replacement tracking for Back Office & Selling Area', icon: 'repeat' },
   rrs: { title: 'RRS', subtitle: 'Repair Request Slip records for Back Office units', icon: 'clipboard' },
-  mrsDepartment: { title: 'MRS Department', subtitle: 'Material Request Slip records by department', icon: 'inbox' },
+  mrsDepartment: { title: 'MSRS Department', subtitle: 'Material Request Slip records by department', icon: 'inbox' },
   transmittal: { title: 'Transmittal', subtitle: 'Transmittal records and receiving status', icon: 'send' },
   physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
   inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
@@ -4100,7 +4100,7 @@ function App() {
             <span className="tick-item"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Inventory Count</span>
             <span className="tick-item"><span className="dot" style={{ background: '#8B5CF6' }}></span>{replacements.length} Replacement Records</span>
             <span className="tick-item"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
-            <span className="tick-item"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MRS Department Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MSRS Department Records</span>
             <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} Back Office Reports</span>
@@ -4112,7 +4112,7 @@ function App() {
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#F59E0B' }}></span>{physicalCount.length} Physical Inventory Count</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#8B5CF6' }}></span>{replacements.length} Replacement Records</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
-            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MRS Department Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MSRS Department Records</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
