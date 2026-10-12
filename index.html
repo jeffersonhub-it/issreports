@@ -239,6 +239,12 @@
   .table-wrap{overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px;}
   table.table-compact{min-width:680px;}
+  table.rtable-fixed{table-layout:fixed;}
+  table.rtable-fixed th,table.rtable-fixed td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  table.rtable-fixed td.truncate,table.rtable-fixed td.truncate-sm{max-width:none;}
+  table.rtable-fixed td>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  table.rtable-fixed{min-width:0;}
+  table.rtable-fixed tbody td{height:46px;vertical-align:middle;}
 
   /* ---------- inventory location tabs ---------- */
   .loc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -1351,7 +1357,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
   const [sortKey, setSortKey] = useState('dateReported');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -1418,7 +1424,13 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 1570 }}>
+            <colgroup>
+              <col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 160 }} />
+              <col style={{ width: 220 }} /><col style={{ width: 220 }} /><col style={{ width: 120 }} />
+              <col style={{ width: 110 }} /><col style={{ width: 120 }} /><col style={{ width: 160 }} />
+              <col style={{ width: 100 }} /><col style={{ width: 90 }} />
+            </colgroup>
             <thead>
               <tr>
                 {REPORT_COLUMNS.map(([key, label]) => (
@@ -1519,7 +1531,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -1586,7 +1598,8 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 960 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 160 }} /><col style={{ width: 320 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {REPLACEMENT_COLUMNS.map(([key, label]) => (
@@ -1697,7 +1710,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -1764,7 +1777,8 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 1610 }}>
+            <colgroup><col style={{ width: 100 }} /><col style={{ width: 140 }} /><col style={{ width: 200 }} /><col style={{ width: 80 }} /><col style={{ width: 80 }} /><col style={{ width: 220 }} /><col style={{ width: 220 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {RRS_COLUMNS.map(([key, label]) => (
@@ -1859,7 +1873,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -1921,7 +1935,8 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 1030 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 380 }} /><col style={{ width: 180 }} /><col style={{ width: 260 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {MRS_COLUMNS.map(([key, label]) => (
@@ -2012,7 +2027,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -2074,7 +2089,8 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 890 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 420 }} /><col style={{ width: 140 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {TRANSMITTAL_COLUMNS.map(([key, label]) => (
@@ -2217,7 +2233,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('pcName');
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -2287,7 +2303,8 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable">
+          <table className="rtable rtable-fixed" style={{ minWidth: 2400 }}>
+            <colgroup><col style={{ width: 140 }} /><col style={{ width: 110 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 150 }} /><col style={{ width: 170 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 130 }} /><col style={{ width: 150 }} /><col style={{ width: 130 }} /><col style={{ width: 120 }} /><col style={{ width: 110 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <SortableTh label="Department" sortKey="department" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -2431,7 +2448,7 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
   const [sortKey, setSortKey] = useState('counter');
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -2507,7 +2524,8 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable-fixed" style={{ minWidth: 1480 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 130 }} /><col style={{ width: 130 }} /><col style={{ width: 150 }} /><col style={{ width: 170 }} /><col style={{ width: 150 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <SortableTh label="Counter" sortKey="counter" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -2638,7 +2656,7 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -2704,7 +2722,8 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable-fixed" style={{ minWidth: 1570 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 110 }} /><col style={{ width: 110 }} /><col style={{ width: 150 }} /><col style={{ width: 220 }} /><col style={{ width: 220 }} /><col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 130 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {SA_REPORT_COLUMNS.map(([key, label]) => (
@@ -2854,7 +2873,7 @@ function TerminalsList({ data, setData, addToast, onBack }) {
   const [sortKey, setSortKey] = useState('ctr');
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -2909,7 +2928,8 @@ function TerminalsList({ data, setData, addToast, onBack }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table>
+          <table className="rtable-fixed" style={{ minWidth: 730 }}>
+            <colgroup><col style={{ width: 160 }} /><col style={{ width: 220 }} /><col style={{ width: 260 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <SortableTh label="CTR" sortKey="ctr" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -3089,7 +3109,8 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
           <span className="mono" style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{activeGroup.rows.length} report{activeGroup.rows.length === 1 ? '' : 's'}</span>
         </div>
         <div className="table-wrap">
-          <table>
+          <table className="rtable-fixed" style={{ minWidth: 1310 }}>
+            <colgroup><col style={{ width: 60 }} /><col style={{ width: 130 }} /><col style={{ width: 140 }} /><col style={{ width: 110 }} /><col style={{ width: 110 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 150 }} /><col style={{ width: 130 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <th style={{ width: 44 }}>No.</th>
@@ -3248,7 +3269,8 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="table-compact">
+          <table className="table-compact rtable-fixed" style={{ minWidth: 910 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 300 }} /><col style={{ width: 100 }} /><col style={{ width: 300 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -3322,7 +3344,7 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -3396,7 +3418,8 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="table-compact">
+          <table className="table-compact rtable-fixed" style={{ minWidth: 910 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 300 }} /><col style={{ width: 100 }} /><col style={{ width: 300 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 <SortableTh label="Date" sortKey="date" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
