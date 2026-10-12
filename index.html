@@ -1354,6 +1354,7 @@ const REPORT_COLUMNS = [
 function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, addToast, query, setQuery }) {
   const [deptFilter, setDeptFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [techFilter, setTechFilter] = useState('All');
   const [sortKey, setSortKey] = useState('dateReported');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
@@ -1368,7 +1369,8 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       const matchesQuery = !q || [r.problem, r.actionTaken, r.remarks, r.department, r.pcName, r.technician, r.replacement].join(' ').toLowerCase().includes(q);
       const matchesDept = deptFilter === 'All' || r.department === deptFilter;
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
-      return matchesQuery && matchesDept && matchesStatus;
+      const matchesTech = techFilter === 'All' || r.technician === techFilter;
+      return matchesQuery && matchesDept && matchesStatus && matchesTech;
     });
     rows = rows.slice().sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
@@ -1379,9 +1381,9 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       return 0;
     });
     return rows;
-  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+  }, [data, query, deptFilter, statusFilter, techFilter, sortKey, sortDir]);
 
-  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter, techFilter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -1418,6 +1420,10 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
           {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="select" value={techFilter} onChange={e => setTechFilter(e.target.value)}>
+          <option value="All">All Technicians</option>
+          {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <div style={{ flex: 1 }} />
         <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
@@ -2653,6 +2659,7 @@ function SaReportFormModal({ record, departmentOptions, onClose, onSave }) {
 function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQuery }) {
   const [deptFilter, setDeptFilter] = useState(() => departmentOptions[0] || 'All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [techFilter, setTechFilter] = useState('All');
   const [sortKey, setSortKey] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
@@ -2667,7 +2674,8 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
       const matches = !q || [r.counter, r.terminal, r.issueType, r.problemDescription, r.troubleshootingSteps, r.technician].join(' ').toLowerCase().includes(q);
       const md = deptFilter === 'All' || r.supermarket === deptFilter;
       const ms = statusFilter === 'All' || r.status === statusFilter;
-      return matches && md && ms;
+      const mt = techFilter === 'All' || r.technician === techFilter;
+      return matches && md && ms && mt;
     });
     rows = rows.slice().sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
@@ -2678,9 +2686,9 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
       return 0;
     });
     return rows;
-  }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
+  }, [data, query, deptFilter, statusFilter, techFilter, sortKey, sortDir]);
 
-  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter]);
+  useEffect(() => { setPage(1); }, [query, deptFilter, statusFilter, techFilter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -2716,6 +2724,10 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
         <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Status</option>
           {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="select" value={techFilter} onChange={e => setTechFilter(e.target.value)}>
+          <option value="All">All Technicians</option>
+          {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <div style={{ flex: 1 }} />
         <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Report</button>
