@@ -680,16 +680,16 @@ const SEED_GHL_TERMINALS = [
 ];
 
 const SEED_REPLACEMENTS = [
-  { id:'RPL-1', date:'2026-08-14', department:'ICT', itemNameReplacement:'Wireless Mouse', replacementDate:'2026-08-15', status:'Done' },
-  { id:'RPL-2', date:'2026-08-10', department:'DEPARTMENT STORE', itemNameReplacement:'Barcode Scanner', replacementDate:'', status:'Pending' },
-  { id:'RPL-3', date:'2026-08-02', department:'AUDIT', itemNameReplacement:'Keyboard', replacementDate:'2026-08-04', status:'Done' },
-  { id:'RPL-4', date:'2026-07-28', department:'SUPERMARKET', itemNameReplacement:'Receipt Printer', replacementDate:'', status:'Pending' },
+  { id:'RPL-1', date:'2026-08-14', department:'ICT', pcName:'PC-01', itemNameReplacement:'Wireless Mouse', replacementDate:'2026-08-15', status:'Done' },
+  { id:'RPL-2', date:'2026-08-10', department:'DEPARTMENT STORE', pcName:'POS-05', itemNameReplacement:'Barcode Scanner', replacementDate:'', status:'Pending' },
+  { id:'RPL-3', date:'2026-08-02', department:'AUDIT', pcName:'PC-09', itemNameReplacement:'Keyboard', replacementDate:'2026-08-04', status:'Done' },
+  { id:'RPL-4', date:'2026-07-28', department:'SUPERMARKET', pcName:'POS-01', itemNameReplacement:'Receipt Printer', replacementDate:'', status:'Pending' },
 ];
 
 const SEED_RRS = [
-  { id:'RRS-1', rrsNumber:'RRS-2026-001', department:'ICT', scopeOfWork:'Install network switch', quantity:1, unit:'pc', description:'24-port Gigabit switch for server room', complaints:'', checkBy:'CE76', date:'2026-08-20', dateInstall:'2026-08-22', status:'Completed' },
-  { id:'RRS-2', rrsNumber:'RRS-2026-002', department:'ADMIN', scopeOfWork:'Replace motherboard', quantity:1, unit:'unit', description:'Replacement for PC-05, ASUS Prime A320M', complaints:'RAM not detected on boot', checkBy:'CE77', date:'2026-08-18', dateInstall:'', status:'In Progress' },
-  { id:'RRS-3', rrsNumber:'RRS-2026-003', department:'AUDIT', scopeOfWork:'Motherboard diagnostic and repair', quantity:1, unit:'unit', description:'PC-09, MSI H310M', complaints:'PC won\u2019t power on', checkBy:'CE78', date:'2026-08-12', dateInstall:'', status:'Pending' },
+  { id:'RRS-1', rrsNumber:'RRS-2026-001', department:'ICT', scopeOfWork:'Other', quantity:1, description:'24-port Gigabit switch for server room', complaints:'', checkBy:'CE76', date:'2026-08-20', dateInstall:'2026-08-22', status:'Completed' },
+  { id:'RRS-2', rrsNumber:'RRS-2026-002', department:'ADMIN', scopeOfWork:'Replacement', quantity:1, description:'Replacement for PC-05, ASUS Prime A320M', complaints:'RAM not detected on boot', checkBy:'CE77', date:'2026-08-18', dateInstall:'', status:'In Progress' },
+  { id:'RRS-3', rrsNumber:'RRS-2026-003', department:'AUDIT', scopeOfWork:'Other', quantity:1, description:'PC-09, MSI H310M', complaints:'PC won\u2019t power on', checkBy:'CE78', date:'2026-08-12', dateInstall:'', status:'Pending' },
 ];
 
 const SEED_MRS = [
@@ -699,9 +699,9 @@ const SEED_MRS = [
 ];
 
 const SEED_TRANSMITTALS = [
-  { id:'TRN-1', date:'2026-08-21', description:'Transmittal of replaced PSU unit to warehouse', cet:'CE76', status:'Received' },
-  { id:'TRN-2', date:'2026-08-19', description:'Transmittal of defective RAM module for RMA', cet:'CE77', status:'Pending' },
-  { id:'TRN-3', date:'2026-08-14', description:'Transmittal of old monitors to storage', cet:'CE78', status:'Received' },
+  { id:'TRN-1', transmittalNumber:'TRN-2026-001', from:'ICT', to:'Warehouse', date:'2026-08-21', description:'Transmittal of replaced PSU unit to warehouse', cet:'CE76', status:'Received' },
+  { id:'TRN-2', transmittalNumber:'TRN-2026-002', from:'ICT', to:'Supplier (RMA)', date:'2026-08-19', description:'Transmittal of defective RAM module for RMA', cet:'CE77', status:'Pending' },
+  { id:'TRN-3', transmittalNumber:'TRN-2026-003', from:'Admin', to:'Storage', date:'2026-08-14', description:'Transmittal of old monitors to storage', cet:'CE78', status:'Received' },
 ];
 
 /* =========================================================
@@ -1378,7 +1378,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, statusFilter, techFilter, sortKey, sortDir]);
@@ -1398,7 +1398,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Report updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId(idPrefix) }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId(idPrefix) }, ...prev]);
       addToast('Report added successfully', 'success');
     }
     setModalOpen(false);
@@ -1488,7 +1488,7 @@ function ReportsPage({ titleLabel, idPrefix, data, setData, departmentOptions, a
    REPLACEMENT — BACK OFFICE & SELLING AREA
    ========================================================= */
 const REPLACEMENT_COLUMNS = [
-  ['date', 'Date'], ['department', 'DEPARTMENT'], ['itemNameReplacement', 'Item Name Replacement'],
+  ['date', 'Date'], ['department', 'DEPARTMENT'], ['pcName', 'PC Name'], ['itemNameReplacement', 'Item Name Replacement'],
   ['replacementDate', 'Replacement Date'], ['status', 'Status'],
 ];
 
@@ -1496,7 +1496,7 @@ function ReplacementFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
     date: new Date().toISOString().slice(0, 10),
     department: REPLACEMENT_DEPARTMENTS[0],
-    itemNameReplacement: '', replacementDate: '', status: 'Pending',
+    pcName: '', itemNameReplacement: '', replacementDate: '', status: 'Pending',
   });
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
   function submit(e) {
@@ -1513,6 +1513,7 @@ function ReplacementFormModal({ record, onClose, onSave }) {
             {REPLACEMENT_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </Field>
+        <Field label="PC Name"><input className="input mono" style={{ width: '100%' }} value={form.pcName || ''} onChange={e => update('pcName', e.target.value)} placeholder="e.g. PC-01" /></Field>
         <Field label="Item Name Replacement" full required>
           <input className="input" style={{ width: '100%' }} value={form.itemNameReplacement} onChange={e => update('itemNameReplacement', e.target.value)} placeholder="e.g. Wireless Mouse" required />
         </Field>
@@ -1545,7 +1546,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matchesQuery = !q || [r.department, r.itemNameReplacement, r.status].join(' ').toLowerCase().includes(q);
+      const matchesQuery = !q || [r.department, r.pcName, r.itemNameReplacement, r.status].join(' ').toLowerCase().includes(q);
       const matchesDept = deptFilter === 'All' || r.department === deptFilter;
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
       return matchesQuery && matchesDept && matchesStatus;
@@ -1556,7 +1557,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
@@ -1576,7 +1577,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Replacement updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('RPL') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('RPL') }, ...prev]);
       addToast('Replacement added successfully', 'success');
     }
     setModalOpen(false);
@@ -1604,8 +1605,8 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable rtable-fixed" style={{ minWidth: 960 }}>
-            <colgroup><col style={{ width: 120 }} /><col style={{ width: 160 }} /><col style={{ width: 320 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
+          <table className="rtable rtable-fixed" style={{ minWidth: 1080 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 160 }} /><col style={{ width: 120 }} /><col style={{ width: 320 }} /><col style={{ width: 150 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {REPLACEMENT_COLUMNS.map(([key, label]) => (
@@ -1620,6 +1621,7 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
                 <tr key={r.id}>
                   <td className="mono" data-label="Date">{formatDate(r.date)}</td>
                   <td data-label="Department">{r.department}</td>
+                  <td className="mono" data-label="PC Name">{r.pcName || '-'}</td>
                   <td className="truncate" title={r.itemNameReplacement} data-label="Item Name Replacement">{r.itemNameReplacement}</td>
                   <td className="mono" data-label="Replacement Date">{r.replacementDate ? formatDate(r.replacementDate) : '-'}</td>
                   <td data-label="Status"><StatusBadge status={r.status} /></td>
@@ -1651,15 +1653,16 @@ function ReplacementsPage({ data, setData, addToast, query, setQuery }) {
 /* =========================================================
    ADMIN REQUEST — RRS
    ========================================================= */
+const RRS_SCOPES = ['Replacement', 'Other'];
 const RRS_COLUMNS = [
-  ['rrsNumber', 'RRS #'], ['department', 'Dept'], ['scopeOfWork', 'Scope of Work'], ['quantity', 'Quantity'],
-  ['unit', 'Unit'], ['description', 'Description'], ['complaints', 'Complaints'], ['checkBy', 'Check By'],
-  ['date', 'Date'], ['dateInstall', 'Date Install'], ['status', 'Status'],
+  ['date', 'Date'], ['rrsNumber', 'RRS #'], ['department', 'Department'], ['scopeOfWork', 'Scope of Work'],
+  ['quantity', 'Quantity'], ['description', 'Description'], ['complaints', 'Complaints'], ['checkBy', 'CET'],
+  ['dateInstall', 'Date Install'], ['status', 'Status'],
 ];
 
 function RrsFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
-    rrsNumber: '', department: DEPARTMENTS[0], scopeOfWork: '', quantity: 1, unit: '',
+    rrsNumber: '', department: DEPARTMENTS[0], scopeOfWork: RRS_SCOPES[0], quantity: 1,
     description: '', complaints: '', checkBy: TECHNICIANS[0],
     date: new Date().toISOString().slice(0, 10), dateInstall: '', status: 'Pending',
   });
@@ -1672,34 +1675,35 @@ function RrsFormModal({ record, onClose, onSave }) {
   return (
     <Modal title={record ? 'Edit RRS Record' : 'Add RRS Record'} onClose={onClose} maxWidth="720px">
       <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
         <Field label="RRS #" required><input className="input mono" style={{ width: '100%' }} value={form.rrsNumber} onChange={e => update('rrsNumber', e.target.value)} placeholder="e.g. RRS-2026-001" required /></Field>
-        <Field label="Dept" required>
+        <Field label="Department" required>
           <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
             {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </Field>
+        <Field label="Scope of Work" required>
+          <select className="select" style={{ width: '100%' }} value={form.scopeOfWork} onChange={e => update('scopeOfWork', e.target.value)}>
+            {(RRS_SCOPES.includes(form.scopeOfWork) || !form.scopeOfWork ? RRS_SCOPES : [form.scopeOfWork, ...RRS_SCOPES]).map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
         <Field label="Quantity"><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} placeholder="e.g. 1" /></Field>
-        <Field label="Unit"><input className="input" style={{ width: '100%' }} value={form.unit} onChange={e => update('unit', e.target.value)} placeholder="e.g. pc, unit, set" /></Field>
-        <Field label="Check By" required>
+        <Field label="CET" required>
           <select className="select" style={{ width: '100%' }} value={form.checkBy} onChange={e => update('checkBy', e.target.value)}>
             {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-        </Field>
-        <Field label="Status" required>
-          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
-            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </Field>
-        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
-        <Field label="Date Install"><input type="date" className="input" value={form.dateInstall} onChange={e => update('dateInstall', e.target.value)} /></Field>
-        <Field label="Scope of Work" full>
-          <textarea className="textarea" rows="2" value={form.scopeOfWork} onChange={e => update('scopeOfWork', e.target.value)} placeholder="What work is being requested" />
         </Field>
         <Field label="Description" full>
           <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Additional details" />
         </Field>
         <Field label="Complaints" full>
           <textarea className="textarea" rows="2" value={form.complaints} onChange={e => update('complaints', e.target.value)} placeholder="Reported complaints, if any" />
+        </Field>
+        <Field label="Date Install"><input type="date" className="input" value={form.dateInstall} onChange={e => update('dateInstall', e.target.value)} /></Field>
+        <Field label="Status" required>
+          <select className="select" style={{ width: '100%' }} value={form.status} onChange={e => update('status', e.target.value)}>
+            {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
         </Field>
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
@@ -1724,7 +1728,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matchesQuery = !q || [r.rrsNumber, r.department, r.scopeOfWork, r.unit, r.description, r.complaints, r.checkBy].join(' ').toLowerCase().includes(q);
+      const matchesQuery = !q || [r.rrsNumber, r.department, r.scopeOfWork, r.description, r.complaints, r.checkBy].join(' ').toLowerCase().includes(q);
       const matchesDept = deptFilter === 'All' || r.department === deptFilter;
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
       return matchesQuery && matchesDept && matchesStatus;
@@ -1735,7 +1739,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, statusFilter, sortKey, sortDir]);
@@ -1755,7 +1759,7 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('RRS record updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('RRS') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('RRS') }, ...prev]);
       addToast('RRS record added successfully', 'success');
     }
     setModalOpen(false);
@@ -1783,8 +1787,8 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable rtable-fixed" style={{ minWidth: 1610 }}>
-            <colgroup><col style={{ width: 100 }} /><col style={{ width: 140 }} /><col style={{ width: 200 }} /><col style={{ width: 80 }} /><col style={{ width: 80 }} /><col style={{ width: 220 }} /><col style={{ width: 220 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
+          <table className="rtable rtable-fixed" style={{ minWidth: 1460 }}>
+            <colgroup><col style={{ width: 110 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 130 }} /><col style={{ width: 80 }} /><col style={{ width: 220 }} /><col style={{ width: 220 }} /><col style={{ width: 90 }} /><col style={{ width: 120 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {RRS_COLUMNS.map(([key, label]) => (
@@ -1797,15 +1801,14 @@ function RrsPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.length === 0 && <tr><td colSpan={RRS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No RRS records match your search or filters.</div></td></tr>}
               {pageRows.map(r => (
                 <tr key={r.id}>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
                   <td className="mono" data-label="RRS #">{r.rrsNumber}</td>
-                  <td data-label="Dept">{r.department}</td>
-                  <td className="truncate" title={r.scopeOfWork} data-label="Scope of Work">{r.scopeOfWork}</td>
+                  <td data-label="Department">{r.department}</td>
+                  <td data-label="Scope of Work">{r.scopeOfWork}</td>
                   <td data-label="Quantity">{r.quantity}</td>
-                  <td data-label="Unit">{r.unit}</td>
                   <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
                   <td className="truncate" title={r.complaints} data-label="Complaints">{r.complaints}</td>
-                  <td data-label="Check By">{r.checkBy}</td>
-                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td data-label="CET">{r.checkBy}</td>
                   <td className="mono" data-label="Date Install">{r.dateInstall ? formatDate(r.dateInstall) : '—'}</td>
                   <td data-label="Status"><StatusBadge status={r.status} /></td>
                   <td data-label="Actions">
@@ -1897,7 +1900,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, sortKey, sortDir]);
@@ -1917,7 +1920,7 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('MSRS record updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('MRS') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('MRS') }, ...prev]);
       addToast('MSRS record added successfully', 'success');
     }
     setModalOpen(false);
@@ -1988,24 +1991,27 @@ function MrsDepartmentPage({ data, setData, addToast, query, setQuery }) {
    ADMIN REQUEST — TRANSMITTAL
    ========================================================= */
 const TRANSMITTAL_COLUMNS = [
-  ['date', 'Date'], ['description', 'Description'], ['cet', 'CET'], ['status', 'Status'],
+  ['date', 'Date'], ['transmittalNumber', 'Transmittal #'], ['from', 'From'], ['to', 'To'], ['description', 'Description'], ['cet', 'CET'], ['status', 'Status'],
 ];
 
 function TransmittalFormModal({ record, onClose, onSave }) {
   const [form, setForm] = useState(() => record ? { ...record } : {
     date: new Date().toISOString().slice(0, 10),
-    description: '', cet: TECHNICIANS[0], status: 'Pending',
+    transmittalNumber: '', from: '', to: '', description: '', cet: TECHNICIANS[0], status: 'Pending',
   });
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
   function submit(e) {
     e.preventDefault();
-    if (!form.description.trim() || !form.date) return;
+    if (!(form.transmittalNumber || '').trim() || !form.description.trim() || !form.date) return;
     onSave({ ...form, id: record ? record.id : null });
   }
   return (
     <Modal title={record ? 'Edit Transmittal' : 'Add Transmittal'} onClose={onClose} maxWidth="600px">
       <form onSubmit={submit} className="form-grid">
         <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Transmittal #" required><input className="input mono" style={{ width: '100%' }} value={form.transmittalNumber || ''} onChange={e => update('transmittalNumber', e.target.value)} placeholder="e.g. TRN-2026-001" required /></Field>
+        <Field label="From"><input className="input" style={{ width: '100%' }} value={form.from || ''} onChange={e => update('from', e.target.value)} placeholder="e.g. ICT" /></Field>
+        <Field label="To"><input className="input" style={{ width: '100%' }} value={form.to || ''} onChange={e => update('to', e.target.value)} placeholder="e.g. Warehouse" /></Field>
         <Field label="CET" required>
           <select className="select" style={{ width: '100%' }} value={form.cet} onChange={e => update('cet', e.target.value)}>
             {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -2041,7 +2047,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
   const filtered = useMemo(() => {
     let rows = data.filter(r => {
       const q = query.trim().toLowerCase();
-      const matchesQuery = !q || [r.description, r.cet, r.status].join(' ').toLowerCase().includes(q);
+      const matchesQuery = !q || [r.transmittalNumber, r.from, r.to, r.description, r.cet, r.status].join(' ').toLowerCase().includes(q);
       const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
       return matchesQuery && matchesStatus;
     });
@@ -2051,7 +2057,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, statusFilter, sortKey, sortDir]);
@@ -2071,7 +2077,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Transmittal updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('TRN') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('TRN') }, ...prev]);
       addToast('Transmittal added successfully', 'success');
     }
     setModalOpen(false);
@@ -2095,8 +2101,8 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       </div>
       <div className="card table-card">
         <div className="table-wrap">
-          <table className="rtable rtable-fixed" style={{ minWidth: 890 }}>
-            <colgroup><col style={{ width: 120 }} /><col style={{ width: 420 }} /><col style={{ width: 140 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
+          <table className="rtable rtable-fixed" style={{ minWidth: 1310 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 420 }} /><col style={{ width: 140 }} /><col style={{ width: 120 }} /><col style={{ width: 90 }} /></colgroup>
             <thead>
               <tr>
                 {TRANSMITTAL_COLUMNS.map(([key, label]) => (
@@ -2110,6 +2116,9 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
               {pageRows.map(r => (
                 <tr key={r.id}>
                   <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="mono" data-label="Transmittal #">{r.transmittalNumber || '—'}</td>
+                  <td className="truncate" title={r.from} data-label="From">{r.from || '—'}</td>
+                  <td className="truncate" title={r.to} data-label="To">{r.to || '—'}</td>
                   <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
                   <td data-label="CET">{r.cet}</td>
                   <td data-label="Status"><StatusBadge status={r.status} /></td>
@@ -2129,7 +2138,7 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       {modalOpen && <TransmittalFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
       {confirmState && (
         <ConfirmDialog
-          message={`Delete this transmittal record dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          message={`Delete transmittal ${confirmState.transmittalNumber ? `"${confirmState.transmittalNumber}" ` : ''}dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
           onCancel={() => setConfirmState(null)}
           onConfirm={handleDeleteConfirmed}
         />
@@ -2257,7 +2266,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, deviceTypeFilter, statusFilter, sortKey, sortDir]);
@@ -2277,7 +2286,7 @@ function PcMonitoringPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('PC record updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('PCM') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('PCM') }, ...prev]);
       addToast('PC record added successfully', 'success');
     }
     setModalOpen(false);
@@ -2478,7 +2487,7 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
       let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, activeSection, query, statusFilter, sortKey, sortDir]);
@@ -2498,7 +2507,7 @@ function PosMonitoringPage({ data, setData, addToast, query, setQuery }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('POS terminal updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('POS') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('POS') }, ...prev]);
       addToast('POS terminal added successfully', 'success');
     }
     setModalOpen(false);
@@ -2683,7 +2692,7 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, deptFilter, statusFilter, techFilter, sortKey, sortDir]);
@@ -2703,7 +2712,7 @@ function SaReportsPage({ data, setData, departmentOptions, addToast, query, setQ
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Report updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('SAR') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('SAR') }, ...prev]);
       addToast('Report added successfully', 'success');
     }
     setModalOpen(false);
@@ -2899,7 +2908,7 @@ function TerminalsList({ data, setData, addToast, onBack }) {
       let av = (a[sortKey] || '').toString().toLowerCase(), bv = (b[sortKey] || '').toString().toLowerCase();
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, query, sortKey, sortDir]);
@@ -2919,7 +2928,7 @@ function TerminalsList({ data, setData, addToast, onBack }) {
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Terminal updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('GHLT') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('GHLT') }, ...prev]);
       addToast('Terminal added successfully', 'success');
     }
     setModalOpen(false);
@@ -2990,7 +2999,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
   const [sectionFilter, setSectionFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortKey, setSortKey] = useState('dateReported');
-  const [sortDir, setSortDir] = useState('asc');
+  const [sortDir, setSortDir] = useState('desc');
   const [activeMonth, setActiveMonth] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -3032,7 +3041,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
         else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
         if (av < bv) return sortDir === 'asc' ? -1 : 1;
         if (av > bv) return sortDir === 'asc' ? 1 : -1;
-        return 0;
+        return (b.createdAt || 0) - (a.createdAt || 0);
       });
 
       // Combine rows that share the same Date Reported, then number them 1,2,3,4 downward.
@@ -3065,7 +3074,7 @@ function GhlReportsPage({ data, setData, terminals, setTerminals, addToast, quer
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('GHL report updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('GHL') }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('GHL') }, ...prev]);
       addToast('GHL report added successfully', 'success');
     }
     setModalOpen(false);
@@ -3229,7 +3238,7 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, activeLoc, query, sortKey, sortDir]);
@@ -3250,7 +3259,7 @@ function InventoryPage({ data, setData, addToast, query, setQuery, activeLoc, se
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Inventory item updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('INV'), location: activeLoc }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('INV'), location: activeLoc }, ...prev]);
       addToast('Inventory item added successfully', 'success');
     }
     setModalOpen(false);
@@ -3378,7 +3387,7 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
       else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     return rows;
   }, [data, activeCategory, query, sortKey, sortDir]);
@@ -3399,7 +3408,7 @@ function PhysicalCountPage({ data, setData, addToast, query, setQuery, activeCat
       setData(prev => prev.map(r => r.id === record.id ? record : r));
       addToast('Physical count item updated successfully', 'success');
     } else {
-      setData(prev => [{ ...record, id: nextId('PIC'), category: activeCategory }, ...prev]);
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('PIC'), category: activeCategory }, ...prev]);
       addToast('Physical count item added successfully', 'success');
     }
     setModalOpen(false);
@@ -3797,8 +3806,8 @@ function useFirestoreCollection(collectionName, seedData) {
           const snap = await db.collection(collectionName).get();
           if (snap.docs.some(d => !('scopeOfWork' in d.data()))) {
             // One-time migration: legacy RRS records (old PC Name/Mobo/User/Request/Problem/CET schema)
-            // are replaced with the current RRS#/Dept/Scope of Work/Quantity/Unit/Description/Complaints/
-            // Check By/Date/Date Install/Status schema used on the form.
+            // are replaced with the current Date/RRS#/Department/Scope of Work/Quantity/Description/Complaints/
+            // CET/Date Install/Status schema used on the form.
             const delBatch = db.batch();
             snap.docs.forEach(d => delBatch.delete(d.ref));
             await delBatch.commit();
@@ -4060,10 +4069,10 @@ function App() {
   if (page === 'ghlReports') searchProps = { show: true, query: ghlQuery, setQuery: setGhlQuery, placeholder: 'Search GHL reports (counter, type, SN, request #)...' };
   if (page === 'inventory') searchProps = { show: true, query: invQuery, setQuery: setInvQuery, placeholder: 'Search item name or remarks...' };
   if (page === 'physicalCount') searchProps = { show: true, query: physQuery, setQuery: setPhysQuery, placeholder: 'Search serial number or remarks...' };
-  if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, item name, or status...' };
-  if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, scope of work, or check by...' };
+  if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, PC name, item name, or status...' };
+  if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, scope of work, or CET...' };
   if (page === 'mrsDepartment') searchProps = { show: true, query: mrsQuery, setQuery: setMrsQuery, placeholder: 'Search by description, department, or received by...' };
-  if (page === 'transmittal') searchProps = { show: true, query: transmittalQuery, setQuery: setTransmittalQuery, placeholder: 'Search by description, CET, or status...' };
+  if (page === 'transmittal') searchProps = { show: true, query: transmittalQuery, setQuery: setTransmittalQuery, placeholder: 'Search by transmittal #, from, to, description, CET, or status...' };
 
   if (!allReady) {
     return (
