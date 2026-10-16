@@ -421,6 +421,82 @@
     .recent-problem{width:100%;order:3;white-space:normal;}
     .recent-date{margin-left:auto;}
   }
+
+  /* ===== IDF Rack Management (namespaced; does not affect other pages) ===== */
+  .idf-shell{background:linear-gradient(180deg,#0A1226,#0C1633);border-radius:20px;padding:24px;color:#E6EDFB;font-size:15px;line-height:1.45;}
+  .idf-grid{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:24px;align-items:start;}
+  .idf-panel{background:#101A33;border-radius:16px;padding:20px;min-width:0;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  .idf-panel h3{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#9FB2D6;margin:0;font-weight:700;}
+  .idf-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .idf-muted{color:#9FB2D6;}
+  .idf-btn{background:#2563EB;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;display:inline-flex;gap:8px;align-items:center;justify-content:center;white-space:nowrap;min-height:40px;transition:background .15s;}
+  .idf-btn:hover:not(:disabled){background:#3B82F6;}
+  .idf-btn:disabled{opacity:.45;cursor:not-allowed;}
+  .idf-btn.ghost{background:rgba(148,163,184,.1);color:#D5DFF3;}
+  .idf-btn.ghost:hover:not(:disabled){background:rgba(148,163,184,.2);}
+  .idf-btn.sm{padding:6px 12px;min-height:34px;font-size:13px;}
+  .idf-btn.green{background:#15803D;}.idf-btn.green:hover:not(:disabled){background:#16A34A;}
+  .idf-ico{background:transparent;border:none;color:#9FB2D6;padding:7px;border-radius:8px;display:flex;flex:none;min-width:32px;min-height:32px;align-items:center;justify-content:center;}
+  .idf-ico:hover{background:#1E2D52;color:#fff;}
+  .idf-ico.danger:hover{color:#FCA5A5;background:rgba(239,68,68,.15);}
+  .idf-empty{color:#9FB2D6;font-size:14px;text-align:center;padding:26px 14px;background:rgba(148,163,184,.06);border-radius:12px;}
+  .idf-empty strong{color:#E6EDFB;}
+  .idf-empty .idf-btn{margin-top:14px;}
+  .idf-floor{margin-bottom:12px;background:#0C1530;border-radius:12px;overflow:hidden;}
+  .idf-floor-head{display:flex;align-items:center;gap:2px;padding:6px 8px 6px 14px;}
+  .idf-floor-toggle{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:none;color:#fff;font-weight:700;font-size:15px;text-align:left;padding:8px 0;}
+  .idf-chev{display:flex;transition:transform .15s;color:#7F93BA;}
+  .idf-count{font-size:12px;font-weight:600;background:#1B2A4F;color:#B9C9E8;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+  .idf-item{display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;margin:3px 8px;border-radius:10px;border-left:4px solid transparent;}
+  .idf-item:hover{background:#14214A;}
+  .idf-item.active{background:linear-gradient(90deg,#1D3A7A,#172B5C);border-left-color:#60A5FA;}
+  .idf-item-main{flex:1;min-width:0;background:none;border:none;color:#CBD7EE;text-align:left;padding:10px 8px;display:flex;gap:10px;align-items:center;}
+  .idf-item.active .idf-item-main{color:#fff;}
+  .idf-item-main b{display:block;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;}
+  .idf-item-main small{display:block;font-size:12px;color:#8FA3C8;}
+  .idf-crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:#9FB2D6;margin-bottom:6px;}
+  .idf-crumbs b{color:#fff;font-weight:600;}.idf-crumbs i{font-style:normal;color:#5B6F99;}
+  .idf-title{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
+  .idf-title h2{font-size:28px;color:#fff;margin:0;}
+  .idf-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;}
+  .idf-stat{display:flex;gap:14px;align-items:center;background:#101A33;border-radius:14px;padding:16px;min-width:0;box-shadow:0 6px 18px rgba(0,0,0,.2);}
+  .idf-stat-ico{width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,.16);color:#7DB2FF;display:flex;align-items:center;justify-content:center;flex:none;}
+  .idf-stat>div{min-width:0;}
+  .idf-stat-l{display:block;font-size:12px;color:#9FB2D6;text-transform:uppercase;letter-spacing:.07em;font-weight:600;}
+  .idf-stat strong{display:block;font-size:20px;color:#fff;font-family:'Space Grotesk',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .idf-stat em{display:block;font-style:normal;font-size:12.5px;color:#8FA3C8;}
+  .idf-notes{font-size:14px;color:#C3D0EA;background:rgba(59,130,246,.08);border-radius:12px;padding:12px 16px;margin-bottom:20px;}
+  .idf-diagram{background:radial-gradient(ellipse at top,#121E3D,#08101F);border-radius:14px;overflow-x:auto;padding:16px;}
+  .idf-port{outline:none;}
+  .idf-port:hover rect.pt,.idf-port:focus-visible rect.pt{stroke:#fff;stroke-width:2.5;}
+  .idf-legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:14px;font-size:13px;color:#B5C4E3;}
+  .idf-legend span{display:inline-flex;align-items:center;gap:8px;}
+  .idf-lg{width:16px;height:16px;border-radius:4px;display:inline-block;}
+  .idf-devlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:20px;}
+  .idf-devcard{background:#0C1530;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;}
+  .idf-devcard h4{font-size:16px;color:#fff;margin:0;display:flex;gap:8px;align-items:center;}
+  .idf-meta{font-size:13px;color:#9FB2D6;}
+  .idf-u{font-size:12.5px;font-weight:700;color:#BFD3FF;background:#1B2A4F;border-radius:6px;padding:2px 8px;flex:none;}
+  .idf-badge{font-size:12px;font-weight:700;border-radius:999px;padding:3px 11px;flex:none;}
+  .idf-badge.patch{background:#12392B;color:#6EE7A0;}.idf-badge.switch{background:#173063;color:#93C0FF;}
+  .idf-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#1D3A7A;color:#E6EEFF;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:14px;box-shadow:0 0 0 2px #3B82F6;}
+  .idf-curcable{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0C1530;border-radius:12px;padding:12px 16px;margin-top:14px;font-size:14px;}
+  .idf-tabs{display:flex;background:#0C1530;border-radius:12px;padding:4px;gap:4px;margin-bottom:16px;}
+  .idf-tab{flex:1;border:none;background:transparent;color:#9FB2D6;padding:10px 8px;border-radius:9px;font-size:14px;font-weight:600;}
+  .idf-tab.on{background:#2563EB;color:#fff;}
+  .idf-cable{display:flex;gap:12px;align-items:stretch;padding:12px 8px 12px 12px;border-radius:12px;background:#0C1530;margin-bottom:10px;cursor:pointer;border:2px solid transparent;}
+  .idf-cable:hover{background:#12204A;}.idf-cable.hot{border-color:#3B82F6;background:#14224A;}
+  .idf-cbar{width:6px;border-radius:3px;flex:none;}
+  .idf-cbody{flex:1;min-width:0;}
+  .idf-ctitle{font-size:15px;font-weight:600;color:#fff;word-break:break-word;margin-bottom:4px;}
+  .idf-route{font-size:13px;color:#B5C4E3;display:flex;flex-direction:column;gap:2px;}
+  .idf-route b{color:#E6EDFB;font-weight:600;}
+  .idf-sub{font-size:13px;color:#BFD0F0;font-weight:700;margin:18px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .idf-lrow{display:flex;gap:12px;align-items:center;padding:10px 8px 10px 12px;border-radius:10px;background:#0C1530;margin-bottom:8px;}
+  .idf-swatch{width:14px;height:14px;border-radius:4px;flex:none;}
+  @media (max-width:1380px){.idf-grid{grid-template-columns:260px minmax(0,1fr) 320px;gap:18px;}.idf-stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media (max-width:1100px){.idf-grid{grid-template-columns:270px minmax(0,1fr);}.idf-right{grid-column:1 / -1;}}
+  @media (max-width:800px){.idf-shell{padding:14px;border-radius:14px;}.idf-grid{grid-template-columns:1fr;}.idf-title h2{font-size:24px;}.idf-stat{padding:12px;}.idf-panel{padding:16px;}}
 </style>
 </head>
 <body>
@@ -491,6 +567,7 @@ function Icon({ name, size = 18, className = '' }) {
     case 'repeat': return <svg {...c}><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>;
     case 'clipboard': return <svg {...c}><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3.2" rx="1"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg>;
     case 'inbox': return <svg {...c}><path d="M3 13h4l2 3h6l2-3h4"/><path d="M5.5 5h13l2.5 8v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"/></svg>;
+    case 'network': return <svg {...c}><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg>;
     case 'send': return <svg {...c}><line x1="21" y1="3" x2="10" y2="14"/><polygon points="21 3 14 21 10 14 3 10 21 3"/></svg>;
     default: return null;
   }
@@ -3555,6 +3632,9 @@ const NAV_GROUPS = [
       { key: 'mrsDepartment', label: 'MSRS Department', icon: 'inbox' },
       { key: 'transmittal', label: 'Transmittal', icon: 'send' },
     ] },
+  { label: 'Network Infrastructure', items: [
+      { key: 'idfRack', label: 'IDF Rack Management', icon: 'network' },
+    ] },
   { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
@@ -3745,6 +3825,891 @@ function Header({ current, onMenu, clock, query, setQuery, searchPlaceholder, sh
 }
 
 /* =========================================================
+   IDF RACK MANAGEMENT
+   Floors -> IDFs (exactly one rack each) -> any number of Patch Panels / Network Switches,
+   ordered in the rack by the position (U from top) the user chooses.
+   Stored in two Firestore collections via the existing hook:
+     idfFloors : { id, name, notes, createdAt }
+     idfs      : { id, floorId, name, notes, createdAt,
+                   rack:{ name, devices:[{ id, type:'patch'|'switch', name, ports, uplinks, position, notes }] },
+                   labels:[{ id, device(deviceId), from, to, text, color }],   // from===to -> a single named port
+                   cables:[{ id, srcDevice, srcPort, dstDevice, dstPort, label, color }] }
+   Cables are visual only (simulated) — no real network integration.
+   Older records (rack.patch / rack.switch) are converted on read by idfNormalize().
+   ========================================================= */
+const SEED_IDF_FLOORS = [];
+const SEED_IDFS = [];
+const IDF_COLORS = ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444', '#A855F7', '#06B6D4', '#EC4899', '#EAB308'];
+const IDF_TYPE_NAMES = { patch: 'Patch Panel', switch: 'Network Switch' };
+
+function idfInt(v) {
+  if (v === '' || v === null || v === undefined) return NaN;
+  const n = Number(v);
+  return Number.isInteger(n) ? n : NaN;
+}
+function idfNormalize(i) {
+  const labels = i.labels || [], cables = i.cables || [];
+  const r = i.rack;
+  if (!r) return { ...i, rack: { name: (i.name || 'IDF') + ' Rack', devices: [] }, labels, cables };
+  if (r.devices) return { ...i, labels, cables };
+  const devices = [];
+  if (r.patch) devices.push({ id: 'patch', type: 'patch', name: r.patch.name, ports: r.patch.ports, uplinks: 0, position: r.patch.position, notes: r.patch.notes || '' });
+  if (r.switch) devices.push({ id: 'switch', type: 'switch', name: r.switch.name, ports: r.switch.ports, uplinks: r.switch.uplinks || 0, position: r.switch.position, notes: r.switch.notes || '' });
+  return { ...i, rack: { name: r.name, devices }, labels, cables };
+}
+const idfLayoutMode = (d) => d.layout || (d.type === 'switch' ? 'updown' : 'seq');
+const idfSorted = (rack) => rack.devices.slice().sort((a, b) => a.position - b.position);
+const idfDev = (rack, id) => rack.devices.find(d => d.id === id);
+const idfTotal = (d) => d.ports + (d.uplinks || 0);
+const idfPortName = (d, n) => (n > d.ports ? 'UP' + (n - d.ports) : String(n));
+const idfDevName = (rack, id) => { const d = idfDev(rack, id); return d ? d.name : '(removed device)'; };
+function idfLabelFor(idf, devId, n) {
+  let best = null;
+  idf.labels.forEach(l => { if (l.device === devId && n >= l.from && n <= l.to && (!best || (l.to - l.from) < (best.to - best.from))) best = l; });
+  return best;
+}
+function idfCableAt(idf, devId, n) {
+  return idf.cables.find(c => (c.srcDevice === devId && c.srcPort === n) || (c.dstDevice === devId && c.dstPort === n)) || null;
+}
+function idfLabelRange(l, d) {
+  if (!d) return '';
+  const a = idfPortName(d, l.from), b = idfPortName(d, l.to);
+  return l.from === l.to ? 'Port ' + a : 'Ports ' + a + '–' + b;
+}
+
+/* SVG coordinates: devices stacked in rack order; the gap under each device is sized to the cables running through it. */
+function idfLayout(devices, cables) {
+  let maxSlots = 12;
+  const inf = devices.map(d => {
+    const main = d.ports, up = d.uplinks || 0, zig = idfLayoutMode(d) === 'updown';
+    const cols = zig ? Math.max(Math.ceil(main / 2), 1) : Math.min(24, Math.max(main, 1));
+    const rows = zig ? (main > 1 ? 2 : 1) : Math.ceil(main / cols);
+    const slots = cols + (up > 0 ? up + 1 : 0); maxSlots = Math.max(maxSlots, slots);
+    return { d, main, up, zig, cols, rows, slots };
+  });
+  const DEV_W = Math.max(680, maxSlots * 32 + 60), RAIL = 38, SIDE = 84;
+  const FRAME_X = SIDE, FRAME_W = DEV_W + RAIL * 2, DEV_X = FRAME_X + RAIL, W = FRAME_W + SIDE * 2, TOP = 56;
+  const map = {}, gaps = {}; let y = TOP;
+  inf.forEach((o, idx) => {
+    const { d, main, up, zig, cols, rows, slots } = o;
+    const s = Math.min(46, (DEV_W - 60) / slots), tile = Math.min(36, s - 8);
+    const startX = DEV_X + (DEV_W - s * slots) / 2, top = y + 50, ports = {};
+    for (let n = 1; n <= main; n++) {
+      const col = zig ? Math.floor((n - 1) / 2) : (n - 1) % cols, row = zig ? (n - 1) % 2 : Math.floor((n - 1) / cols);
+      ports[n] = { cx: startX + s * (col + 0.5), cy: top + s * (row + 0.5), row };
+    }
+    for (let u = 1; u <= up; u++) ports[main + u] = { cx: startX + s * (cols + u + 0.5), cy: top + s * 0.5, row: -1 };
+    const h = 50 + rows * s + 14;
+    map[d.id] = { y, h, s, tile, rows, ports };
+    let gap = 0; const nx = inf[idx + 1];
+    if (nx) {
+      const n = cables.filter(c => (c.srcDevice === d.id && c.dstDevice === nx.d.id) || (c.dstDevice === d.id && c.srcDevice === nx.d.id)).length;
+      const step = n <= 5 ? 28 : Math.max(7, Math.min(12, 300 / n));
+      gap = Math.max(120, 84 + n * step); gaps[d.id] = { n, step };
+    }
+    y += h + gap;
+  });
+  return { map, gaps, order: devices.map(d => d.id), height: y + 26, FRAME_X, FRAME_W, DEV_X, DEV_W, RAIL, W };
+}
+const idfInk = (hex) => { const h = (hex || '#000').replace('#', ''); const n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16); const l = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; return l > 0.6 ? '#0B1226' : '#FFFFFF'; };
+
+function IdfRackDiagram({ idf, hoverCable, setHoverCable, selectedCable, setSelectedCable, onPortClick, pick }) {
+  const rack = idf.rack;
+  const devices = useMemo(() => idfSorted(rack), [rack]);
+  const L = useMemo(() => idfLayout(devices, idf.cables), [devices, idf.cables]);
+  const activeId = hoverCable || selectedCable;
+
+  const paths = useMemo(() => {
+    const out = {}, adj = {}, side = [];
+    const ex = (g, n, dir) => { const p = g.ports[n]; const need = p.row >= 0 && (dir === 'down' ? p.row < g.rows - 1 : p.row > 0); return need ? p.cx + g.s / 2 : p.cx; };
+    idf.cables.forEach(c => {
+      const ia = L.order.indexOf(c.srcDevice), ib = L.order.indexOf(c.dstDevice);
+      if (ia < 0 || ib < 0 || ia === ib) return;
+      const su = ia < ib, hi = su ? c.srcDevice : c.dstDevice, lo = su ? c.dstDevice : c.srcDevice, hp = su ? c.srcPort : c.dstPort, lp = su ? c.dstPort : c.srcPort;
+      const gh = L.map[hi], gl = L.map[lo]; if (!gh || !gl || !gh.ports[hp] || !gl.ports[lp]) return;
+      const o = { c, hi, hp, lp, gh, gl, x1: ex(gh, hp, 'down'), x2: ex(gl, lp, 'up'), n: Math.abs(ia - ib) };
+      if (o.n === 1) (adj[hi] = adj[hi] || []).push(o); else side.push(o);
+    });
+    Object.keys(adj).forEach(hi => {
+      const l = adj[hi], right = l.filter(o => o.x2 > o.x1).sort((a, b) => b.x1 - a.x1), left = l.filter(o => o.x2 < o.x1).sort((a, b) => a.x1 - b.x1), mid = l.filter(o => o.x2 === o.x1);
+      const step = L.gaps[hi].step, few = l.length <= 5;
+      [...right, ...mid, ...left].forEach((o, k) => {
+        const yl = o.gh.y + o.gh.h + 44 + k * step, a = o.gh.ports[o.hp], b = o.gl.ports[o.lp];
+        out[o.c.id] = { d: `M${a.cx},${a.cy} H${o.x1} V${yl} H${o.x2} V${b.cy} H${b.cx}`, mx: (o.x1 + o.x2) / 2, my: yl, perm: few, a, b, hiG: o.gh, loG: o.gl };
+      });
+    });
+    side.forEach((o, k) => {
+      const m = Math.floor(k / 2), lx = k % 2 === 0 ? L.FRAME_X - 18 - 13 * m : L.FRAME_X + L.FRAME_W + 18 + 13 * m;
+      const yt = o.gh.y + o.gh.h + 24, yb = o.gl.y - 24, a = o.gh.ports[o.hp], b = o.gl.ports[o.lp];
+      out[o.c.id] = { d: `M${a.cx},${a.cy} H${o.x1} V${yt} H${lx} V${yb} H${o.x2} V${b.cy} H${b.cx}`, mx: lx, my: (yt + yb) / 2, perm: false, a, b, hiG: o.gh, loG: o.gl };
+    });
+    return out;
+  }, [idf.cables, L]);
+
+  const pill = (c, p) => {
+    const t = c.label.length > 26 ? c.label.slice(0, 25) + '…' : c.label, w = t.length * 7.6 + 28;
+    return (
+      <g key={'pl' + c.id} style={{ pointerEvents: 'none' }}>
+        <rect x={p.mx - w / 2} y={p.my - 12} width={w} height="24" rx="12" fill="#0A1226" stroke={c.color} strokeWidth="2" />
+        <text x={p.mx} y={p.my + 4.5} textAnchor="middle" fill="#fff" fontSize="12.5" fontWeight="600">{t}</text>
+      </g>
+    );
+  };
+
+  return (
+    <svg viewBox={`0 0 ${L.W} ${L.height}`} width="100%" style={{ display: 'block', minWidth: Math.round(L.W * 0.8) }} role="img" aria-label={`Rack diagram for ${idf.name}`}>
+      <defs>
+        <linearGradient id="idfDevGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1B2B52" /><stop offset="1" stopColor="#111C38" /></linearGradient>
+        <linearGradient id="idfRack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0E1832" /><stop offset="1" stopColor="#09112A" /></linearGradient>
+        <pattern id="idfHoles" width={L.RAIL} height="24" patternUnits="userSpaceOnUse"><rect x={L.RAIL / 2 - 4} y="8" width="8" height="8" rx="2" fill="#050A18" /></pattern>
+      </defs>
+      {/* rack frame */}
+      <rect x={L.FRAME_X - 6} y="0" width={L.FRAME_W + 12} height={L.height} rx="14" fill="#22335E" />
+      <rect x={L.FRAME_X} y="6" width={L.FRAME_W} height={L.height - 12} rx="10" fill="url(#idfRack)" />
+      <rect x={L.FRAME_X} y="40" width={L.RAIL} height={L.height - 52} fill="#0D1731" /><rect x={L.FRAME_X} y="40" width={L.RAIL} height={L.height - 52} fill="url(#idfHoles)" />
+      <rect x={L.FRAME_X + L.FRAME_W - L.RAIL} y="40" width={L.RAIL} height={L.height - 52} fill="#0D1731" /><rect x={L.FRAME_X + L.FRAME_W - L.RAIL} y="40" width={L.RAIL} height={L.height - 52} fill="url(#idfHoles)" />
+      <text x={L.W / 2} y="30" textAnchor="middle" fill="#9FB2D6" fontSize="14" fontWeight="700" letterSpacing="2">{rack.name.toUpperCase()}</text>
+      {/* device bodies */}
+      {devices.map(d => {
+        const g = L.map[d.id], isSw = d.type === 'switch';
+        return (
+          <g key={'b' + d.id}>
+            <rect x={L.DEV_X} y={g.y} width={L.DEV_W} height={g.h} rx="8" fill="url(#idfDevGrad)" stroke="#3B5086" strokeWidth="1.5" />
+            <rect x={L.DEV_X} y={g.y} width={L.DEV_W} height="40" rx="8" fill={isSw ? '#173063' : '#12392B'} />
+            <rect x={L.DEV_X} y={g.y + 30} width={L.DEV_W} height="10" fill={isSw ? '#173063' : '#12392B'} />
+          </g>
+        );
+      })}
+      {/* cables */}
+      {idf.cables.map(c => {
+        const p = paths[c.id]; if (!p) return null;
+        const on = activeId === c.id;
+        return (
+          <g key={c.id} style={{ cursor: 'pointer' }} opacity={activeId && !on ? 0.25 : 1}
+             onMouseEnter={() => setHoverCable(c.id)} onMouseLeave={() => setHoverCable(null)}
+             onClick={() => setSelectedCable(selectedCable === c.id ? null : c.id)}>
+            <title>{c.label}</title>
+            <path d={p.d} fill="none" stroke="transparent" strokeWidth="16" />
+            <path d={p.d} fill="none" stroke="#040813" strokeWidth={on ? 8 : 6} strokeLinecap="round" strokeLinejoin="round" />
+            <path d={p.d} fill="none" stroke={c.color} strokeWidth={on ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        );
+      })}
+      {/* faceplates: header text + ports on top of cables */}
+      {devices.map(d => {
+        const g = L.map[d.id], total = idfTotal(d), isSw = d.type === 'switch', bw = isSw ? 74 : 104, out = [];
+        const meta = `${d.uplinks ? d.ports + ' + ' + d.uplinks + ' uplink' : d.ports + ' ports'} · U${d.position}`;
+        out.push(<rect key="bd" x={L.DEV_X + 14} y={g.y + 10} width={bw} height="22" rx="11" fill={isSw ? '#2563EB' : '#15803D'} />);
+        out.push(<text key="bt" x={L.DEV_X + 14 + bw / 2} y={g.y + 25.5} textAnchor="middle" fill="#fff" fontSize="11.5" fontWeight="700">{isSw ? 'SWITCH' : 'PATCH PANEL'}</text>);
+        out.push(<text key="nm" x={L.DEV_X + 28 + bw} y={g.y + 26} fill="#fff" fontSize="16" fontWeight="700">{d.name.length > 28 ? d.name.slice(0, 27) + '…' : d.name}</text>);
+        out.push(<text key="mt" x={L.DEV_X + L.DEV_W - 16} y={g.y + 26} fill="#C3D3F2" fontSize="13" textAnchor="end">{meta}</text>);
+        [L.FRAME_X + L.RAIL / 2, L.FRAME_X + L.FRAME_W - L.RAIL / 2].forEach((x, i) => out.push(<text key={'u' + i} x={x} y={g.y + 26} textAnchor="middle" fill="#BFD3FF" fontSize="13" fontWeight="700">U{d.position}</text>));
+        for (let n = 1; n <= total; n++) {
+          const p = g.ports[n], lab = idfLabelFor(idf, d.id, n), cab = idfCableAt(idf, d.id, n), isUp = n > d.ports, t = g.tile;
+          const isSrc = pick && pick.srcDevice === d.id && pick.srcPort === n;
+          const blocked = pick && !isSrc && (pick.srcDevice === d.id || cab);
+          const fill = cab ? cab.color : '#0F1A36', ink = cab ? idfInk(cab.color) : (lab ? '#fff' : '#A9BAD9');
+          const stroke = isSrc ? '#fff' : isUp ? '#F59E0B' : lab ? lab.color : cab ? '#fff' : '#3E5183';
+          out.push(
+            <g key={'p' + n} className="idf-port" style={{ cursor: 'pointer' }} opacity={blocked ? 0.3 : 1} tabIndex={0} role="button"
+               aria-label={`${d.name} port ${idfPortName(d, n)}${cab ? ', connected: ' + cab.label : ', free'}`}
+               onClick={() => onPortClick(d.id, n)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPortClick(d.id, n); } }}>
+              <title>{d.name + ' — port ' + idfPortName(d, n) + (isUp ? ' (uplink)' : '') + (lab ? ' — ' + lab.text : '') + (cab ? ' · cabled: ' + cab.label : ' · free')}</title>
+              <rect className="pt" x={p.cx - t / 2} y={p.cy - t / 2} width={t} height={t} rx="5" fill={fill} stroke={stroke} strokeWidth={isSrc ? 3 : (isUp || lab ? 2.5 : 1.5)} />
+              {t >= 20 && <text x={p.cx} y={p.cy + (t >= 28 ? 4.5 : 3.5)} fontSize={t >= 28 ? 12.5 : 10} fontWeight="700" textAnchor="middle" fill={ink} style={{ pointerEvents: 'none' }}>{isUp ? 'U' + (n - d.ports) : n}</text>}
+              {cab && <circle cx={p.cx + t / 2 - 2} cy={p.cy - t / 2 + 2} r="4" fill="#22C55E" stroke="#0A1226" strokeWidth="1.5" style={{ pointerEvents: 'none' }} />}
+            </g>
+          );
+        }
+        return <g key={'t' + d.id}>{out}</g>;
+      })}
+      {/* cable endpoints + labels */}
+      {idf.cables.map(c => {
+        const p = paths[c.id]; if (!p) return null;
+        const on = activeId === c.id, dim = activeId && !on;
+        return (
+          <g key={'e' + c.id} opacity={dim ? 0.25 : 1} style={{ pointerEvents: 'none' }}>
+            <circle cx={p.a.cx} cy={p.a.cy + p.hiG.tile / 2 - 3} r="4.5" fill="#fff" stroke={c.color} strokeWidth="2.5" />
+            <circle cx={p.b.cx} cy={p.b.cy - p.loG.tile / 2 + 3} r="4.5" fill="#fff" stroke={c.color} strokeWidth="2.5" />
+          </g>
+        );
+      })}
+      {idf.cables.map(c => { const p = paths[c.id]; return p && (p.perm || activeId === c.id) && (!activeId || activeId === c.id || p.perm) ? pill(c, p) : null; })}
+    </svg>
+  );
+}
+
+/* ---------- Modals ---------- */
+function IdfFormError({ msg }) {
+  return msg ? <p style={{ color: 'var(--red)', fontSize: '12.5px', margin: '10px 0 0', gridColumn: '1 / -1' }}>{msg}</p> : null;
+}
+
+function IdfFloorModal({ record, floors, onSave, onClose }) {
+  const [name, setName] = useState(record ? record.name : '');
+  const [notes, setNotes] = useState(record ? (record.notes || '') : '');
+  const [error, setError] = useState('');
+  function submit(e) {
+    e.preventDefault();
+    const n = name.trim();
+    if (!n) return setError('Floor name is required.');
+    if (n.length > 40) return setError('Floor name must be 40 characters or fewer.');
+    if (floors.some(f => f.id !== (record && record.id) && f.name.trim().toLowerCase() === n.toLowerCase())) return setError('A floor with this name already exists.');
+    if (notes.length > 200) return setError('Notes must be 200 characters or fewer.');
+    onSave({ name: n, notes: notes.trim() });
+  }
+  return (
+    <Modal title={record ? 'Edit Floor' : 'Add Floor'} onClose={onClose} maxWidth="460px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Floor Name" full required><input className="input" style={{ width: '100%' }} value={name} onChange={e => { setName(e.target.value); setError(''); }} placeholder="e.g. 1st Floor" maxLength={40} autoFocus /></Field>
+        <Field label="Notes (optional)" full><textarea className="textarea" rows="2" value={notes} onChange={e => setNotes(e.target.value)} maxLength={200} /></Field>
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">{record ? 'Save Changes' : 'Add Floor'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfModal({ record, floors, idfs, defaultFloorId, onSave, onClose }) {
+  const [floorId, setFloorId] = useState(record ? record.floorId : (defaultFloorId || (floors[0] && floors[0].id) || ''));
+  const [name, setName] = useState(record ? record.name : '');
+  const [notes, setNotes] = useState(record ? (record.notes || '') : '');
+  const [error, setError] = useState('');
+  function submit(e) {
+    e.preventDefault();
+    const n = name.trim();
+    if (!floorId) return setError('Please select a floor.');
+    if (!n) return setError('IDF name is required.');
+    if (n.length > 30) return setError('IDF name must be 30 characters or fewer.');
+    if (idfs.some(i => i.id !== (record && record.id) && i.floorId === floorId && i.name.trim().toLowerCase() === n.toLowerCase())) return setError('This floor already has an IDF with that name.');
+    if (notes.length > 200) return setError('Notes must be 200 characters or fewer.');
+    onSave({ floorId, name: n, notes: notes.trim() });
+  }
+  return (
+    <Modal title={record ? 'Edit IDF' : 'Add IDF'} onClose={onClose} maxWidth="480px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Floor" full required>
+          <select className="select" style={{ width: '100%' }} value={floorId} onChange={e => { setFloorId(e.target.value); setError(''); }}>
+            {floors.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+        </Field>
+        <Field label="IDF Name" full required><input className="input mono" style={{ width: '100%' }} value={name} onChange={e => { setName(e.target.value); setError(''); }} placeholder="e.g. IDF-01" maxLength={30} autoFocus /></Field>
+        <Field label="Notes (optional)" full><textarea className="textarea" rows="2" value={notes} onChange={e => setNotes(e.target.value)} maxLength={200} /></Field>
+        {!record && <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Each IDF has exactly one rack. After adding the IDF, add your Patch Panels and Switches to the rack.</p>}
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">{record ? 'Save Changes' : 'Add IDF'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfRackNameModal({ idf, onSave, onClose }) {
+  const [name, setName] = useState(idf.rack.name);
+  const [error, setError] = useState('');
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) return setError('Rack name is required.');
+    if (name.trim().length > 40) return setError('Rack name must be 40 characters or fewer.');
+    onSave(name.trim());
+  }
+  return (
+    <Modal title={`Rename Rack — ${idf.name}`} onClose={onClose} maxWidth="420px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Rack Name" full required><input className="input" style={{ width: '100%' }} value={name} onChange={e => { setName(e.target.value); setError(''); }} maxLength={40} autoFocus /></Field>
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfDeviceModal({ idf, record, defaultType, onSave, onClose }) {
+  const devs = idf.rack.devices;
+  const initType = record ? record.type : (defaultType || 'patch');
+  const nextPos = devs.length ? Math.max(...devs.map(d => d.position)) + 1 : 1;
+  const [f, setF] = useState(record
+    ? { type: record.type, name: record.name, ports: String(record.ports), uplinks: String(record.uplinks || 0), position: String(record.position), notes: record.notes || '', layout: idfLayoutMode(record) }
+    : { type: initType, name: (initType === 'patch' ? 'PP-' : 'SW-') + String(devs.filter(d => d.type === initType).length + 1).padStart(2, '0'), ports: '24', uplinks: initType === 'switch' ? '2' : '0', position: String(nextPos), notes: '', layout: initType === 'switch' ? 'updown' : 'seq' });
+  const [error, setError] = useState('');
+  const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setError(''); };
+  function submit(e) {
+    e.preventDefault();
+    const ports = idfInt(f.ports), up = f.type === 'switch' ? idfInt(f.uplinks) : 0, pos = idfInt(f.position), name = f.name.trim();
+    if (!name) return setError('Device name is required.');
+    if (name.length > 40) return setError('Device name must be 40 characters or fewer.');
+    if (devs.some(d => d.id !== (record && record.id) && d.name.trim().toLowerCase() === name.toLowerCase())) return setError('Another device in this rack already has that name.');
+    if (!(ports >= 1 && ports <= 96)) return setError('Port count must be a whole number from 1 to 96.');
+    if (!(up >= 0 && up <= 8)) return setError('Uplink ports must be a whole number from 0 to 8.');
+    if (!(pos >= 1 && pos <= 48)) return setError('Rack position must be a whole number from 1 to 48.');
+    const clash = devs.find(d => d.id !== (record && record.id) && d.position === pos);
+    if (clash) return setError(`Position U${pos} is already used by "${clash.name}". Choose a different position.`);
+    if (f.notes.length > 200) return setError('Notes must be 200 characters or fewer.');
+    if (record) {
+      const total = ports + up;
+      const badL = idf.labels.find(l => l.device === record.id && l.to > total);
+      const badC = idf.cables.find(c => (c.srcDevice === record.id && c.srcPort > total) || (c.dstDevice === record.id && c.dstPort > total));
+      if (badL) return setError(`Label "${badL.text}" uses ports beyond the new port count. Edit or delete it first.`);
+      if (badC) return setError(`Cable "${badC.label}" uses a port beyond the new port count. Edit or delete it first.`);
+    }
+    onSave({ type: f.type, name, ports, uplinks: up, position: pos, notes: f.notes.trim(), layout: f.layout });
+  }
+  return (
+    <Modal title={record ? `Edit ${IDF_TYPE_NAMES[record.type]}` : 'Add Device to Rack'} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Device Type" required>
+          <select className="select" style={{ width: '100%' }} value={f.type} onChange={e => set('type', e.target.value)} disabled={!!record}>
+            <option value="patch">Patch Panel</option>
+            <option value="switch">Network Switch</option>
+          </select>
+        </Field>
+        <Field label="Device Name" required><input className="input" style={{ width: '100%' }} value={f.name} onChange={e => set('name', e.target.value)} maxLength={40} autoFocus /></Field>
+        <Field label="Port Count" required><input type="number" min="1" max="96" className="input" style={{ width: '100%' }} value={f.ports} onChange={e => set('ports', e.target.value)} /></Field>
+        <Field label="Rack Position (U from top)" required><input type="number" min="1" max="48" className="input" style={{ width: '100%' }} value={f.position} onChange={e => set('position', e.target.value)} /></Field>
+        {f.type === 'switch' && <Field label="Uplink Ports (0–8)"><input type="number" min="0" max="8" className="input" style={{ width: '100%' }} value={f.uplinks} onChange={e => set('uplinks', e.target.value)} /></Field>}
+        <Field label="Port Layout" full>
+          <select className="select" style={{ width: '100%' }} value={f.layout} onChange={e => set('layout', e.target.value)}>
+            <option value="updown">Up / Down — 1, 3, 5… on top · 2, 4, 6… on bottom</option>
+            <option value="seq">Sequential — 1, 2, 3… in one row (wraps after 24)</option>
+          </select>
+        </Field>
+        <Field label="Notes (optional)" full><input className="input" style={{ width: '100%' }} value={f.notes} onChange={e => set('notes', e.target.value)} maxLength={200} /></Field>
+        <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Position decides the order in the rack: U1 is the top-most device, U2 comes next, and so on.</p>
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">{record ? 'Save Changes' : 'Add Device'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfColorPicker({ value, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+      {IDF_COLORS.map(c => (
+        <button type="button" key={c} onClick={() => onChange(c)} aria-label={'Color ' + c}
+          style={{ width: 24, height: 24, borderRadius: 6, background: c, border: value.toLowerCase() === c.toLowerCase() ? '2px solid var(--text)' : '2px solid transparent', padding: 0 }} />
+      ))}
+      <input type="color" value={value} onChange={e => onChange(e.target.value)} aria-label="Custom color" style={{ width: 32, height: 28, padding: 0, border: '1px solid var(--border)', borderRadius: 6, background: 'none' }} />
+    </div>
+  );
+}
+
+/* Click a port number -> name its connection, or start a cable from it. */
+function IdfPortModal({ idf, devId, port, onSaveName, onConnect, onEditCable, onDeleteCable, onClose }) {
+  const rack = idf.rack, dev = idfDev(rack, devId);
+  const exact = idf.labels.find(l => l.device === devId && l.from === port && l.to === port) || null;
+  const range = !exact ? idfLabelFor(idf, devId, port) : null;
+  const cable = idfCableAt(idf, devId, port);
+  const [text, setText] = useState(exact ? exact.text : '');
+  const [color, setColor] = useState(exact ? exact.color : (range ? range.color : IDF_COLORS[idf.labels.length % IDF_COLORS.length]));
+  const [error, setError] = useState('');
+  function submit(e) {
+    e.preventDefault();
+    if (text.trim().length > 60) return setError('Connection name must be 60 characters or fewer.');
+    onSaveName(text.trim(), color);
+  }
+  const other = cable ? (cable.srcDevice === devId && cable.srcPort === port ? { d: cable.dstDevice, p: cable.dstPort } : { d: cable.srcDevice, p: cable.srcPort }) : null;
+  const otherDev = other ? idfDev(rack, other.d) : null;
+  return (
+    <Modal title={`Port ${idfPortName(dev, port)} — ${dev.name}`} onClose={onClose} maxWidth="500px">
+      <form onSubmit={submit} className="form-grid">
+        <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '12.5px', color: 'var(--text-muted)' }}>
+          {IDF_TYPE_NAMES[dev.type]} · U{dev.position}{range ? <> · part of range label <strong>“{range.text}”</strong> ({idfLabelRange(range, dev)}). A name here applies to this port only.</> : ''}
+        </p>
+        <Field label="Connection Name" full><input className="input" style={{ width: '100%' }} value={text} onChange={e => { setText(e.target.value); setError(''); }} placeholder="e.g. Office 1 Workstation 3" maxLength={60} autoFocus /></Field>
+        <Field label="Color" full><IdfColorPicker value={color} onChange={setColor} /></Field>
+        <IdfFormError msg={error} />
+        <div className="form-actions" style={{ gridColumn: '1 / -1' }}>
+          {exact && <button type="button" className="btn btn-secondary" onClick={() => onSaveName('', color)}>Remove Name</button>}
+          <button type="submit" className="btn btn-primary">Save Name</button>
+        </div>
+        <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>LAN Cable (simulated)</div>
+          {cable ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ width: 26, height: 4, borderRadius: 2, background: cable.color, display: 'inline-block' }} />
+              <span style={{ fontSize: 13, flex: 1, minWidth: 0 }}><strong>{cable.label}</strong> → {otherDev ? otherDev.name : '?'} #{otherDev ? idfPortName(otherDev, other.p) : other.p}</span>
+              <button type="button" className="btn btn-secondary" onClick={() => onEditCable(cable)}>Edit</button>
+              <button type="button" className="btn btn-danger" onClick={() => onDeleteCable(cable)}>Delete</button>
+            </div>
+          ) : (
+            <>
+              <button type="button" className="btn btn-primary" onClick={() => onConnect(text.trim(), color)} disabled={rack.devices.length < 2}>Connect to another port…</button>
+              <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
+                {rack.devices.length < 2 ? 'Add at least two devices to the rack to draw a cable.' : 'Then click the destination port in the diagram and name the connection.'}
+              </p>
+            </>
+          )}
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfLabelModal({ idf, record, onSave, onClose }) {
+  const rack = idf.rack;
+  const [f, setF] = useState(record
+    ? { device: record.device, from: String(record.from), to: String(record.to), text: record.text, color: record.color }
+    : { device: (rack.devices[0] || {}).id || '', from: '', to: '', text: '', color: IDF_COLORS[idf.labels.length % IDF_COLORS.length] });
+  const [error, setError] = useState('');
+  const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setError(''); };
+  const dev = idfDev(rack, f.device);
+  const total = dev ? idfTotal(dev) : 0;
+  function submit(e) {
+    e.preventDefault();
+    const from = idfInt(f.from), to = idfInt(f.to), text = f.text.trim();
+    if (!dev) return setError('Please select a device.');
+    if (!text) return setError('Label text is required.');
+    if (text.length > 60) return setError('Label text must be 60 characters or fewer.');
+    if (!(from >= 1 && to >= 1) || from > total || to > total) return setError(`Ports must be whole numbers from 1 to ${total} for this device.`);
+    if (from > to) return setError('"From port" cannot be greater than "To port".');
+    const clash = idf.labels.find(l => l.id !== (record && record.id) && l.device === f.device && from <= l.to && to >= l.from && (from !== to) && (l.from !== l.to));
+    if (clash) return setError(`These ports overlap with the existing label "${clash.text}".`);
+    const dup = idf.labels.find(l => l.id !== (record && record.id) && l.device === f.device && l.from === from && l.to === to);
+    if (dup) return setError(`Ports ${from}–${to} already have the label "${dup.text}".`);
+    onSave({ device: f.device, from, to, text, color: f.color });
+  }
+  return (
+    <Modal title={record ? 'Edit Connection Label' : 'Add Connection Label (port range)'} onClose={onClose} maxWidth="520px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Device" full required>
+          <select className="select" style={{ width: '100%' }} value={f.device} onChange={e => set('device', e.target.value)}>
+            {rack.devices.map(d => <option key={d.id} value={d.id}>{IDF_TYPE_NAMES[d.type]} — {d.name}</option>)}
+          </select>
+        </Field>
+        <Field label="From Port" required><input type="number" min="1" max={total} className="input" style={{ width: '100%' }} value={f.from} onChange={e => set('from', e.target.value)} placeholder="1" /></Field>
+        <Field label="To Port" required><input type="number" min="1" max={total} className="input" style={{ width: '100%' }} value={f.to} onChange={e => set('to', e.target.value)} placeholder="8" /></Field>
+        {dev && dev.uplinks > 0 && (
+          <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Ports {dev.ports + 1}–{total} are the uplink ports (UP1–UP{dev.uplinks}).</p>
+        )}
+        <Field label="Label" full required><input className="input" style={{ width: '100%' }} value={f.text} onChange={e => set('text', e.target.value)} placeholder="e.g. Office 1 Workstations" maxLength={60} /></Field>
+        <Field label="Color" full><IdfColorPicker value={f.color} onChange={c => set('color', c)} /></Field>
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">{record ? 'Save Changes' : 'Add Label'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdfCableModal({ idf, record, prefill, onSave, onClose }) {
+  const rack = idf.rack, devs = idfSorted(rack);
+  const [f, setF] = useState(record
+    ? { srcDevice: record.srcDevice, srcPort: String(record.srcPort), dstDevice: record.dstDevice, dstPort: String(record.dstPort), label: record.label, color: record.color }
+    : { srcDevice: (prefill && prefill.srcDevice) || (devs[0] && devs[0].id) || '', srcPort: prefill ? String(prefill.srcPort) : '',
+        dstDevice: (prefill && prefill.dstDevice) || (devs[1] && devs[1].id) || '', dstPort: prefill && prefill.dstPort ? String(prefill.dstPort) : '',
+        label: (prefill && prefill.label) || '', color: (prefill && prefill.color) || IDF_COLORS[idf.cables.length % IDF_COLORS.length] });
+  const [error, setError] = useState('');
+  const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setError(''); };
+  const sd = idfDev(rack, f.srcDevice), dd = idfDev(rack, f.dstDevice);
+  function submit(e) {
+    e.preventDefault();
+    const sp = idfInt(f.srcPort), dp = idfInt(f.dstPort), label = f.label.trim();
+    if (!sd || !dd) return setError('Please select both components.');
+    if (f.srcDevice === f.dstDevice) return setError('Source and destination must be two different devices.');
+    if (!(sp >= 1 && sp <= idfTotal(sd))) return setError(`Source port must be a whole number from 1 to ${idfTotal(sd)}.`);
+    if (!(dp >= 1 && dp <= idfTotal(dd))) return setError(`Destination port must be a whole number from 1 to ${idfTotal(dd)}.`);
+    if (!label) return setError('Connection name is required.');
+    if (label.length > 60) return setError('Connection name must be 60 characters or fewer.');
+    const others = idf.cables.filter(c => c.id !== (record && record.id));
+    const taken = (dev, port) => others.find(c => (c.srcDevice === dev && c.srcPort === port) || (c.dstDevice === dev && c.dstPort === port));
+    const t1 = taken(f.srcDevice, sp), t2 = taken(f.dstDevice, dp);
+    if (t1) return setError(`${sd.name} port ${idfPortName(sd, sp)} already has a cable ("${t1.label}").`);
+    if (t2) return setError(`${dd.name} port ${idfPortName(dd, dp)} already has a cable ("${t2.label}").`);
+    onSave({ srcDevice: f.srcDevice, srcPort: sp, dstDevice: f.dstDevice, dstPort: dp, label, color: f.color });
+  }
+  const takenBy = (devId, n) => idf.cables.find(c => c.id !== (record && record.id) && ((c.srcDevice === devId && c.srcPort === n) || (c.dstDevice === devId && c.dstPort === n)));
+  const portSel = (key, dev) => (
+    <select className="select" style={{ width: '100%' }} value={f[key]} onChange={e => set(key, e.target.value)}>
+      <option value="">Select port…</option>
+      {dev && Array.from({ length: idfTotal(dev) }, (_, i) => i + 1).map(n => { const t = takenBy(dev.id, n), lb = idfLabelFor(idf, dev.id, n);
+        return <option key={n} value={String(n)} disabled={!!t}>{(n > dev.ports ? 'Uplink ' : 'Port ') + idfPortName(dev, n) + (lb ? ' · ' + lb.text : '') + (t ? ' (in use)' : '')}</option>; })}
+    </select>
+  );
+  const devSelect = (key) => (
+    <select className="select" style={{ width: '100%' }} value={f[key]} onChange={e => set(key, e.target.value)}>
+      {devs.map(d => <option key={d.id} value={d.id}>{IDF_TYPE_NAMES[d.type]} — {d.name}</option>)}
+    </select>
+  );
+  return (
+    <Modal title={record ? 'Edit Cable Connection' : 'Add Cable Connection'} onClose={onClose} maxWidth="560px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Source Component" required>{devSelect('srcDevice')}</Field>
+        <Field label="Source Port" required>{portSel('srcPort', sd)}</Field>
+        <Field label="Destination Component" required>{devSelect('dstDevice')}</Field>
+        <Field label="Destination Port" required>{portSel('dstPort', dd)}</Field>
+        <Field label="Connection Name" full required><input className="input" style={{ width: '100%' }} value={f.label} onChange={e => set('label', e.target.value)} placeholder="e.g. Patch Panel Office 1" maxLength={60} /></Field>
+        <Field label="Cable Color" full><IdfColorPicker value={f.color} onChange={c => set('color', c)} /></Field>
+        <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Cables are a visual simulation only — nothing is connected to real equipment.</p>
+        <IdfFormError msg={error} />
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary">{record ? 'Save Changes' : 'Add Cable'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ---------- Page ---------- */
+function IdfRackPage({ floors, setFloors, idfs: rawIdfs, setIdfs, addToast }) {
+  const [selectedId, setSelectedId] = useState(null);
+  const [collapsed, setCollapsed] = useState({});
+  const [modal, setModal] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const [hoverCable, setHoverCable] = useState(null);
+  const [selectedCable, setSelectedCable] = useState(null);
+  const [tab, setTab] = useState('cables');
+  const [pick, setPick] = useState(null);   // { srcDevice, srcPort, label, color } while choosing a destination port
+
+  const idfs = useMemo(() => rawIdfs.map(idfNormalize), [rawIdfs]);
+  const sortedFloors = useMemo(() => floors.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0) || a.name.localeCompare(b.name, undefined, { numeric: true })), [floors]);
+  const idfsByFloor = useMemo(() => {
+    const m = {};
+    idfs.forEach(i => { (m[i.floorId] = m[i.floorId] || []).push(i); });
+    Object.keys(m).forEach(k => m[k].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })));
+    return m;
+  }, [idfs]);
+  const selected = idfs.find(i => i.id === selectedId) || null;
+  const selectedFloor = selected ? floors.find(f => f.id === selected.floorId) : null;
+
+  useEffect(() => {
+    if (selectedId && !idfs.some(i => i.id === selectedId)) setSelectedId(null);
+    if (!selectedId) {
+      for (const f of sortedFloors) { const first = (idfsByFloor[f.id] || [])[0]; if (first) { setSelectedId(first.id); break; } }
+    }
+  }, [idfs, floors]);
+  useEffect(() => { setSelectedCable(null); setHoverCable(null); setPick(null); }, [selectedId]);
+  useEffect(() => {
+    if (!pick) return;
+    function onKey(e) { if (e.key === 'Escape') setPick(null); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pick]);
+
+  function updateIdf(id, fn) { setIdfs(prev => prev.map(i => i.id === id ? fn(idfNormalize(i)) : i)); }
+
+  function saveFloor(data) {
+    const rec = modal.record;
+    if (rec) { setFloors(prev => prev.map(f => f.id === rec.id ? { ...f, ...data } : f)); addToast('Floor updated', 'success'); }
+    else { setFloors(prev => [...prev, { id: nextId('FLR'), ...data, createdAt: Date.now() }]); addToast('Floor added', 'success'); }
+    setModal(null);
+  }
+  function saveIdf(data) {
+    const rec = modal.record;
+    if (rec) { updateIdf(rec.id, i => ({ ...i, ...data })); addToast('IDF updated', 'success'); }
+    else {
+      const id = nextId('IDF');
+      setIdfs(prev => [...prev, { id, ...data, createdAt: Date.now(), rack: { name: data.name + ' Rack', devices: [] }, labels: [], cables: [] }]);
+      setCollapsed(c => ({ ...c, [data.floorId]: false }));
+      setSelectedId(id);
+      addToast('IDF added — now add Patch Panels and Switches to its rack', 'success');
+    }
+    setModal(null);
+  }
+  function saveRackName(name) { updateIdf(selected.id, i => ({ ...i, rack: { ...i.rack, name } })); addToast('Rack renamed', 'success'); setModal(null); }
+  function saveDevice(data) {
+    const rec = modal.record;
+    updateIdf(selected.id, i => ({ ...i, rack: { ...i.rack, devices: rec ? i.rack.devices.map(d => d.id === rec.id ? { ...d, ...data } : d) : [...i.rack.devices, { id: nextId('DEV'), ...data }] } }));
+    addToast(rec ? 'Device updated' : IDF_TYPE_NAMES[data.type] + ' added to rack', 'success'); setModal(null);
+  }
+  function saveLabel(data) {
+    const rec = modal.record;
+    updateIdf(selected.id, i => ({ ...i, labels: rec ? i.labels.map(l => l.id === rec.id ? { ...l, ...data } : l) : [...i.labels, { id: nextId('LBL'), ...data }] }));
+    addToast(rec ? 'Label updated' : 'Label added', 'success'); setModal(null);
+  }
+  function saveCable(data) {
+    const rec = modal.record;
+    updateIdf(selected.id, i => ({ ...i, cables: rec ? i.cables.map(c => c.id === rec.id ? { ...c, ...data } : c) : [...i.cables, { id: nextId('CBL'), ...data }] }));
+    addToast(rec ? 'Cable updated' : 'Cable added', 'success'); setModal(null);
+  }
+  function savePortName(devId, port, text, color) {
+    updateIdf(selected.id, i => {
+      const ex = i.labels.find(l => l.device === devId && l.from === port && l.to === port);
+      if (!text) return { ...i, labels: i.labels.filter(l => l !== ex) };
+      if (ex) return { ...i, labels: i.labels.map(l => l === ex ? { ...l, text, color } : l) };
+      return { ...i, labels: [...i.labels, { id: nextId('LBL'), device: devId, from: port, to: port, text, color }] };
+    });
+    addToast(text ? 'Connection name saved' : 'Connection name removed', text ? 'success' : 'danger');
+    setModal(null);
+  }
+  function onPortClick(devId, port) {
+    if (!selected) return;
+    if (pick) {
+      if (pick.srcDevice === devId && pick.srcPort === port) { setPick(null); addToast('Cable cancelled', 'danger'); return; }
+      if (pick.srcDevice === devId) { addToast('Pick a port on a different device', 'danger'); return; }
+      if (idfCableAt(selected, devId, port)) { addToast('That port already has a cable', 'danger'); return; }
+      const dstLabel = idfLabelFor(selected, devId, port);
+      setPick(null);
+      setModal({ type: 'cable', prefill: { srcDevice: pick.srcDevice, srcPort: pick.srcPort, dstDevice: devId, dstPort: port, label: pick.label || (dstLabel ? dstLabel.text : ''), color: pick.color } });
+      return;
+    }
+    setModal({ type: 'port', devId, port });
+  }
+  function doDelete() {
+    const c = confirm;
+    if (c.kind === 'floor') {
+      setFloors(prev => prev.filter(f => f.id !== c.id));
+      setIdfs(prev => prev.filter(i => i.floorId !== c.id));
+      addToast('Floor and its IDFs deleted', 'danger');
+    } else if (c.kind === 'idf') {
+      setIdfs(prev => prev.filter(i => i.id !== c.id));
+      addToast('IDF deleted', 'danger');
+    } else if (c.kind === 'device') {
+      updateIdf(selected.id, i => ({ ...i, rack: { ...i.rack, devices: i.rack.devices.filter(d => d.id !== c.id) }, labels: i.labels.filter(l => l.device !== c.id), cables: i.cables.filter(x => x.srcDevice !== c.id && x.dstDevice !== c.id) }));
+      addToast('Device deleted', 'danger');
+    } else if (c.kind === 'label') {
+      updateIdf(selected.id, i => ({ ...i, labels: i.labels.filter(l => l.id !== c.id) })); addToast('Label deleted', 'danger');
+    } else if (c.kind === 'cable') {
+      updateIdf(selected.id, i => ({ ...i, cables: i.cables.filter(x => x.id !== c.id) })); addToast('Cable deleted', 'danger');
+    }
+    setConfirm(null);
+  }
+  function askDeleteFloor(f) {
+    const n = (idfsByFloor[f.id] || []).length;
+    setConfirm({ kind: 'floor', id: f.id, title: 'Delete floor?', message: `Delete "${f.name}"${n ? ` and its ${n} IDF${n > 1 ? 's' : ''} (including all racks, labels and cables)` : ''}? This cannot be undone.` });
+  }
+  const askDeleteCable = (c) => setConfirm({ kind: 'cable', id: c.id, title: 'Delete cable?', message: `Delete the cable "${c.label}"?` });
+
+  const rack = selected ? selected.rack : null;
+  const devices = selected ? idfSorted(rack) : [];
+  const pickDev = pick && selected ? idfDev(rack, pick.srcDevice) : null;
+  const curId = selectedCable || hoverCable;
+  const curCable = selected ? selected.cables.find(c => c.id === curId) : null;
+  const totalPorts = devices.reduce((s, d) => s + idfTotal(d), 0);
+  const nSw = devices.filter(d => d.type === 'switch').length, nPp = devices.length - nSw;
+  const portTxt = (id, n) => { const d = idfDev(rack, id); return (d ? d.name : '(removed device)') + ' · Port ' + (d ? idfPortName(d, n) : n); };
+  const askDeleteDevice = (d) => {
+    const nl = selected.labels.filter(l => l.device === d.id).length, nc = selected.cables.filter(c => c.srcDevice === d.id || c.dstDevice === d.id).length;
+    setConfirm({ kind: 'device', id: d.id, title: 'Delete device?', message: `Delete "${d.name}" from the rack${nl || nc ? `, including its ${nl} label(s) and ${nc} cable(s)` : ''}? This cannot be undone.` });
+  };
+  const addCable = () => { if (devices.length < 2) { addToast('Add at least two devices to the rack first', 'danger'); return; } setModal({ type: 'cable' }); };
+  const stat = (icon, label, value, sub) => (
+    <div className="idf-stat"><span className="idf-stat-ico"><Icon name={icon} size={22} /></span>
+      <div><span className="idf-stat-l">{label}</span><strong title={String(value)}>{value}</strong><em>{sub}</em></div></div>
+  );
+  return (
+    <div className="idf-shell">
+      <div className="idf-grid">
+        {/* LEFT: floors & IDFs */}
+        <aside className="idf-panel">
+          <div className="idf-panel-head">
+            <h3>Floors &amp; IDFs</h3>
+            <button className="idf-btn sm" title="Create a new floor" onClick={() => setModal({ type: 'floor' })}><Icon name="plus" size={15} /> Add Floor</button>
+          </div>
+          {sortedFloors.length === 0 && <div className="idf-empty">No floors yet.<br />Click <strong>Add Floor</strong> to start, e.g. “1st Floor”.</div>}
+          {sortedFloors.map(fl => {
+            const list = idfsByFloor[fl.id] || [], open = !collapsed[fl.id];
+            return (
+              <div className="idf-floor" key={fl.id}>
+                <div className="idf-floor-head">
+                  <button className="idf-floor-toggle" onClick={() => setCollapsed(c => ({ ...c, [fl.id]: open }))} aria-expanded={open} title={open ? 'Collapse floor' : 'Expand floor'}>
+                    <span className="idf-chev" style={{ transform: open ? 'none' : 'rotate(-90deg)' }}><Icon name="chevronDown" size={18} /></span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{fl.name}</span>
+                    <span className="idf-count">{list.length} IDF{list.length === 1 ? '' : 's'}</span>
+                  </button>
+                  <button className="idf-ico" title="Edit floor" aria-label={'Edit ' + fl.name} onClick={() => setModal({ type: 'floor', record: fl })}><Icon name="edit" size={16} /></button>
+                  <button className="idf-ico danger" title="Delete floor" aria-label={'Delete ' + fl.name} onClick={() => askDeleteFloor(fl)}><Icon name="trash" size={16} /></button>
+                </div>
+                {open && (
+                  <div style={{ paddingBottom: 12 }}>
+                    {list.map(i => (
+                      <div key={i.id} className={'idf-item' + (i.id === selectedId ? ' active' : '')}>
+                        <button className="idf-item-main" onClick={() => setSelectedId(i.id)} aria-current={i.id === selectedId ? 'true' : undefined}>
+                          <Icon name="server" size={18} />
+                          <span style={{ minWidth: 0 }}><b className="mono">{i.name}</b><small>{i.rack.devices.length} device{i.rack.devices.length === 1 ? '' : 's'} · {i.cables.length} cable{i.cables.length === 1 ? '' : 's'}</small></span>
+                        </button>
+                        <button className="idf-ico" title="Edit IDF" aria-label={'Edit ' + i.name} onClick={() => setModal({ type: 'idf', record: i })}><Icon name="edit" size={15} /></button>
+                        <button className="idf-ico danger" title="Delete IDF" aria-label={'Delete ' + i.name} onClick={() => setConfirm({ kind: 'idf', id: i.id, title: 'Delete IDF?', message: `Delete "${i.name}" on ${fl.name}, including its rack, ${i.rack.devices.length} device(s), ${i.labels.length} label(s) and ${i.cables.length} cable(s)? This cannot be undone.` })}><Icon name="trash" size={15} /></button>
+                      </div>
+                    ))}
+                    {list.length === 0 && <div className="idf-empty" style={{ margin: '4px 12px 8px', padding: 14, fontSize: 13 }}>No IDFs on this floor yet.</div>}
+                    <button className="idf-btn ghost sm" style={{ margin: '8px 12px 0', width: 'calc(100% - 24px)' }} onClick={() => setModal({ type: 'idf', floorId: fl.id })}><Icon name="plus" size={14} /> Add IDF</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </aside>
+
+        {/* CENTER: rack */}
+        <main style={{ minWidth: 0 }}>
+          {!selected ? (
+            <div className="idf-panel idf-empty" style={{ padding: '70px 20px' }}>
+              <div style={{ color: '#7DB2FF', marginBottom: 10 }}><Icon name="server" size={40} /></div>
+              {floors.length === 0 ? <>Add a floor, then add an IDF to see its rack diagram.<br /><button className="idf-btn" onClick={() => setModal({ type: 'floor' })}><Icon name="plus" size={15} /> Add Floor</button></>
+                : <>Select an IDF on the left to see its rack, or add a new one.<br /><button className="idf-btn" onClick={() => setModal({ type: 'idf', floorId: sortedFloors[0].id })}><Icon name="plus" size={15} /> Add IDF</button></>}
+            </div>
+          ) : (
+            <>
+              <nav className="idf-crumbs" aria-label="Breadcrumb">
+                <span>{selectedFloor ? selectedFloor.name : 'Floor'}</span><i>›</i><span>{selected.name}</span><i>›</i><b>{rack.name}</b>
+                <button className="idf-ico" title="Rename rack" aria-label="Rename rack" onClick={() => setModal({ type: 'rackName' })}><Icon name="edit" size={14} /></button>
+              </nav>
+              <div className="idf-title">
+                <h2 className="mono">{selected.name}</h2>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button className="idf-btn green" title="Add a patch panel to this rack" onClick={() => setModal({ type: 'device', defaultType: 'patch' })}><Icon name="plus" size={16} /> Patch Panel</button>
+                  <button className="idf-btn" title="Add a network switch to this rack" onClick={() => setModal({ type: 'device', defaultType: 'switch' })}><Icon name="plus" size={16} /> Switch</button>
+                </div>
+              </div>
+              <div className="idf-stats">
+                {stat('box', 'Floor', selectedFloor ? selectedFloor.name : '—', (idfsByFloor[selected.floorId] || []).length + ' IDF(s) on this floor')}
+                {stat('server', 'IDF', selected.name, rack.name)}
+                {stat('network', 'Devices', devices.length, nSw + ' switch · ' + nPp + ' patch panel · ' + totalPorts + ' ports')}
+                {stat('activity', 'Active cables', selected.cables.length, (selected.cables.length * 2) + ' of ' + totalPorts + ' ports in use')}
+              </div>
+              {selected.notes && <div className="idf-notes"><b>IDF notes:</b> {selected.notes}</div>}
+
+              <div className="idf-panel">
+                <div className="idf-panel-head"><h3>Rack Front View</h3><span className="idf-muted" style={{ fontSize: 13 }}>Click a port to name it or start a cable</span></div>
+                {pick && pickDev && (
+                  <div className="idf-banner">
+                    <Icon name="send" size={18} /> Connecting <strong>{pickDev.name} · Port {idfPortName(pickDev, pick.srcPort)}</strong> — now click the destination port on another device.
+                    <button className="idf-btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => setPick(null)}>Cancel</button>
+                  </div>
+                )}
+                {devices.length === 0 ? (
+                  <div className="idf-empty" style={{ padding: '50px 16px' }}>This rack is empty.<br />Use <strong>Patch Panel</strong> or <strong>Switch</strong> above to install a device. U1 is the top of the rack.</div>
+                ) : (
+                  <div className="idf-diagram">
+                    <IdfRackDiagram idf={selected} hoverCable={hoverCable} setHoverCable={setHoverCable} selectedCable={selectedCable} setSelectedCable={setSelectedCable} onPortClick={onPortClick} pick={pick} />
+                  </div>
+                )}
+                {curCable && (
+                  <div className="idf-curcable">
+                    <span className="idf-cbar" style={{ background: curCable.color, alignSelf: 'stretch' }} />
+                    <div style={{ flex: 1, minWidth: 180 }}><div style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{curCable.label}</div>
+                      <div className="idf-muted" style={{ fontSize: 13.5 }}>{portTxt(curCable.srcDevice, curCable.srcPort)} → {portTxt(curCable.dstDevice, curCable.dstPort)}</div></div>
+                    {selectedCable === curCable.id && <>
+                      <button className="idf-btn ghost sm" onClick={() => setModal({ type: 'cable', record: curCable })}><Icon name="edit" size={14} /> Edit</button>
+                      <button className="idf-btn ghost sm" onClick={() => askDeleteCable(curCable)}><Icon name="trash" size={14} /> Delete</button></>}
+                  </div>
+                )}
+                <div className="idf-legend">
+                  <span><i className="idf-lg" style={{ background: '#0F1A36', border: '1.5px solid #3E5183' }} />Free port</span>
+                  <span><i className="idf-lg" style={{ background: '#3B82F6', boxShadow: 'inset -5px -5px 0 -2px #22C55E' }} />Connected (cable colour)</span>
+                  <span><i className="idf-lg" style={{ background: '#0F1A36', border: '2.5px solid #A855F7' }} />Named port</span>
+                  <span><i className="idf-lg" style={{ background: '#0F1A36', border: '2.5px solid #F59E0B' }} />Switch uplink (U1, U2…)</span>
+                </div>
+              </div>
+
+              {devices.length > 0 && (
+                <div className="idf-devlist">
+                  {devices.map(d => (
+                    <div className="idf-devcard" key={d.id}>
+                      <h4><span className="idf-u mono">U{d.position}</span><span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</span></h4>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className={'idf-badge ' + d.type}>{IDF_TYPE_NAMES[d.type]}</span>
+                        <span className="idf-meta">{d.uplinks ? d.ports + ' + ' + d.uplinks + ' uplink' : d.ports} ports</span>
+                      </div>
+                      {d.notes && <div className="idf-meta">{d.notes}</div>}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                        <button className="idf-btn ghost sm" onClick={() => setModal({ type: 'device', record: d })}><Icon name="edit" size={14} /> Edit</button>
+                        <button className="idf-btn ghost sm" onClick={() => askDeleteDevice(d)}><Icon name="trash" size={14} /> Remove</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </main>
+
+        {/* RIGHT: connection management */}
+        <aside className="idf-panel idf-right">
+          {!selected ? <div className="idf-empty">Cable connections and port labels appear here once you select an IDF.</div> : (
+            <>
+              <div className="idf-panel-head"><h3>Connections</h3>
+                <button className="idf-btn" onClick={addCable}><Icon name="plus" size={16} /> Add Connection</button></div>
+              <div className="idf-tabs" role="tablist">
+                <button role="tab" aria-selected={tab === 'cables'} className={'idf-tab' + (tab === 'cables' ? ' on' : '')} onClick={() => setTab('cables')}>Cables ({selected.cables.length})</button>
+                <button role="tab" aria-selected={tab === 'labels'} className={'idf-tab' + (tab === 'labels' ? ' on' : '')} onClick={() => setTab('labels')}>Port Labels ({selected.labels.length})</button>
+              </div>
+              {tab === 'cables' && (
+                <>
+                  {selected.cables.length === 0 && <div className="idf-empty">No cable connections yet.<br />Click <strong>Add Connection</strong>, or click a port in the rack and choose <strong>Connect to another port…</strong></div>}
+                  {selected.cables.map(c => (
+                    <div className={'idf-cable' + (curId === c.id ? ' hot' : '')} key={c.id} tabIndex={0} role="button"
+                         onMouseEnter={() => setHoverCable(c.id)} onMouseLeave={() => setHoverCable(null)}
+                         onKeyDown={e => { if (e.key === 'Enter') setSelectedCable(selectedCable === c.id ? null : c.id); }}
+                         onClick={() => setSelectedCable(selectedCable === c.id ? null : c.id)}>
+                      <span className="idf-cbar" style={{ background: c.color }} />
+                      <div className="idf-cbody">
+                        <div className="idf-ctitle">{c.label}</div>
+                        <div className="idf-route"><span><b>From</b> {portTxt(c.srcDevice, c.srcPort)}</span><span><b>To</b> {portTxt(c.dstDevice, c.dstPort)}</span></div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <button className="idf-ico" title="Edit cable" aria-label="Edit cable" onClick={e => { e.stopPropagation(); setModal({ type: 'cable', record: c }); }}><Icon name="edit" size={15} /></button>
+                        <button className="idf-ico danger" title="Delete cable" aria-label="Delete cable" onClick={e => { e.stopPropagation(); askDeleteCable(c); }}><Icon name="trash" size={15} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              {tab === 'labels' && (
+                <>
+                  <button className="idf-btn ghost sm" style={{ width: '100%', marginBottom: 4 }} disabled={devices.length === 0} onClick={() => setModal({ type: 'label' })}><Icon name="plus" size={14} /> Add Port Range Label</button>
+                  {devices.length === 0 && <div className="idf-empty" style={{ marginTop: 12 }}>Add a Switch or Patch Panel first, then name its ports.</div>}
+                  {devices.map(d => {
+                    const list = selected.labels.filter(l => l.device === d.id).sort((a, b) => a.from - b.from);
+                    return (
+                      <div key={d.id}>
+                        <div className="idf-sub"><span className={'idf-badge ' + d.type}>{IDF_TYPE_NAMES[d.type]}</span>{d.name}</div>
+                        {list.length === 0 && <div className="idf-empty" style={{ padding: 12, fontSize: 13 }}>No labels. Click a port in the rack to name it.</div>}
+                        {list.map(l => (
+                          <div className="idf-lrow" key={l.id}>
+                            <span className="idf-swatch" style={{ background: l.color }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14.5, color: '#fff', fontWeight: 600, wordBreak: 'break-word' }}>{l.text}</div>
+                              <div className="idf-muted mono" style={{ fontSize: 12.5 }}>{idfLabelRange(l, d)}</div>
+                            </div>
+                            <button className="idf-ico" title="Edit label" aria-label="Edit label" onClick={() => setModal({ type: 'label', record: l })}><Icon name="edit" size={15} /></button>
+                            <button className="idf-ico danger" title="Delete label" aria-label="Delete label" onClick={() => setConfirm({ kind: 'label', id: l.id, title: 'Delete label?', message: `Delete the label "${l.text}"?` })}><Icon name="trash" size={15} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </>
+          )}
+        </aside>
+      </div>
+
+      {modal && modal.type === 'floor' && <IdfFloorModal record={modal.record} floors={floors} onSave={saveFloor} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'idf' && <IdfModal record={modal.record} floors={sortedFloors} idfs={idfs} defaultFloorId={modal.floorId} onSave={saveIdf} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'rackName' && selected && <IdfRackNameModal idf={selected} onSave={saveRackName} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'device' && selected && <IdfDeviceModal idf={selected} record={modal.record} defaultType={modal.defaultType} onSave={saveDevice} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'label' && selected && <IdfLabelModal idf={selected} record={modal.record} onSave={saveLabel} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'cable' && selected && <IdfCableModal idf={selected} record={modal.record} prefill={modal.prefill} onSave={saveCable} onClose={() => setModal(null)} />}
+      {modal && modal.type === 'port' && selected && idfDev(selected.rack, modal.devId) && (
+        <IdfPortModal idf={selected} devId={modal.devId} port={modal.port}
+          onSaveName={(text, color) => savePortName(modal.devId, modal.port, text, color)}
+          onConnect={(text, color) => { setPick({ srcDevice: modal.devId, srcPort: modal.port, label: text, color }); setModal(null); addToast('Now click the destination port', 'success'); }}
+          onEditCable={(c) => setModal({ type: 'cable', record: c })}
+          onDeleteCable={(c) => { setModal(null); askDeleteCable(c); }}
+          onClose={() => setModal(null)} />
+      )}
+      {confirm && <ConfirmDialog title={confirm.title} message={confirm.message} onCancel={() => setConfirm(null)} onConfirm={doDelete} />}
+    </div>
+  );
+}
+
+/* =========================================================
    FIRESTORE SYNC HOOK
    Keeps a collection in sync in real-time across devices.
    Auto-seeds the collection with demo data on first run only.
@@ -3897,6 +4862,7 @@ const PAGES_META = {
   replacements: { title: 'Replacement', subtitle: 'Item replacement tracking for Back Office & Selling Area', icon: 'repeat' },
   rrs: { title: 'RRS', subtitle: 'Repair Request Slip records for Back Office units', icon: 'clipboard' },
   mrsDepartment: { title: 'MSRS Department', subtitle: 'Material Request Slip records by department', icon: 'inbox' },
+  idfRack: { title: 'IDF Rack Management', subtitle: 'Floors, IDFs, patch panels, switches and simulated LAN cable connections', icon: 'network' },
   transmittal: { title: 'Transmittal', subtitle: 'Transmittal records and receiving status', icon: 'send' },
   physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
   inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
@@ -3919,8 +4885,10 @@ function App() {
   const [rrs, setRrs, rrsReady, rrsErr] = useFirestoreCollection('rrs', SEED_RRS);
   const [mrsDepartment, setMrsDepartment, mrsDepartmentReady, mrsDepartmentErr] = useFirestoreCollection('mrsDepartment', SEED_MRS);
   const [transmittals, setTransmittals, transmittalsReady, transmittalsErr] = useFirestoreCollection('transmittals', SEED_TRANSMITTALS);
-  const allReady = pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady && rrsReady && mrsDepartmentReady && transmittalsReady;
-  const connectionError = pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr || rrsErr || mrsDepartmentErr || transmittalsErr;
+  const [idfFloors, setIdfFloors, idfFloorsReady, idfFloorsErr] = useFirestoreCollection('idfFloors', SEED_IDF_FLOORS);
+  const [idfs, setIdfs, idfsReady, idfsErr] = useFirestoreCollection('idfs', SEED_IDFS);
+  const allReady = idfFloorsReady && idfsReady && pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady && rrsReady && mrsDepartmentReady && transmittalsReady;
+  const connectionError = idfFloorsErr || idfsErr || pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr || rrsErr || mrsDepartmentErr || transmittalsErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
   const [backupBusy, setBackupBusy] = useState(false);
@@ -4192,6 +5160,9 @@ function App() {
           )}
           {page === 'mrsDepartment' && (
             <MrsDepartmentPage data={mrsDepartment} setData={setMrsDepartment} addToast={addToast} query={mrsQuery} setQuery={setMrsQuery} />
+          )}
+          {page === 'idfRack' && (
+            <IdfRackPage floors={idfFloors} setFloors={setIdfFloors} idfs={idfs} setIdfs={setIdfs} addToast={addToast} />
           )}
           {page === 'transmittal' && (
             <TransmittalPage data={transmittals} setData={setTransmittals} addToast={addToast} query={transmittalQuery} setQuery={setTransmittalQuery} />
