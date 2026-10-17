@@ -3635,6 +3635,9 @@ const NAV_GROUPS = [
   { label: 'Network Infrastructure', items: [
       { key: 'idfRack', label: 'IDF Rack Management', icon: 'network' },
     ] },
+  { label: 'Admin', items: [
+      { key: 'backupSettings', label: 'Backup Settings', icon: 'clock' },
+    ] },
   { label: 'Physical Inventory Count', items: PHYSICAL_COUNT_CATEGORIES.map(cat => ({ key: 'physicalCount:' + cat, label: cat, icon: 'box', cat })) },
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
@@ -4850,6 +4853,138 @@ function useFirestoreCollection(collectionName, seedData) {
 }
 
 /* =========================================================
+   BACKUP SETTINGS (Admin)
+   Settings live in Firestore doc _meta/backupSettings; the server-side Cloud Function
+   (functions/index.js) reads them, runs the daily backup, and writes the result to
+   _meta/backupStatus. This page only edits settings and displays status — the browser
+   never performs the backup, so it runs even when the site/PC is closed.
+   ========================================================= */
+const BACKUP_DEFAULT_TZ = 'Asia/Manila';
+function bkTzParts(ms, tz) {
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    .formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; });
+  return { y: +p.year, mo: +p.month, d: +p.day, h: (+p.hour) % 24, mi: +p.minute, key: `${p.year}-${p.month}-${p.day}` };
+}
+function bkZonedToUtc(y, mo, d, h, mi, tz) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  const t = bkTzParts(guess, tz);
+  return guess - (Date.UTC(t.y, t.mo - 1, t.d, t.h, t.mi) - guess);
+}
+function bkNextRun(settings, status) {
+  if (!settings || settings.enabled !== true) return null;
+  const tz = settings.timezone || BACKUP_DEFAULT_TZ;
+  const [h, m] = String(settings.time || '02:00').split(':').map(Number);
+  const now = Date.now();
+  const t = bkTzParts(now, tz);
+  const today = bkZonedToUtc(t.y, t.mo, t.d, h, m, tz);
+  if (status && status.lastSuccessDate === t.key) return { at: bkZonedToUtc(t.y, t.mo, t.d + 1, h, m, tz), due: false };
+  if (now < today) return { at: today, due: false };
+  return { at: today, due: true };
+}
+function bkFmt(ms, tz) {
+  return new Date(ms).toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+}
+
+function BackupSettingsPage({ addToast }) {
+  const [settings, setSettings] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const [form, setForm] = useState({ enabled: false, time: '02:00' });
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [, tick] = useState(0);
+  const dirtyRef = useRef(false);
+  useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+
+  useEffect(() => {
+    const u1 = db.doc('_meta/backupSettings').onSnapshot(snap => {
+      const d = snap.exists ? snap.data() : {};
+      setSettings(d);
+      if (!dirtyRef.current) setForm({ enabled: d.enabled === true, time: d.time || '02:00' });
+      setLoaded(true);
+    }, () => setLoaded(true));
+    const u2 = db.doc('_meta/backupStatus').onSnapshot(snap => setStatus(snap.exists ? snap.data() : {}), () => setStatus({}));
+    const t = setInterval(() => tick(n => n + 1), 60000);
+    return () => { u1(); u2(); clearInterval(t); };
+  }, []);
+
+  async function save() {
+    if (!/^\d{2}:\d{2}$/.test(form.time)) { addToast('Please choose a valid backup time.', 'danger'); return; }
+    setSaving(true);
+    try {
+      await db.doc('_meta/backupSettings').set({
+        enabled: form.enabled, time: form.time,
+        timezone: (settings && settings.timezone) || BACKUP_DEFAULT_TZ,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      setDirty(false);
+      addToast(form.enabled ? 'Daily backup enabled at ' + form.time : 'Automatic backup disabled', 'success');
+    } catch (err) {
+      console.error('Save backup settings failed:', err);
+      addToast('Could not save backup settings. Check your connection.', 'danger');
+    } finally { setSaving(false); }
+  }
+
+  async function runNow() {
+    try {
+      await db.doc('_meta/backupSettings').set({ runNowRequestedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      addToast('Backup requested — the server will run it within about 5 minutes.', 'success');
+    } catch (err) { addToast('Could not request a backup.', 'danger'); }
+  }
+
+  if (!loaded || status === null) return <div className="meta">Loading backup settings…</div>;
+
+  const tz = (settings && settings.timezone) || BACKUP_DEFAULT_TZ;
+  const lastMs = status.lastSuccessAt ? status.lastSuccessAt.toMillis() : null;
+  const next = bkNextRun(settings, status);
+  const running = status.status === 'Running' && status.runningSince && Date.now() - status.runningSince.toMillis() < 15 * 60 * 1000;
+  const shown = running ? 'Running' : (status.status === 'Success' || status.status === 'Failed') ? status.status : 'Not run yet';
+  const pill = { Success: ['var(--green-bg)', 'var(--green-text)', 'var(--green)'], Failed: ['var(--red-bg)', 'var(--red-text)', 'var(--red)'],
+    Running: ['var(--blue-bg)', 'var(--blue-text)', 'var(--blue)'], 'Not run yet': ['var(--gray-bg)', 'var(--gray-text)', '#94A3B8'] }[shown];
+  const row = (label, value) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', padding: '10px 0', borderBottom: '1px solid var(--border, #E5E7EB)', fontSize: '13.5px' }}>
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span><span style={{ fontWeight: 600, textAlign: 'right' }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'grid', gap: '18px', maxWidth: '760px' }}>
+      <SectionPanel variant="pc" icon="clock" title="Daily Automatic Backup" subtitle="Runs on Google's servers every day — even when this website and your PC are closed.">
+        <div className="form-grid">
+          <Field label="Automatic backup">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+              <input type="checkbox" checked={form.enabled} onChange={e => { setForm(f => ({ ...f, enabled: e.target.checked })); setDirty(true); }} style={{ width: '18px', height: '18px' }} />
+              {form.enabled ? 'Enabled' : 'Disabled'}
+            </label>
+          </Field>
+          <Field label={'Daily backup time (' + tz + ')'}>
+            <input className="input" type="time" value={form.time} onChange={e => { setForm(f => ({ ...f, time: e.target.value })); setDirty(true); }} />
+          </Field>
+        </div>
+        <div className="form-actions" style={{ justifyContent: 'flex-start', gap: '10px' }}>
+          <button className="btn btn-primary" onClick={save} disabled={saving || !dirty}>{saving ? 'Saving…' : 'Save Settings'}</button>
+          <button className="btn btn-secondary" onClick={runNow} title="Asks the server to back up now (starts within ~5 minutes)">Run Backup Now</button>
+        </div>
+      </SectionPanel>
+
+      <SectionPanel variant="pc" icon="box" title="Backup Status" subtitle="Everything is saved to a single file that is replaced on every successful backup.">
+        {row('Status', <span className="badge" style={{ background: pill[0], color: pill[1] }}><span className="bdot" style={{ background: pill[2] }}></span>{shown}</span>)}
+        {row('Last successful backup', lastMs ? bkFmt(lastMs, tz) : 'None yet')}
+        {row('Next scheduled backup', !next ? 'Automatic backup is disabled' : next.due ? 'Due now — starts within ~5 minutes' : bkFmt(next.at, tz))}
+        {row('Backup file', (status.fileName || 'ISS_Daily_Backup.json') + ' (replaced each time)')}
+        {status.totalDocuments != null && row('Last backup contents', status.totalDocuments + ' records in ' + status.totalCollections + ' collections' + (status.sizeBytes ? ' · ' + Math.max(1, Math.round(status.sizeBytes / 1024)) + ' KB' : ''))}
+        {status.status === 'Failed' && (
+          <p style={{ marginTop: '12px', fontSize: '12.5px', color: 'var(--red-text)', background: 'var(--red-bg)', padding: '10px 12px', borderRadius: '9px' }}>
+            Last attempt failed{status.lastFailureAt ? ' (' + bkFmt(status.lastFailureAt.toMillis(), tz) + ')' : ''}: {status.message || 'unknown error'}. The previous backup file was left untouched; the server retries automatically.
+          </p>
+        )}
+      </SectionPanel>
+    </div>
+  );
+}
+
+/* =========================================================
    APP ROOT
    ========================================================= */
 const PAGES_META = {
@@ -4865,7 +5000,7 @@ const PAGES_META = {
   idfRack: { title: 'IDF Rack Management', subtitle: 'Floors, IDFs, patch panels, switches and simulated LAN cable connections', icon: 'network' },
   transmittal: { title: 'Transmittal', subtitle: 'Transmittal records and receiving status', icon: 'send' },
   physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
-  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },
+  inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },  backupSettings: { title: 'Backup Settings', subtitle: 'Daily automatic cloud backup of all system records', icon: 'clock' },
 };
 
 function App() {
@@ -5164,6 +5299,7 @@ function App() {
           {page === 'idfRack' && (
             <IdfRackPage floors={idfFloors} setFloors={setIdfFloors} idfs={idfs} setIdfs={setIdfs} addToast={addToast} />
           )}
+          {page === 'backupSettings' && <BackupSettingsPage addToast={addToast} />}
           {page === 'transmittal' && (
             <TransmittalPage data={transmittals} setData={setTransmittals} addToast={addToast} query={transmittalQuery} setQuery={setTransmittalQuery} />
           )}
