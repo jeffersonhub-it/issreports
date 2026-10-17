@@ -5216,8 +5216,14 @@ function App() {
           });
         };
       };
-      if (fmt === 'pdf' || fmt === 'both') { const sk = sinkFor('pdf'); generateBackupPdf(collections, sk); if (!sk) labels.push('PDF'); }
-      if (fmt === 'excel' || fmt === 'both') { const sk = sinkFor('excel'); generateBackupExcel(collections, sk); if (!sk) labels.push('Excel'); }
+      // Auto-backups never create new download files: with no overwrite file chosen, they skip (and tell you once).
+      const noFile = (f) => silent && !handlesRef.current[f];
+      if ((fmt === 'pdf' || fmt === 'both') && !noFile('pdf')) { const sk = sinkFor('pdf'); generateBackupPdf(collections, sk); if (!sk) labels.push('PDF'); }
+      if ((fmt === 'excel' || fmt === 'both') && !noFile('excel')) { const sk = sinkFor('excel'); generateBackupExcel(collections, sk); if (!sk) labels.push('Excel'); }
+      if (silent && ((fmt !== 'excel' && noFile('pdf')) || (fmt !== 'pdf' && noFile('excel'))) && !permWarnedRef.current) {
+        permWarnedRef.current = true;
+        addToast('Auto-backup skipped: choose a file to overwrite under Data Backup (no new files are created).', 'danger');
+      }
       if (labels.length) {
         setLastBackupAt(new Date());
         const what = labels.join(' & ');
