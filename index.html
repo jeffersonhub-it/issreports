@@ -854,7 +854,7 @@ function backupFilenameBase(now) {
   return 'ISS_Backup_' + now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 8).replace(/:/g, '');
 }
 
-function generateBackupPdf(collections) {
+function generateBackupPdf(collections, sink) {
   if (!window.jspdf || !window.jspdf.jsPDF) {
     throw new Error('PDF library not loaded');
   }
@@ -907,11 +907,12 @@ function generateBackupPdf(collections) {
   });
 
   const filename = backupFilenameBase(now) + '.pdf';
+  if (sink) { sink(doc.output('blob')); return filename; }
   doc.save(filename);
   return filename;
 }
 
-function generateBackupExcel(collections) {
+function generateBackupExcel(collections, sink) {
   if (!window.XLSX) {
     throw new Error('Excel library not loaded');
   }
@@ -953,6 +954,7 @@ function generateBackupExcel(collections) {
   });
 
   const filename = backupFilenameBase(now) + '.xlsx';
+  if (sink) { sink(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); return filename; }
   XLSX.writeFile(wb, filename);
   return filename;
 }
@@ -3642,7 +3644,7 @@ const NAV_GROUPS = [
   { label: 'Inventory by Location', collapsible: true, items: INVENTORY_LOCATIONS.map(loc => ({ key: 'inventory:' + loc, label: loc, icon: 'box', loc })) },
 ];
 
-function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, onInstallClick, pendingWrites, onHiddenFooterClick }) {
+function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, posCount, locCounts, physCatCounts, onBackupNow, backupBusy, autoBackupMinutes, onAutoBackupChange, lastBackupAt, backupFormat, onBackupFormatChange, overwriteInfo, onPickOverwrite, onAllowOverwrite, onClearOverwrite, onInstallClick, pendingWrites, onHiddenFooterClick }) {
   const FORMAT_CHOICES = [
     { key: 'pdf', label: 'PDF' },
     { key: 'excel', label: 'Excel' },
@@ -3766,6 +3768,24 @@ function Sidebar({ active, activeLoc, activePhysCat, onSelect, open, pcCount, po
               </button>
             ))}
           </div>
+          {(backupFormat === 'both' ? ['pdf', 'excel'] : [backupFormat]).map(f => {
+            const info = (overwriteInfo || {})[f];
+            const lab = f === 'pdf' ? 'PDF' : 'Excel';
+            const mini = { fontSize: '10.5px', fontWeight: 600, padding: '4px 7px', borderRadius: '6px', border: '1px solid var(--ink-border)', background: 'var(--ink-2)', color: '#B7C2D6', cursor: 'pointer', flex: 'none' };
+            return (
+              <div key={f} style={{ marginBottom: '8px', fontSize: '11px', color: '#B7C2D6' }}>
+                {info ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={info.name}>{lab} overwrites: {info.name}</span>
+                    {!info.granted && <button type="button" style={{ ...mini, color: '#fff', background: 'var(--accent-dark)', borderColor: 'var(--accent)' }} onClick={() => onAllowOverwrite(f)}>Allow</button>}
+                    <button type="button" style={mini} title="Stop overwriting (use normal downloads)" onClick={() => onClearOverwrite(f)}>&times;</button>
+                  </div>
+                ) : (
+                  <button type="button" style={{ ...mini, width: '100%' }} onClick={() => onPickOverwrite(f)}>Choose {lab} file to overwrite</button>
+                )}
+              </div>
+            );
+          })}
           <button
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', background: 'var(--accent-dark)', marginBottom: '8px' }}
@@ -4984,6 +5004,11 @@ function BackupSettingsPage({ addToast }) {
   );
 }
 
+/* Remembers the file chosen for "overwrite" backups (File System Access handle) across reloads. */
+function bkIdb() { return new Promise((res, rej) => { const r = indexedDB.open('iss-backup-handles', 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function bkIdbSet(k, v) { const d = await bkIdb(); return new Promise((res, rej) => { const t = d.transaction('h', 'readwrite'); if (v === null) t.objectStore('h').delete(k); else t.objectStore('h').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function bkIdbGet(k) { const d = await bkIdb(); return new Promise((res, rej) => { const q = d.transaction('h').objectStore('h').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); }
+
 /* =========================================================
    APP ROOT
    ========================================================= */
@@ -5031,6 +5056,9 @@ function App() {
   const [backupFormat, setBackupFormat] = useState('pdf');
   const [lastBackupAt, setLastBackupAt] = useState(null);
   const errorBackupFiredRef = useRef(false);
+  const handlesRef = useRef({ pdf: null, excel: null });
+  const permWarnedRef = useRef(false);
+  const [overwriteInfo, setOverwriteInfo] = useState({});
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [pendingWrites, setPendingWrites] = useState(0);
@@ -5112,17 +5140,89 @@ function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
   }
 
+  async function refreshOverwriteInfo() {
+    const info = {};
+    for (const f of ['pdf', 'excel']) {
+      const h = handlesRef.current[f];
+      if (!h) continue;
+      let granted = false;
+      try { granted = (await h.queryPermission({ mode: 'readwrite' })) === 'granted'; } catch (e) {}
+      info[f] = { name: h.name, granted };
+    }
+    setOverwriteInfo(info);
+  }
+  useEffect(() => {
+    (async () => {
+      try { for (const f of ['pdf', 'excel']) handlesRef.current[f] = await bkIdbGet(f); } catch (e) {}
+      refreshOverwriteInfo();
+    })();
+  }, []);
+  async function pickOverwrite(fmt) {
+    if (!window.showSaveFilePicker) { addToast('Overwrite needs Chrome or Edge on a computer.', 'danger'); return; }
+    const isPdf = fmt === 'pdf';
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: 'ISS_Backup' + (isPdf ? '.pdf' : '.xlsx'),
+        types: [{ description: isPdf ? 'PDF' : 'Excel', accept: isPdf ? { 'application/pdf': ['.pdf'] } : { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
+      });
+      handlesRef.current[fmt] = h;
+      await bkIdbSet(fmt, h);
+      permWarnedRef.current = false;
+      await refreshOverwriteInfo();
+      addToast('Backups will now overwrite ' + h.name, 'success');
+    } catch (err) {
+      if (err && err.name !== 'AbortError') { console.error(err); addToast('Could not select that file.', 'danger'); }
+    }
+  }
+  async function allowOverwrite(fmt) {
+    const h = handlesRef.current[fmt];
+    if (!h) return;
+    try { await h.requestPermission({ mode: 'readwrite' }); permWarnedRef.current = false; } catch (e) { console.error(e); }
+    refreshOverwriteInfo();
+  }
+  async function clearOverwrite(fmt) {
+    handlesRef.current[fmt] = null;
+    try { await bkIdbSet(fmt, null); } catch (e) {}
+    refreshOverwriteInfo();
+    addToast('Back to normal downloads for ' + (fmt === 'pdf' ? 'PDF' : 'Excel'), 'success');
+  }
+  async function writeOverwrite(fmt, blob) {
+    const w = await handlesRef.current[fmt].createWritable(); // writes to a temp copy; the real file is replaced only on close()
+    await w.write(blob);
+    await w.close();
+  }
+
   function runBackup(silent, format) {
     const fmt = format || backupFormat;
     setBackupBusy(true);
     try {
       const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount, replacements, rrs, mrsDepartment, transmittals };
       const labels = [];
-      if (fmt === 'pdf' || fmt === 'both') { generateBackupPdf(collections); labels.push('PDF'); }
-      if (fmt === 'excel' || fmt === 'both') { generateBackupExcel(collections); labels.push('Excel'); }
-      setLastBackupAt(new Date());
-      const what = labels.join(' & ');
-      addToast(silent ? `Auto-backup ${what} downloaded` : `Backup ${what} downloaded successfully`, 'success');
+      const sinkFor = (f) => {
+        const h = handlesRef.current[f];
+        if (!h) return undefined;
+        return (blob) => {
+          writeOverwrite(f, blob).then(() => {
+            setLastBackupAt(new Date());
+            permWarnedRef.current = false;
+            addToast((silent ? 'Auto-backup' : 'Backup') + ' saved over ' + h.name, 'success');
+          }).catch(err => {
+            console.error('Overwrite failed:', err);
+            refreshOverwriteInfo();
+            if (!permWarnedRef.current) {
+              permWarnedRef.current = true;
+              addToast('Cannot overwrite ' + h.name + ' — click "Allow" under Data Backup (or choose the file again).', 'danger');
+            }
+          });
+        };
+      };
+      if (fmt === 'pdf' || fmt === 'both') { const sk = sinkFor('pdf'); generateBackupPdf(collections, sk); if (!sk) labels.push('PDF'); }
+      if (fmt === 'excel' || fmt === 'both') { const sk = sinkFor('excel'); generateBackupExcel(collections, sk); if (!sk) labels.push('Excel'); }
+      if (labels.length) {
+        setLastBackupAt(new Date());
+        const what = labels.join(' & ');
+        addToast(silent ? `Auto-backup ${what} downloaded` : `Backup ${what} downloaded successfully`, 'success');
+      }
     } catch (err) {
       console.error('Backup failed:', err);
       addToast('Backup failed — a required library did not load. Check your internet connection.', 'danger');
@@ -5223,6 +5323,10 @@ function App() {
         lastBackupAt={lastBackupAt}
         backupFormat={backupFormat}
         onBackupFormatChange={setBackupFormat}
+        overwriteInfo={overwriteInfo}
+        onPickOverwrite={pickOverwrite}
+        onAllowOverwrite={allowOverwrite}
+        onClearOverwrite={clearOverwrite}
         pendingWrites={pendingWrites}
         onHiddenFooterClick={handleHiddenFooterClick}
       />
