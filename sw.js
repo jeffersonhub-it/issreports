@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iss-monitoring-v1';
+const CACHE_NAME = 'iss-monitoring-v2';
 const CORE_ASSETS = [
   './index.html',
   './manifest.json',
@@ -27,8 +27,9 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
+  // cache:'no-store' skips the browser's HTTP cache so a freshly deployed index.html is always picked up.
   event.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-store' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
