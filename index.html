@@ -614,7 +614,7 @@ function nextId(prefix){ idCounter += 1; return prefix + '-' + Date.now().toStri
    queues writes locally even if the tab closes — no interrupting confirm prompt needed. */
 window.__pendingFirestoreWrites = 0;
 
-const ALL_FIRESTORE_COLLECTIONS = ['pcReports','saReports','pcInventory','posInventory','ghlReports','ghlTerminals','inventory','physicalCount','replacements','rrs','mrsDepartment','transmittals'];
+const ALL_FIRESTORE_COLLECTIONS = ['pcReports','saReports','pcInventory','posInventory','ghlReports','ghlTerminals','inventory','physicalCount','replacements','rrs','mrsDepartment','transmittals','rsRecords','acknowledgements'];
 
 /* Deletes every document in every collection the app uses, and marks each collection's
    _meta flag as "seeded" so the old starter/demo data never gets auto-inserted again. */
@@ -778,6 +778,17 @@ const SEED_TRANSMITTALS = [
   { id:'TRN-3', transmittalNumber:'TRN-2026-003', from:'Admin', to:'Storage', date:'2026-08-14', description:'Transmittal of old monitors to storage', cet:'CE78', status:'Received' },
 ];
 
+const SEED_RS = [
+  { id:'RS-1', date:'2026-08-20', rsNumber:'RS-2026-001', department:'ICT', quantity:2, description:'Wireless mouse', purpose:'Replacement for defective units', requestedBy:'Anna Cruz', notedBy:'Mark Villanueva' },
+  { id:'RS-2', date:'2026-08-17', rsNumber:'RS-2026-002', department:'AUDIT', quantity:1, description:'Keyboard', purpose:'Replacement for worn-out keyboard', requestedBy:'Liza Reyes', notedBy:'Mark Villanueva' },
+  { id:'RS-3', date:'2026-08-11', rsNumber:'RS-2026-003', department:'ADMIN', quantity:5, description:'HDMI cable', purpose:'Meeting room setup', requestedBy:'John Santos', notedBy:'Anna Cruz' },
+];
+
+const SEED_ACK = [
+  { id:'ACK-1', date:'2026-08-21', origin:'Automatic Alabang', toDept:'ICT', fromDept:'ADMIN', description:'Wireless mouse', quantity:2, remarks:'Complete and in good condition', preparedBy:'John Santos', approvedBy:'Mark Villanueva' },
+  { id:'ACK-2', date:'2026-08-18', origin:'Automatic Alabang', toDept:'AUDIT', fromDept:'ICT', description:'Keyboard', quantity:1, remarks:'', preparedBy:'Liza Reyes', approvedBy:'Anna Cruz' },
+];
+
 /* =========================================================
    HELPERS
    ========================================================= */
@@ -844,6 +855,8 @@ function buildBackupSections(collections) {
         ['date','Date'], ['description','Description'], ['department','Department'], ['receivedBy','Received By'], ['receivedDate','Received Date'],
       ], rows: collections.mrsDepartment },
     { title: 'Admin Request — Transmittal', columns: TRANSMITTAL_COLUMNS, rows: collections.transmittals },
+    { title: 'Admin Request — RS', columns: RS_COLUMNS, rows: collections.rsRecords },
+    { title: 'Admin Request — Acknowledgement', columns: ACK_COLUMNS, rows: collections.acknowledgements },
   ];
 }
 
@@ -2215,6 +2228,320 @@ function TransmittalPage({ data, setData, addToast, query, setQuery }) {
       {confirmState && (
         <ConfirmDialog
           message={`Delete transmittal ${confirmState.transmittalNumber ? `"${confirmState.transmittalNumber}" ` : ''}dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN REQUEST — RS
+   ========================================================= */
+const RS_COLUMNS = [
+  ['date', 'Date'], ['rsNumber', 'RS #'], ['department', 'Department'], ['quantity', 'Quantity'], ['description', 'Description'], ['purpose', 'Purpose'], ['requestedBy', 'Requested By'], ['notedBy', 'Noted By'],
+];
+
+function RsFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10),
+    rsNumber: '', department: DEPARTMENTS[0], quantity: 1, description: '', purpose: '', requestedBy: '', notedBy: '',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!(form.rsNumber || '').trim() || !form.description.trim() || !form.date) return;
+    onSave({ ...form, quantity: Number(form.quantity) || 0, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit RS' : 'Add RS'} onClose={onClose} maxWidth="600px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="RS #" required><input className="input mono" style={{ width: '100%' }} value={form.rsNumber || ''} onChange={e => update('rsNumber', e.target.value)} placeholder="e.g. RS-2026-001" required /></Field>
+        <Field label="Department" required>
+          <select className="select" style={{ width: '100%' }} value={form.department} onChange={e => update('department', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Quantity" required><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Description" full required>
+          <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Describe the item/s requested" required />
+        </Field>
+        <Field label="Purpose" full>
+          <textarea className="textarea" rows="2" value={form.purpose || ''} onChange={e => update('purpose', e.target.value)} placeholder="What is the request for?" />
+        </Field>
+        <Field label="Requested By"><input className="input" style={{ width: '100%' }} value={form.requestedBy || ''} onChange={e => update('requestedBy', e.target.value)} placeholder="Name of requester" /></Field>
+        <Field label="Noted By"><input className="input" style={{ width: '100%' }} value={form.notedBy || ''} onChange={e => update('notedBy', e.target.value)} placeholder="Name of approver/noter" /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add RS'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function RsPage({ data, setData, addToast, query, setQuery }) {
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      return !q || [r.rsNumber, r.department, r.description, r.purpose, r.requestedBy, r.notedBy].join(' ').toLowerCase().includes(q);
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else if (sortKey === 'quantity') { av = Number(av) || 0; bv = Number(bv) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+    return rows;
+  }, [data, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('RS updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('RS') }, ...prev]);
+      addToast('RS added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('RS deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search RS records..." className="toolbar-search-mobile" />
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add RS</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="rtable rtable-fixed" style={{ minWidth: 1430 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 130 }} /><col style={{ width: 140 }} /><col style={{ width: 100 }} /><col style={{ width: 300 }} /><col style={{ width: 240 }} /><col style={{ width: 160 }} /><col style={{ width: 160 }} /><col style={{ width: 90 }} /></colgroup>
+            <thead>
+              <tr>
+                {RS_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={RS_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No RS records match your search.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="mono" data-label="RS #">{r.rsNumber || '—'}</td>
+                  <td className="truncate" title={r.department} data-label="Department">{r.department || '—'}</td>
+                  <td className="mono" data-label="Quantity">{r.quantity ?? '—'}</td>
+                  <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
+                  <td className="truncate" title={r.purpose} data-label="Purpose">{r.purpose || '—'}</td>
+                  <td className="truncate" title={r.requestedBy} data-label="Requested By">{r.requestedBy || '—'}</td>
+                  <td className="truncate" title={r.notedBy} data-label="Noted By">{r.notedBy || '—'}</td>
+                  <td data-label="Actions">
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <RsFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete RS ${confirmState.rsNumber ? `"${confirmState.rsNumber}" ` : ''}dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={handleDeleteConfirmed}
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN REQUEST — ACKNOWLEDGEMENT
+   Origin is filled in automatically (ACK_ORIGIN) and is read-only on the form.
+   ========================================================= */
+const ACK_ORIGIN = 'Automatic Alabang';
+const ACK_COLUMNS = [
+  ['date', 'Date'], ['origin', 'Origin'], ['toDept', 'To'], ['fromDept', 'From'], ['description', 'Description'], ['quantity', 'Quantity'], ['remarks', 'Remarks'], ['preparedBy', 'Prepared By'], ['approvedBy', 'Approved By'],
+];
+
+function AckFormModal({ record, onClose, onSave }) {
+  const [form, setForm] = useState(() => record ? { ...record } : {
+    date: new Date().toISOString().slice(0, 10),
+    origin: ACK_ORIGIN, toDept: DEPARTMENTS[0], fromDept: DEPARTMENTS[0], description: '', quantity: 1, remarks: '', preparedBy: '', approvedBy: '',
+  });
+  function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function submit(e) {
+    e.preventDefault();
+    if (!form.description.trim() || !form.date) return;
+    onSave({ ...form, origin: ACK_ORIGIN, quantity: Number(form.quantity) || 0, id: record ? record.id : null });
+  }
+  return (
+    <Modal title={record ? 'Edit Acknowledgement' : 'Add Acknowledgement'} onClose={onClose} maxWidth="600px">
+      <form onSubmit={submit} className="form-grid">
+        <Field label="Date" required><input type="date" className="input" value={form.date} onChange={e => update('date', e.target.value)} required /></Field>
+        <Field label="Origin"><input className="input" style={{ width: '100%' }} value={ACK_ORIGIN} readOnly title="Filled in automatically" /></Field>
+        <Field label="To" required>
+          <select className="select" style={{ width: '100%' }} value={form.toDept} onChange={e => update('toDept', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="From" required>
+          <select className="select" style={{ width: '100%' }} value={form.fromDept} onChange={e => update('fromDept', e.target.value)}>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Description" full required>
+          <textarea className="textarea" rows="2" value={form.description} onChange={e => update('description', e.target.value)} placeholder="Describe the item/s being acknowledged" required />
+        </Field>
+        <Field label="Quantity" required><input type="number" min="0" className="input" style={{ width: '100%' }} value={form.quantity} onChange={e => update('quantity', e.target.value)} required /></Field>
+        <Field label="Remarks"><input className="input" style={{ width: '100%' }} value={form.remarks || ''} onChange={e => update('remarks', e.target.value)} placeholder="Optional remarks" /></Field>
+        <Field label="Prepared By"><input className="input" style={{ width: '100%' }} value={form.preparedBy || ''} onChange={e => update('preparedBy', e.target.value)} placeholder="Name of preparer" /></Field>
+        <Field label="Approved By"><input className="input" style={{ width: '100%' }} value={form.approvedBy || ''} onChange={e => update('approvedBy', e.target.value)} placeholder="Name of approver" /></Field>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary"><Icon name="check" size={15} /> {record ? 'Save Changes' : 'Add Acknowledgement'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function AckPage({ data, setData, addToast, query, setQuery }) {
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+
+  const filtered = useMemo(() => {
+    let rows = data.filter(r => {
+      const q = query.trim().toLowerCase();
+      return !q || [r.origin, r.toDept, r.fromDept, r.description, r.remarks, r.preparedBy, r.approvedBy].join(' ').toLowerCase().includes(q);
+    });
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'date') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      else if (sortKey === 'quantity') { av = Number(av) || 0; bv = Number(bv) || 0; }
+      else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+    return rows;
+  }, [data, query, sortKey, sortDir]);
+
+  useEffect(() => { setPage(1); }, [query]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+  function openAdd() { setEditingRecord(null); setModalOpen(true); }
+  function openEdit(r) { setEditingRecord(r); setModalOpen(true); }
+  function handleSave(record) {
+    if (record.id) {
+      setData(prev => prev.map(r => r.id === record.id ? record : r));
+      addToast('Acknowledgement updated successfully', 'success');
+    } else {
+      setData(prev => [{ ...record, createdAt: Date.now(), id: nextId('ACK') }, ...prev]);
+      addToast('Acknowledgement added successfully', 'success');
+    }
+    setModalOpen(false);
+  }
+  function handleDeleteConfirmed() {
+    setData(prev => prev.filter(r => r.id !== confirmState.id));
+    addToast('Acknowledgement deleted', 'danger');
+    setConfirmState(null);
+  }
+
+  return (
+    <div>
+      <div className="toolbar">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search acknowledgements..." className="toolbar-search-mobile" />
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-primary" onClick={openAdd}><Icon name="plus" size={15} /> Add Acknowledgement</button>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="rtable rtable-fixed" style={{ minWidth: 1540 }}>
+            <colgroup><col style={{ width: 120 }} /><col style={{ width: 170 }} /><col style={{ width: 140 }} /><col style={{ width: 140 }} /><col style={{ width: 280 }} /><col style={{ width: 100 }} /><col style={{ width: 200 }} /><col style={{ width: 150 }} /><col style={{ width: 150 }} /><col style={{ width: 90 }} /></colgroup>
+            <thead>
+              <tr>
+                {ACK_COLUMNS.map(([key, label]) => (
+                  <SortableTh key={key} label={label} sortKey={key} currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 && <tr><td colSpan={ACK_COLUMNS.length + 1} className="empty-row"><div className="empty-state"><span className="empty-ic"><Icon name="search" size={16} /></span>No acknowledgement records match your search.</div></td></tr>}
+              {pageRows.map(r => (
+                <tr key={r.id}>
+                  <td className="mono" data-label="Date">{formatDate(r.date)}</td>
+                  <td className="truncate" title={r.origin} data-label="Origin">{r.origin || ACK_ORIGIN}</td>
+                  <td className="truncate" title={r.toDept} data-label="To">{r.toDept || '—'}</td>
+                  <td className="truncate" title={r.fromDept} data-label="From">{r.fromDept || '—'}</td>
+                  <td className="truncate" title={r.description} data-label="Description">{r.description}</td>
+                  <td className="mono" data-label="Quantity">{r.quantity ?? '—'}</td>
+                  <td className="truncate" title={r.remarks} data-label="Remarks">{r.remarks || '—'}</td>
+                  <td className="truncate" title={r.preparedBy} data-label="Prepared By">{r.preparedBy || '—'}</td>
+                  <td className="truncate" title={r.approvedBy} data-label="Approved By">{r.approvedBy || '—'}</td>
+                  <td data-label="Actions">
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Edit" onClick={() => openEdit(r)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn danger" title="Delete" onClick={() => setConfirmState(r)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={filtered.length} pageSize={pageSize} />
+      </div>
+      {modalOpen && <AckFormModal record={editingRecord} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+      {confirmState && (
+        <ConfirmDialog
+          message={`Delete acknowledgement from ${confirmState.fromDept || '—'} to ${confirmState.toDept || '—'} dated ${formatDate(confirmState.date)}? This action cannot be undone.`}
           onCancel={() => setConfirmState(null)}
           onConfirm={handleDeleteConfirmed}
         />
@@ -3630,6 +3957,8 @@ const NAV_GROUPS = [
       { key: 'rrs', label: 'RRS', icon: 'clipboard' },
       { key: 'mrsDepartment', label: 'MSRS Department', icon: 'inbox' },
       { key: 'transmittal', label: 'Transmittal', icon: 'send' },
+      { key: 'rs', label: 'RS', icon: 'clipboard' },
+      { key: 'acknowledgement', label: 'Acknowledgement', icon: 'check' },
     ] },
   { label: 'Network Infrastructure', items: [
       { key: 'idfRack', label: 'IDF Rack Management', icon: 'network' },
@@ -5021,6 +5350,8 @@ const PAGES_META = {
   mrsDepartment: { title: 'MSRS Department', subtitle: 'Material Request Slip records by department', icon: 'inbox' },
   idfRack: { title: 'IDF Rack Management', subtitle: 'Floors, IDFs, patch panels, switches and simulated LAN cable connections', icon: 'network' },
   transmittal: { title: 'Transmittal', subtitle: 'Transmittal records and receiving status', icon: 'send' },
+  rs: { title: 'RS', subtitle: 'Request Slip records by department', icon: 'clipboard' },
+  acknowledgement: { title: 'Acknowledgement', subtitle: 'Acknowledgement records from Alabang to departments', icon: 'check' },
   physicalCount: { title: 'Physical Inventory Count', subtitle: 'Stock records for PDT, Tablet, and Charger units', icon: 'box' },
   inventory: { title: 'Inventory', subtitle: 'Stock records across Main Office, Second Room, Server, DS1-4, and Cabin', icon: 'box' },  backupSettings: { title: 'Backup Settings', subtitle: 'Daily automatic cloud backup of all system records', icon: 'clock' },
 };
@@ -5042,10 +5373,12 @@ function App() {
   const [rrs, setRrs, rrsReady, rrsErr] = useFirestoreCollection('rrs', SEED_RRS);
   const [mrsDepartment, setMrsDepartment, mrsDepartmentReady, mrsDepartmentErr] = useFirestoreCollection('mrsDepartment', SEED_MRS);
   const [transmittals, setTransmittals, transmittalsReady, transmittalsErr] = useFirestoreCollection('transmittals', SEED_TRANSMITTALS);
+  const [rsRecords, setRsRecords, rsRecordsReady, rsRecordsErr] = useFirestoreCollection('rsRecords', SEED_RS);
+  const [acks, setAcks, acksReady, acksErr] = useFirestoreCollection('acknowledgements', SEED_ACK);
   const [idfFloors, setIdfFloors, idfFloorsReady, idfFloorsErr] = useFirestoreCollection('idfFloors', SEED_IDF_FLOORS);
   const [idfs, setIdfs, idfsReady, idfsErr] = useFirestoreCollection('idfs', SEED_IDFS);
-  const allReady = idfFloorsReady && idfsReady && pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady && rrsReady && mrsDepartmentReady && transmittalsReady;
-  const connectionError = idfFloorsErr || idfsErr || pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr || rrsErr || mrsDepartmentErr || transmittalsErr;
+  const allReady = idfFloorsReady && idfsReady && pcReportsReady && saReportsReady && pcInventoryReady && posInventoryReady && ghlReportsReady && ghlTerminalsReady && inventoryReady && physicalCountReady && replacementsReady && rrsReady && mrsDepartmentReady && transmittalsReady && rsRecordsReady && acksReady;
+  const connectionError = idfFloorsErr || idfsErr || pcReportsErr || saReportsErr || pcInventoryErr || posInventoryErr || ghlReportsErr || ghlTerminalsErr || inventoryErr || physicalCountErr || replacementsErr || rrsErr || mrsDepartmentErr || transmittalsErr || rsRecordsErr || acksErr;
   const [toasts, setToasts] = useState([]);
   const [clock, setClock] = useState(new Date());
   const [backupBusy, setBackupBusy] = useState(false);
@@ -5125,6 +5458,8 @@ function App() {
   const [rrsQuery, setRrsQuery] = useState('');
   const [mrsQuery, setMrsQuery] = useState('');
   const [transmittalQuery, setTransmittalQuery] = useState('');
+  const [rsQuery, setRsQuery] = useState('');
+  const [ackQuery, setAckQuery] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 30000);
@@ -5193,7 +5528,7 @@ function App() {
     const fmt = format || backupFormat;
     setBackupBusy(true);
     try {
-      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount, replacements, rrs, mrsDepartment, transmittals };
+      const collections = { pcReports, saReports, pcInventory, posInventory, ghlReports, ghlTerminals, inventory, physicalCount, replacements, rrs, mrsDepartment, transmittals, rsRecords, acknowledgements: acks };
       const labels = [];
       const sinkFor = (f) => {
         const h = handlesRef.current[f];
@@ -5278,6 +5613,8 @@ function App() {
   if (page === 'replacements') searchProps = { show: true, query: replQuery, setQuery: setReplQuery, placeholder: 'Search by department, PC name, item name, or status...' };
   if (page === 'rrs') searchProps = { show: true, query: rrsQuery, setQuery: setRrsQuery, placeholder: 'Search by RRS #, department, scope of work, or CET...' };
   if (page === 'mrsDepartment') searchProps = { show: true, query: mrsQuery, setQuery: setMrsQuery, placeholder: 'Search by description, department, or received by...' };
+  if (page === 'rs') searchProps = { show: true, query: rsQuery, setQuery: setRsQuery, placeholder: 'Search by RS #, department, description, purpose, or requested by...' };
+  if (page === 'acknowledgement') searchProps = { show: true, query: ackQuery, setQuery: setAckQuery, placeholder: 'Search by to, from, description, remarks, or prepared by...' };
   if (page === 'transmittal') searchProps = { show: true, query: transmittalQuery, setQuery: setTransmittalQuery, placeholder: 'Search by transmittal #, from, to, description, CET, or status...' };
 
   if (!allReady) {
@@ -5356,6 +5693,8 @@ function App() {
             <span className="tick-item"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
             <span className="tick-item"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MSRS Department Records</span>
             <span className="tick-item"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#0891B2' }}></span>{rsRecords.length} RS Records</span>
+            <span className="tick-item"><span className="dot" style={{ background: '#DB2777' }}></span>{acks.length} Acknowledgements</span>
             <span className="tick-item muted">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent)' }}></span>{pcReports.length} Back Office Reports</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: 'var(--accent-2)' }}></span>{saReports.length} Selling Area Reports</span>
@@ -5368,6 +5707,8 @@ function App() {
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#2563EB' }}></span>{rrs.length} RRS Records</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#16A34A' }}></span>{mrsDepartment.length} MSRS Department Records</span>
             <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#EA580C' }}></span>{transmittals.length} Transmittal Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#0891B2' }}></span>{rsRecords.length} RS Records</span>
+            <span className="tick-item" aria-hidden="true"><span className="dot" style={{ background: '#DB2777' }}></span>{acks.length} Acknowledgements</span>
             <span className="tick-item muted" aria-hidden="true">Last sync {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
         </div>
@@ -5407,6 +5748,12 @@ function App() {
             <IdfRackPage floors={idfFloors} setFloors={setIdfFloors} idfs={idfs} setIdfs={setIdfs} addToast={addToast} />
           )}
           {page === 'backupSettings' && <BackupSettingsPage addToast={addToast} />}
+          {page === 'rs' && (
+            <RsPage data={rsRecords} setData={setRsRecords} addToast={addToast} query={rsQuery} setQuery={setRsQuery} />
+          )}
+          {page === 'acknowledgement' && (
+            <AckPage data={acks} setData={setAcks} addToast={addToast} query={ackQuery} setQuery={setAckQuery} />
+          )}
           {page === 'transmittal' && (
             <TransmittalPage data={transmittals} setData={setTransmittals} addToast={addToast} query={transmittalQuery} setQuery={setTransmittalQuery} />
           )}
