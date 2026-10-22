@@ -423,8 +423,8 @@
   }
 
   /* ===== IDF Rack Management (namespaced; does not affect other pages) ===== */
-  .idf-shell{background:linear-gradient(180deg,#0A1226,#0C1633);border-radius:20px;padding:24px;color:#E6EDFB;font-size:15px;line-height:1.45;}
-  .idf-grid{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:24px;align-items:start;}
+  .idf-shell{background:linear-gradient(180deg,#0A1226,#0C1633);border-radius:20px;padding:24px;color:#E6EDFB;font-size:15px;line-height:1.45;overflow-x:auto;}
+  .idf-grid{display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:24px;align-items:start;min-width:1440px;}
   .idf-panel{background:#101A33;border-radius:16px;padding:20px;min-width:0;box-shadow:0 10px 30px rgba(0,0,0,.25);}
   .idf-panel h3{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#9FB2D6;margin:0;font-weight:700;}
   .idf-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
@@ -494,9 +494,6 @@
   .idf-sub{font-size:13px;color:#BFD0F0;font-weight:700;margin:18px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .idf-lrow{display:flex;gap:12px;align-items:center;padding:10px 8px 10px 12px;border-radius:10px;background:#0C1530;margin-bottom:8px;}
   .idf-swatch{width:14px;height:14px;border-radius:4px;flex:none;}
-  @media (max-width:1380px){.idf-grid{grid-template-columns:260px minmax(0,1fr) 320px;gap:18px;}.idf-stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
-  @media (max-width:1100px){.idf-grid{grid-template-columns:270px minmax(0,1fr);}.idf-right{grid-column:1 / -1;}}
-  @media (max-width:800px){.idf-shell{padding:14px;border-radius:14px;}.idf-grid{grid-template-columns:1fr;}.idf-title h2{font-size:24px;}.idf-stat{padding:12px;}.idf-panel{padding:16px;}}
 </style>
 </head>
 <body>
@@ -3980,7 +3977,7 @@ function IdfRackDiagram({ idf, hoverCable, setHoverCable, selectedCable, setSele
   };
 
   return (
-    <svg viewBox={`0 0 ${L.W} ${L.height}`} width="100%" style={{ display: 'block', minWidth: Math.round(L.W * 0.8) }} role="img" aria-label={`Rack diagram for ${idf.name}`}>
+    <svg viewBox={`0 0 ${L.W} ${L.height}`} width="100%" style={{ display: 'block', width: '100%', height: 'auto' }} role="img" aria-label={`Rack diagram for ${idf.name}`}>
       <defs>
         <linearGradient id="idfDevGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1B2B52" /><stop offset="1" stopColor="#111C38" /></linearGradient>
         <linearGradient id="idfRack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0E1832" /><stop offset="1" stopColor="#09112A" /></linearGradient>
